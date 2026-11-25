@@ -1,5 +1,9 @@
 # ⚜️ Endless Dungeon — Dark Fantasy Tactical RPG
 
+[![Play Live on GitHub Pages](https://img.shields.io/badge/🎮_Mainkan_Sekarang-GitHub_Pages-d4af37?style=for-the-badge)](https://hugoagfarizky.github.io/Endless-Dungeon/)
+
+🌐 **Live Demo (GitHub Pages):** [https://hugoagfarizky.github.io/Endless-Dungeon/](https://hugoagfarizky.github.io/Endless-Dungeon/)
+
 **Endless Dungeon** adalah game web *2.5D Top-Down Tactical Turn-Based Roguelike RPG* bertema *Dark Fantasy* Abad Pertengahan yang dibangun murni menggunakan **HTML5 Canvas, CSS3, dan Vanilla JavaScript** tanpa *dependency* eksternal. Pimpin sebuah Ordo beranggotakan 4 Ksatria menembus lantai ruang bawah tanah tak terbatas, kelola sumber daya obor, tempa zirah legendaris, dan taklukkan para *Dread Lord* di setiap kedalaman biome!
 
 ---
