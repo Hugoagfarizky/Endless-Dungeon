@@ -1,0 +1,32 @@
+=== GAMEPLAY & PROGRESSION ===
+1. Skill Tree per Hero
+2. Relic / Charm slot
+3. Party synergy bonus
+4. Ascension modifier pilihan
+5. Prestige / New Game+
+
+=== COMBAT ===
+6. Combo counter
+7. Interrupt / counter-attack
+8. Environmental hazard
+9. Boss enrage timer
+10. Formation tactic
+
+=== DUNGEON & EXPLORATION ===
+11. Secret room
+12. Shrine of Memory
+13. Merchant caravan
+14. Trap disarm
+15. Torch upgrade
+
+=== UI/UX & AUDIO ===
+16. Damage number popup lebih besar
+17. Sound volume slider
+18. Pause menu
+19. Bestiary mastery bar
+20. Screen shake intensity setting
+
+=== META & SOCIAL ===
+21. Daily Challenge
+22. Achievement system
+23. Run history

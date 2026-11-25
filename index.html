@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Dungeon — Dark Fantasy Tactical RPG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-wrapper">
+        <!-- HEADER ATAS BERGAYA BESI TEMPA & PERUNGGU -->
+        <header id="game-header">
+            <div class="brand-cluster">
+                <div class="brand-crest" aria-hidden="true">⚜️</div>
+                <div class="brand">
+                    <h1>ENDLESS DUNGEON</h1>
+                    <div class="subtitle">
+                        <span id="biome-badge" class="biome-pill">Abandoned Crypt</span>
+                        <span class="sep">•</span>
+                        <span>Ascension <b id="ascension-badge" style="color:#00ffff;">Lv.0</b></span>
+                        <span class="sep">•</span>
+                        <span>Prestige <b id="prestige-badge" style="color:#e056fd;">Lv.0</b></span>
+                        <span class="sep">•</span>
+                        <span>Seed: <b id="run-seed-badge" style="color:#c56cf0;">Acak</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="status-bar" role="toolbar" aria-label="Status dan Kontrol Permainan">
+                <div class="hud-resources">
+                    <div class="stat-badge"><span class="stat-lbl">Mode</span> <span id="game-mode" class="mode-explore">EKSPLORASI</span></div>
+                    <div class="stat-badge"><span class="stat-lbl">Lantai</span> <span id="current-floor">1</span></div>
+                    <div class="stat-badge torch-badge" title="Cahaya Obor mempengaruhi jarak pandang Fog of War">
+                        <span>🔥 <span id="torch-count" style="color:#ff9f43; font-weight:bold;">100%</span></span>
+                        <span class="mini-torch-track"><span id="torch-bar-fill" class="mini-torch-fill" style="width:100%;"></span></span>
+                    </div>
+                    <div class="stat-badge">💰 <span id="gold-count" class="gold-text">0</span></div>
+                    <div class="stat-badge">⚒️ <span id="ore-count" style="color:#70a1ff; font-weight:bold;">0</span></div>
+                </div>
+
+                <div class="hud-controls">
+                    <button type="button" id="btn-backpack-menu" class="btn-backpack" onclick="toggleBackpackModal()">🧪 Satchel (<span id="item-bag-count">0</span>) [B]</button>
+                    <button type="button" id="btn-equip-menu" class="btn-equip" onclick="toggleEquipModal()">🛡️ Armory (<span id="bag-count">0</span>) [E]</button>
+                    <button type="button" id="btn-codex-menu" class="btn-mute btn-gold-accent" onclick="toggleBestiaryModal()">📖 Codex [C]</button>
+                    <button type="button" id="btn-save-menu" class="btn-mute btn-green-accent" onclick="toggleSaveSlotModal()">💾 Save [P]</button>
+                    <button type="button" id="btn-autobattle-menu" class="btn-mute" style="border-color:#e67e22; color:#f39c12; font-weight:bold;" onclick="toggleAutoBattle()">🤖 Auto [G]</button>
+                    <button type="button" id="btn-strategy-menu" class="btn-mute" style="border-color:#9b59b6; color:#d7bde2; font-weight:bold;" onclick="cycleAutoBattleStrategy()">🎯 BALANCED [K]</button>
+                    <button type="button" id="btn-tactic-menu" class="btn-mute" style="border-color:#38ada9; color:#82ccdd; font-weight:bold;" onclick="cycleFormationTactic()">⚔️ BALANCED [T]</button>
+                    <button type="button" id="btn-speed-menu" class="btn-mute" style="border-color:#9b59b6; color:#d7bde2; font-weight:bold;" onclick="toggleGameSpeed()">⏩ x1 [V]</button>
+                    <button type="button" id="btn-seed-menu" class="btn-mute" style="border-color:#9b59b6; color:#d7bde2;" onclick="promptSetSeed()">🎲 Seed [R]</button>
+                    <button type="button" id="btn-daily-menu" class="btn-mute btn-gold-accent" onclick="startDailyChallenge()">📅 Daily</button>
+                    <button type="button" id="btn-ascend" class="btn-ascend hidden" onclick="triggerAscension()">🌟 Ascend!</button>
+                    <button type="button" id="btn-prestige" class="btn-ascend hidden" style="border-color:#e056fd; color:#f3a6ff;" onclick="confirmPrestige()">👑 Prestige</button>
+                    <button type="button" id="btn-minimap" class="btn-mute" style="border-color:#38ada9; color:#82ccdd;" onclick="toggleMiniMap()">🗺️ Map [M]</button>
+                    <div class="audio-pill">
+                        <button type="button" id="btn-mute" class="btn-mute" onclick="toggleMute()">🔊 Audio</button>
+                        <input id="volume-slider" type="range" min="0" max="100" value="80" aria-label="Volume Master" oninput="setMasterVolume(this.value/100)">
+                    </div>
+                    <button type="button" class="btn-mute" style="border-color:#902020; color:#ff7675;" onclick="confirmResetRun()">🔄 Reset</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- AREA UTAMA: VIEWPORT DUNGEON KIRI & SIDEBAR KANAN -->
+        <main id="main-content">
+            <div id="left-column">
+                <div id="turn-queue-bar">
+                    <span class="queue-label" id="round-counter-label">⏳ BATTLE ORDER:</span>
+                    <div id="turn-queue-list" role="region" aria-label="Urutan Giliran Pertempuran" tabindex="0">
+                        <span class="queue-empty">Menjelajahi lorong bawah tanah...</span>
+                    </div>
+                    <div id="bounty-badge" class="stat-badge bounty-pill">
+                        📜 Titah: -
+                    </div>
+                </div>
+
+                <div id="canvas-container">
+                    <canvas id="gameCanvas" width="2304" height="1344" aria-label="Peta Taktis Endless Dungeon"></canvas>
+                    <canvas id="minimapCanvas" width="204" height="148"></canvas>
+                    <div id="hover-tooltip" class="hover-tooltip" role="status" aria-live="polite"></div>
+                </div>
+
+                <section id="log-container" aria-label="Kronik Petualangan">
+                    <div class="log-header-row">
+                        <h3>📜 Kronik Petualangan (Dungeon Chronicle)</h3>
+                        <span class="log-hint">Klik petak bersebelahan atau tekan WASD / Panah untuk bergerak</span>
+                    </div>
+                    <div id="log-box"></div>
+                </section>
+            </div>
+
+            <aside id="right-sidebar">
+                <section id="party-status" class="panel-box">
+                    <div class="panel-title-row">
+                        <h3>🛡️ Ordo Ksatria <small style="color:#a89984; font-weight:normal;">(Klik = Armory)</small></h3>
+                        <span id="synergy-pill" class="synergy-pill" title="Bonus Sinergi Komposisi Party Aktif">✨ Sinergi Aktif</span>
+                    </div>
+                    <div id="party-list"></div>
+                </section>
+
+                <section id="action-panel" class="panel-box">
+                    <h3>⚔️ Titah Tempur: <span id="active-actor-name" style="color:#d4af37;">-</span></h3>
+                    <div class="action-grid">
+                        <button type="button" class="btn-action" id="btn-attack" disabled>
+                            <span class="key-hint">1</span> <span id="lbl-attack">⚔️ Strike (Melee)</span>
+                        </button>
+                        <button type="button" class="btn-action" id="btn-skill" disabled>
+                            <span class="key-hint">2</span> <span id="lbl-skill">✨ Primary Art</span>
+                        </button>
+                        <button type="button" class="btn-action btn-mastery" id="btn-skill2" disabled>
+                            <span class="key-hint">8</span> <span id="lbl-skill2">🌟 Mastery Art (Lv.5)</span>
+                        </button>
+                        <button type="button" class="btn-action" id="btn-defend" disabled>
+                            <span class="key-hint">3</span> <span>🛡️ Raise Guard (-60% DMG, +5 MP)</span>
+                        </button>
+                        <button type="button" class="btn-action btn-reposition" id="btn-move-pos" disabled>
+                            <span class="key-hint">7</span> <span id="lbl-move-pos">🔄 Reposition (Tukar Barisan)</span>
+                        </button>
+                        <button type="button" class="btn-action btn-ult" id="btn-ult" disabled>
+                            <span class="key-hint">6</span> <span id="lbl-ult">💥 Ultimate Art (100% OD)</span>
+                        </button>
+                        <button type="button" class="btn-action btn-potion" id="btn-item">
+                            <span class="key-hint">4</span> <span>🎒 Buka Satchel Ramuan [B]</span>
+                        </button>
+                        <button type="button" class="btn-action btn-revive" id="btn-revive">
+                            <span class="key-hint">5</span> <span>🪶 Gunakan Phoenix Relic (50% HP)</span>
+                        </button>
+                        <button type="button" class="btn-action btn-flee" id="btn-flee" disabled>
+                            <span class="key-hint">0</span> <span>🏃 Mundur dari Pertempuran (-20% Gold)</span>
+                        </button>
+                    </div>
+                    <div class="controls-help">
+                        <b>WASD/Klik</b>=Jalan • <b>[B]</b>=Satchel • <b>[E]</b>=Armory • <b>[C]</b>=Codex • <b>[M]</b>=Radar • <b>[Tab]</b>=Target • <b>[1-8]</b>=Titah • <b>[0]</b>=Mundur • <b>[Esc]</b>=Pause
+                    </div>
+                </section>
+            </aside>
+        </main>
+    </div>
+
+    <!-- DIALOG 1: SATCHEL CONSUMABLES -->
+    <dialog id="backpack-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="backpack-modal-title">
+        <div class="modal-header">
+            <h1 id="backpack-modal-title">🎒 SATCHEL PERBEKALAN & RAMUAN</h1>
+            <button type="button" class="btn-close-modal" onclick="toggleBackpackModal()" autofocus>✖ Tutup [B]</button>
+        </div>
+        <div class="backpack-info">
+            Gunakan Ramuan Penyembuh, Minyak Obor (Torch Oil), atau Elixir Kuno di bawah ini:
+        </div>
+        <div id="backpack-items-list" class="bag-list"></div>
+    </dialog>
+
+    <!-- DIALOG 2: ROYAL ARMORY & BLACKSMITH FORGE -->
+    <dialog id="equip-modal" class="game-dialog modal-large" closedby="any" aria-labelledby="equip-modal-title">
+        <div class="modal-header">
+            <h1 id="equip-modal-title">🛡️ ROYAL ARMORY & BLACKSMITH FORGE (⚒️ Ore: <span id="modal-ore-count" style="color:#70a1ff;">0</span> | 💰 Gold: <span id="modal-gold-count" style="color:#f1c40f;">0</span>)</h1>
+            <button type="button" class="btn-close-modal" onclick="toggleEquipModal()" autofocus>✖ Tutup [E]</button>
+        </div>
+
+        <div id="hero-tabs" class="hero-tabs"></div>
+
+        <div class="modal-body">
+            <div class="equipped-section">
+                <h3 id="modal-hero-title">Zirah & Atribut Ksatria</h3>
+                <div id="modal-hero-stats" class="hero-stat-summary"></div>
+                <div id="modal-hero-perks" class="perk-box"></div>
+                <div id="modal-hero-runes" class="perk-box" style="border-color:#9b59b6;"></div>
+                <div id="equipped-slots-list" class="slots-list"></div>
+            </div>
+
+            <div class="bag-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <h3 style="margin:0; border:none;">🎒 Peti Zirah (Pasang / Lebur)</h3>
+                    <button type="button" class="btn-small-unequip" style="background:#8c4a15; color:#fff;" onclick="dismantleAllCommon()">🔨 Lebur Semua Common</button>
+                </div>
+                <div class="bag-filter-bar">
+                    <label class="bag-filter-label" for="bag-sort-select">Urutkan:</label>
+                    <select id="bag-sort-select" class="bag-filter-select" onchange="renderEquipModal()">
+                        <option value="rarity">Rarity (Tinggi → Rendah)</option>
+                        <option value="slot">Slot</option>
+                        <option value="name">Nama</option>
+                    </select>
+                    <label class="bag-filter-label" for="bag-filter-select" style="margin-left:6px;">Filter:</label>
+                    <select id="bag-filter-select" class="bag-filter-select" onchange="renderEquipModal()">
+                        <option value="all">Semua</option>
+                        <option value="upgrade">Hanya Upgrade (vs dipakai)</option>
+                        <option value="common">Common</option>
+                        <option value="rare">Rare</option>
+                        <option value="epic">Epic</option>
+                        <option value="legendary">Legendary/Cursed</option>
+                    </select>
+                </div>
+                <div id="bag-items-list" class="bag-list"></div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG 3: WANDERING MERCHANT -->
+    <dialog id="merchant-modal" class="game-dialog modal-small" style="border-color:#d4af37;" closedby="any" aria-labelledby="merchant-modal-title">
+        <div class="modal-header">
+            <h1 id="merchant-modal-title">⚖️ PEDAGANG KELANA (MERCHANT)</h1>
+            <button type="button" class="btn-close-modal" onclick="closeMerchantModal()" autofocus>✖ Tutup</button>
+        </div>
+        <div class="backpack-info">
+            💰 Koin Emas: <b id="merchant-gold" style="color:#f1c40f;">0</b> — Tukarkan emasmu dengan perbekalan, bijih besi Damaskus, atau zirah pilihan:
+        </div>
+        <div id="merchant-items-list" class="bag-list"></div>
+    </dialog>
+
+    <!-- DIALOG 4: ANCIENT SHRINE -->
+    <dialog id="shrine-modal" class="game-dialog modal-small" style="border-color:#00d2ff;" closedby="any" aria-labelledby="shrine-modal-title">
+        <div class="modal-header">
+            <h1 id="shrine-modal-title">⛩️ ALTAR KUNO PARA DEWA</h1>
+            <button type="button" class="btn-close-modal" onclick="closeShrineModal()" autofocus>✖ Tinggalkan</button>
+        </div>
+        <div class="backpack-info">
+            Altar batu kuno memancarkan kekuatan gaib. Pilih satu sumpah persembahan:
+        </div>
+        <div id="shrine-options-list" class="bag-list"></div>
+    </dialog>
+
+    <!-- DIALOG 5: KNIGHT'S CAMPFIRE -->
+    <dialog id="campfire-modal" class="game-dialog modal-small" style="border-color:#e67e22;" closedby="any" aria-labelledby="campfire-modal-title">
+        <div class="modal-header">
+            <h1 id="campfire-modal-title">🔥 PERKEMAHAN KSATRIA (CAMPFIRE)</h1>
+            <button type="button" class="btn-close-modal" onclick="closeCampfireModal()" autofocus>✖ Tinggalkan</button>
+        </div>
+        <div class="backpack-info">
+            Api unggun menghangatkan dinginnya ruang bawah tanah. Pilih persiapan untuk Ordo-mu:
+        </div>
+        <div id="campfire-options-list" class="bag-list"></div>
+    </dialog>
+
+    <!-- DIALOG 6: ROYAL CODEX (HALL OF FAME, ACHIEVEMENTS, HISTORY, BESTIARY) -->
+    <dialog id="bestiary-modal" class="game-dialog modal-large" style="border-color:#d4af37;" closedby="any" aria-labelledby="bestiary-modal-title">
+        <div class="modal-header">
+            <h1 id="bestiary-modal-title">📖 ROYAL CODEX: HALL OF FAME, ACHIEVEMENTS & BESTIARY</h1>
+            <button type="button" class="btn-close-modal" onclick="toggleBestiaryModal()" autofocus>✖ Tutup [C]</button>
+        </div>
+        <div class="backpack-info">
+            🌟 <b>Catatan Abadi Ordo:</b> Data rekor, Achievement, dan Bestiary tersimpan permanen lintas ekspedisi. Tumpas spesies monster hingga target Mastery untuk memperoleh <b>+10% Damage Permanen</b>!
+        </div>
+        <div class="modal-body">
+            <div class="equipped-section" style="flex: 0.92;">
+                <h3>🏆 Hall of Fame & Pencapaian</h3>
+                <div id="hall-of-fame-stats" class="slots-list"></div>
+            </div>
+            <div class="bag-section" style="flex: 1.08;">
+                <h3>👹 Monster Bestiary & Mastery</h3>
+                <div id="bestiary-list" class="bag-list"></div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG 7: SAVE SLOTS -->
+    <dialog id="save-slot-modal" class="game-dialog modal-small" style="border-color:#2ecc71;" closedby="any" aria-labelledby="save-modal-title">
+        <div class="modal-header">
+            <h1 id="save-modal-title">💾 MANAJEMEN SAVE SLOTS</h1>
+            <button type="button" class="btn-close-modal" onclick="toggleSaveSlotModal()" autofocus>✖ Tutup [P]</button>
+        </div>
+        <div id="save-slot-list" class="bag-list"></div>
+        <div style="margin-top:8px; border-top:1px solid #3c2f20; padding-top:8px;">
+            <label for="save-io-text" style="display:block; font-size:11px; color:#b8a68e; margin-bottom:4px;">Export / Import Save Data (JSON):</label>
+            <textarea id="save-io-text" rows="3" placeholder="Tempel JSON save di sini untuk Import, atau klik Export..." style="width:100%; font-size:11px; background:#140e09; color:#d4af37; border:1px solid #523e24; border-radius:4px; padding:6px;"></textarea>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+                <button type="button" class="btn-small-use" onclick="exportSave()">📤 Export Save</button>
+                <button type="button" class="btn-small-use" style="background:#225c85;" onclick="importSave()">📥 Import Save</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG 8: PAUSE MENU -->
+    <dialog id="pause-modal" class="game-dialog modal-compact" style="border-color:#d4af37;" closedby="any" aria-labelledby="pause-modal-title">
+        <div class="modal-header">
+            <h1 id="pause-modal-title">⏸️ JEDA PERMAINAN (PAUSE)</h1>
+            <button type="button" class="btn-close-modal" onclick="togglePauseModal()" autofocus>✖ Resume</button>
+        </div>
+        <div class="bag-list">
+            <div class="bag-item-row"><button type="button" class="btn-small-use" style="width:100%; padding:8px;" onclick="togglePauseModal()">▶ Lanjutkan Petualangan</button></div>
+            <div class="bag-item-row"><button type="button" class="btn-small-use" style="width:100%; padding:8px; background:#225c85;" onclick="togglePauseModal(); toggleSaveSlotModal();">💾 Buka Save / Load [P]</button></div>
+            <div class="bag-item-row"><button type="button" class="btn-small-use" style="width:100%; padding:8px; background:#6c3483;" onclick="togglePauseModal(); toggleBestiaryModal();">📖 Buka Royal Codex [C]</button></div>
+            <div class="bag-item-row"><button type="button" class="btn-small-use" style="width:100%; padding:8px; background:#8c4a15;" onclick="toggleMute()">🔊 Toggle Audio Mute</button></div>
+            <div class="bag-item-row"><button type="button" id="btn-shake-toggle" class="btn-small-use" style="width:100%; padding:8px; background:#523e24;" onclick="toggleScreenShake()">📳 Screen Shake: ON</button></div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG 9: SEED RUN CONFIGURATOR -->
+    <dialog id="seed-modal" class="game-dialog modal-compact" style="border-color:#9b59b6;" closedby="any" aria-labelledby="seed-modal-title">
+        <div class="modal-header">
+            <h1 id="seed-modal-title">🎲 ATUR SEED EKSPEDISI</h1>
+            <button type="button" class="btn-close-modal" onclick="closeDialogById('seed-modal')">✖ Tutup</button>
+        </div>
+        <div class="backpack-info">
+            Masukkan kode Seed untuk tata letak dungeon deterministik, kosongkan untuk mode acak normal, atau gunakan Seed Harian:
+        </div>
+        <form onsubmit="submitSeedModal(event)" style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+            <input id="seed-input-field" type="text" placeholder="Contoh: EXCALIBUR-777 (kosong = Acak)" class="gothic-input" autofocus>
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn-small-unequip" onclick="applySeedPreset('random')">🎲 Mode Acak</button>
+                <button type="button" class="btn-small-equip" onclick="applySeedPreset('daily')">📅 Seed Hari Ini</button>
+                <button type="submit" class="btn-small-use">✔ Terapkan Seed</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- DIALOG 10: ASCENSION MODIFIER SELECTION -->
+    <dialog id="ascension-modal" class="game-dialog modal-small" style="border-color:#00ffff;" closedby="any" aria-labelledby="ascension-modal-title">
+        <div class="modal-header">
+            <h1 id="ascension-modal-title">🌟 PILIH SUMPAH ASCENSION BARU</h1>
+            <button type="button" class="btn-close-modal" onclick="closeDialogById('ascension-modal')" autofocus>✖ Batal</button>
+        </div>
+        <div class="backpack-info">
+            Seluruh Ksatria memperoleh <b>+25% Base Stats, +1 Perk Point, & Overdrive Penuh</b>, lalu kembali ke Lantai 1 dengan tantangan lebih tinggi. Pilih modifier siklus ini:
+        </div>
+        <div class="bag-list">
+            <div class="bag-item-row">
+                <div>
+                    <b style="color:#ff6b81;">👹 Empowered Foes</b>
+                    <div class="item-buff-text">Musuh mendapat +20% Max HP & +1 Jebakan tambahan di tiap lantai.</div>
+                </div>
+                <button type="button" class="btn-small-use" style="background:#8f241b;" onclick="confirmAscensionChoice('empowered')">Pilih Empowered</button>
+            </div>
+            <div class="bag-item-row">
+                <div>
+                    <b style="color:#f1c40f;">⚖️ Frugal Vow</b>
+                    <div class="item-buff-text">Perolehan Gold -20%, namun seluruh Ksatria langsung mendapat <b>+1 Perk Point Ekstra</b>!</div>
+                </div>
+                <button type="button" class="btn-small-use" style="background:#8c6d1f;" onclick="confirmAscensionChoice('frugal')">Pilih Frugal</button>
+            </div>
+            <div class="bag-item-row">
+                <div>
+                    <b style="color:#00ffff;">🛡️ Hardened Bastion</b>
+                    <div class="item-buff-text">Sinergi Ordo diperkuat dengan tambahan <b>+8 Party DEF</b> selama pertempuran.</div>
+                </div>
+                <button type="button" class="btn-small-use" style="background:#1e5f8a;" onclick="confirmAscensionChoice('hardened')">Pilih Hardened</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- DIALOG 11: REUSABLE GOTHIC CONFIRMATION DIALOG -->
+    <dialog id="confirm-modal" class="game-dialog modal-compact" style="border-color:#d4af37;" closedby="any" aria-labelledby="confirm-modal-title">
+        <div class="modal-header">
+            <h1 id="confirm-modal-title">⚔️ KONFIRMASI TITAH</h1>
+            <button type="button" class="btn-close-modal" onclick="closeDialogById('confirm-modal')" autofocus>✖ Batal</button>
+        </div>
+        <div id="confirm-modal-body" class="backpack-info" style="line-height:1.5;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+            <button type="button" class="btn-small-unequip" onclick="closeDialogById('confirm-modal')">Batal</button>
+            <button type="button" id="confirm-modal-ok" class="btn-small-use" style="background:#8f241b; border-color:#ff7675;">Lanjutkan</button>
+        </div>
+    </dialog>
+
+    <!-- OVERLAY TRANSISI LANTAI BERGAYA GOTHIC SOULS-LIKE -->
+    <div id="floor-transition-overlay" class="floor-transition-overlay hidden" aria-live="assertive">
+        <div class="transition-content">
+            <div class="transition-ornament">─── ⚜️ ───</div>
+            <div id="trans-subtitle" class="trans-subtitle">DESCENDING INTO THE DEPTHS</div>
+            <h2 id="trans-floor-title" class="trans-floor-title">FLOOR 2</h2>
+            <h3 id="trans-biome-name" class="trans-biome-name">THE ABANDONED CRYPT</h3>
+            <p id="trans-lore-text" class="trans-lore-text">"Lorong makam kuno yang lembap, tempat tulang-belulang prajurit masa silam bangkit menjaga ruang bawah tanah."</p>
+            <div id="trans-boss-warning" class="trans-boss-warning hidden">⚠️ AURA KEGELAPAN KUAT TERDETEKSI DI AULA TERAKHIR ⚠️</div>
+            <div class="transition-ornament">──────────</div>
+        </div>
+    </div>
+
+    <!-- Modul JS -->
+    <script src="js/sound.js"></script>
+    <script src="js/grid.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/combat.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
