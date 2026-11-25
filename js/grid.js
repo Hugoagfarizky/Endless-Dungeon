@@ -89,28 +89,28 @@ function getCurrentBiome() {
 // Katalog Boss Spesifik Tiap Biome (Mini-Boss Tier 5 & Grand Boss Tier 10)
 const BIOME_BOSS_ROSTER = {
     crypt: {
-        mini:  { name: "👹 Crypt Gargoyle Warden", color: "#a4b0be", skillName: "Tombstone Cleave" },
-        grand: { name: "🐉 Necrolord Malakor",     color: "#2ecc71", skillName: "Plague of the Undead" }
+        mini:  { name: "Crypt Gargoyle Warden", color: "#a4b0be", skillName: "Tombstone Cleave" },
+        grand: { name: "Necrolord Malakor",     color: "#5fa36d", skillName: "Plague of the Undead" }
     },
     ice: {
-        mini:  { name: "👹 Frostbite Wendigo",     color: "#70a1ff", skillName: "Glacial Smash" },
-        grand: { name: "🐉 Glacial Wyrm King",     color: "#00ffff", skillName: "Absolute Zero Blizzard" }
+        mini:  { name: "Frostbite Wendigo",     color: "#6b9bc7", skillName: "Glacial Smash" },
+        grand: { name: "Glacial Wyrm King",     color: "#8ab8d9", skillName: "Absolute Zero Blizzard" }
     },
     lava: {
-        mini:  { name: "👹 Magma Juggernaut",      color: "#ff7f50", skillName: "Molten Cleave" },
-        grand: { name: "🐉 Ignis the Balrog Lord", color: "#ff4757", skillName: "Cataclysmic Eruption" }
+        mini:  { name: "Magma Juggernaut",      color: "#d97c38", skillName: "Molten Cleave" },
+        grand: { name: "Ignis the Balrog Lord", color: "#cf4646", skillName: "Cataclysmic Eruption" }
     },
     void: {
-        mini:  { name: "👹 Void Stalker Executioner",    color: "#c56cf0", skillName: "Dimensional Rift Slash" },
-        grand: { name: "🐉 Xal'korath the Void Emperor", color: "#e056fd", skillName: "Singularity Collapse" }
+        mini:  { name: "Void Stalker Executioner",    color: "#a374c9", skillName: "Dimensional Rift Slash" },
+        grand: { name: "Xal'korath the Void Emperor", color: "#b87ce0", skillName: "Singularity Collapse" }
     }
 };
 
 const MONSTER_AFFIXES = [
-    { id: 'vampiric', label: "🧛Vampiric", color: "#ff4757" },
-    { id: 'berserk',  label: "😡Berserk",  color: "#ffa502" },
-    { id: 'armored',  label: "🛡️Armored",  color: "#747d8c" },
-    { id: 'arcane',   label: "🔮Arcane",   color: "#a55eea" }
+    { id: 'vampiric', label: "Vampiric", color: "#c9444e" },
+    { id: 'berserk',  label: "Berserk",  color: "#d97c38" },
+    { id: 'armored',  label: "Armored",  color: "#838c96" },
+    { id: 'arcane',   label: "Arcane",   color: "#9d72c4" }
 ];
 
 function generateFloorBounty() {

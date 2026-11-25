@@ -66,6 +66,7 @@ Endless Dungeon/
 ├── style.css        # Tema Gothic Dark-Fantasy, layout responsif & animasi UI
 ├── GDD.docx         # Dokumen Konsep Game (Game Design Document)
 ├── js/
+│   ├── icons.js     # Sistem ikonografi vektor SVG abad pertengahan kustom
 │   ├── sound.js     # Web Audio API synth, cavern reverb & BGM dinamis
 │   ├── grid.js      # Generator ruangan prosedural, biome, boss, & Fog of War
 │   ├── player.js    # Party 4 ksatria, zirah, set bonus, relic, & penyimpanan

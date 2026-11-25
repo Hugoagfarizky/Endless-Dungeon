@@ -1,4 +1,4 @@
-﻿let gameMode = 'EXPLORE';
+let gameMode = 'EXPLORE';
 let activeEnemy = null;
 let activeEnemies = [];
 let turnQueue = [];
@@ -324,7 +324,7 @@ function spawnSquadMinionsAround(triggeredEnemy) {
         const minionAtk = Math.floor((7 + currentFloor * 2.4) * ascMult);
 
         const minion = {
-            name: triggeredEnemy.isBoss ? `💀 Royal Guard ${i + 1}` : (isSkel ? `Skeleton Cohort ${i + 1}` : `Slime Spawn ${i + 1}`),
+            name: triggeredEnemy.isBoss ? `Royal Guard ${i + 1}` : (isSkel ? `Skeleton Cohort ${i + 1}` : `Slime Spawn ${i + 1}`),
             x: pos.x, y: pos.y, hp: minionHp, maxHp: minionHp,
             atk: minionAtk, def: 1 + Math.floor(currentFloor * 0.6), spd: 10 + Math.floor(currentFloor / 3) + i,
             color: "#ff6b81", isEnemy: true, isBoss: false, bossTier: 0, affix: null,
@@ -1158,7 +1158,7 @@ function executeEnemyTurn(actingEnemy) {
             const minionHp = Math.floor((28 + currentFloor * 12) * ascMult);
             const minionAtk = Math.floor((7 + currentFloor * 2.4) * ascMult);
             const minion = {
-                name: `💀 Royal Guard (Enrage)`,
+                name: `Royal Guard (Enrage)`,
                 x: enemy.x, y: enemy.y, hp: minionHp, maxHp: minionHp,
                 atk: minionAtk, def: 1 + Math.floor(currentFloor * 0.6), spd: 10 + Math.floor(currentFloor / 3),
                 color: '#ff6b81', isEnemy: true, isBoss: false, bossTier: 0, affix: null,

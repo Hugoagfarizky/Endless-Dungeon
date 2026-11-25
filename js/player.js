@@ -1,15 +1,15 @@
-﻿const EQUIP_SLOTS = {
-    helm:     { label: "Helm",     icon: "🪖" },
-    armor:    { label: "Armor",    icon: "🛡️" },
-    pants:    { label: "Celana",   icon: "👖" },
-    boots:    { label: "Sepatu",   icon: "👢" },
-    artifact: { label: "Artifact", icon: "🔮" }
+const EQUIP_SLOTS = {
+    helm:     { label: "Greathelm", icon: icon('helm', 13) },
+    armor:    { label: "Cuirass",   icon: icon('cuirass', 13) },
+    pants:    { label: "Greaves",   icon: icon('greaves', 13) },
+    boots:    { label: "Sabatons",  icon: icon('sabatons', 13) },
+    artifact: { label: "Relic",     icon: icon('relic', 13) }
 };
 const PERK_CATALOG = {
-    quick_reflexes: { id: 'quick_reflexes', name: "🍃 Quick Reflexes", desc: "22% Peluang menghindar (Dodge) serangan musuh." },
-    mana_flow:      { id: 'mana_flow',      name: "💧 Mana Flow",      desc: "Memulihkan +6 MP setiap giliran & biaya Skill -3 MP." },
-    vampirism:      { id: 'vampirism',      name: "🩸 Blood Vampirism", desc: "Menyerap 15% damage serangan menjadi HP pemakai." },
-    glass_cannon:   { id: 'glass_cannon',   name: "🔥 Glass Cannon",   desc: "+30% P.ATK & M.ATK, namun Max HP berkurang 15%." }
+    quick_reflexes: { id: 'quick_reflexes', name: "Quick Reflexes",  desc: "22% Peluang menghindar (Dodge) serangan musuh." },
+    mana_flow:      { id: 'mana_flow',      name: "Mana Flow",       desc: "Memulihkan +6 MP setiap giliran & biaya Skill -3 MP." },
+    vampirism:      { id: 'vampirism',      name: "Blood Vampirism", desc: "Menyerap 15% damage serangan menjadi HP pemakai." },
+    glass_cannon:   { id: 'glass_cannon',   name: "Glass Cannon",    desc: "+30% P.ATK & M.ATK, namun Max HP berkurang 15%." }
 };
 
 // =========================================================
@@ -131,22 +131,22 @@ function grantRandomRune(hero) {
 // =========================================================
 const EQUIPMENT_SETS = {
     crusader: {
-        id: 'crusader', name: "Crusader's Bastion", icon: "🛡️", color: "#f1c40f",
+        id: 'crusader', name: "Crusader's Bastion", icon: icon('shield', 12), color: "#d4b87b",
         bonus2Desc: "+20% Max HP & +15% DEF",
         bonus4Desc: "Regen +8% Max HP tiap giliran & Kebal Stun"
     },
     shadowstalker: {
-        id: 'shadowstalker', name: "Shadowstalker's Garb", icon: "🦅", color: "#2ecc71",
+        id: 'shadowstalker', name: "Shadowstalker's Garb", icon: icon('sword', 12), color: "#75b88c",
         bonus2Desc: "+20% P.ATK & +3 SPD",
         bonus4Desc: "25% Peluang Critical Lethal Strike (1.6x DMG)"
     },
     archmage: {
-        id: 'archmage', name: "Archmage's Vestments", icon: "🔮", color: "#00ffff",
+        id: 'archmage', name: "Archmage's Vestments", icon: icon('arcane', 12), color: "#6ea3cf",
         bonus2Desc: "+20% M.ATK & +25% Max MP",
         bonus4Desc: "Biaya MP Skill -35% & Serangan pulihkan +5 MP"
     },
     dreadlord: {
-        id: 'dreadlord', name: "Dreadlord's Panoply", icon: "🩸", color: "#ff6b81",
+        id: 'dreadlord', name: "Dreadlord's Panoply", icon: icon('skull', 12), color: "#cf5b64",
         bonus2Desc: "+15% P.ATK, +15% M.ATK & +10% Max HP",
         bonus4Desc: "Soul Leech: Serap 18% DMG jadi HP & +10% Overdrive"
     }
@@ -156,26 +156,26 @@ const CURSED_RELIC_CATALOG = {
     berserker_ring: {
         id: 'berserker_ring',
         baseName: "Berserker's Bloodring",
-        boonDesc: "🔥 Boon: +60% Physical Damage & +4 SPD",
-        curseDesc: "💀 Kutukan: Kehilangan 6% HP tiap giliran & Tidak bisa Defend!"
+        boonDesc: "Boon: +60% Physical Damage & +4 SPD",
+        curseDesc: "Curse: Kehilangan 6% HP tiap giliran & tidak dapat Guard"
     },
     void_crown: {
         id: 'void_crown',
         baseName: "Crown of the Void Eye",
-        boonDesc: "🔥 Boon: +65% Magic Damage & +30 Max MP",
-        curseDesc: "💀 Kutukan: Merapal Skill/Ultimate membakar 8% HP pemakai!"
+        boonDesc: "Boon: +65% Magic Damage & +30 Max MP",
+        curseDesc: "Curse: Merapal Skill/Ultimate membakar 8% HP pemakai"
     },
     titan_shackles: {
         id: 'titan_shackles',
         baseName: "Shackles of the Titan",
-        boonDesc: "🔥 Boon: +50% Max HP & +50% DEF",
-        curseDesc: "💀 Kutukan: Kecepatan membatu (SPD dikunci = 5) & Tidak bisa Dodge!"
+        boonDesc: "Boon: +50% Max HP & +50% DEF",
+        curseDesc: "Curse: Kecepatan terkunci (SPD = 5) & tidak dapat Dodge"
     },
     greed_idol: {
         id: 'greed_idol',
         baseName: "Idol of Abyssal Greed",
-        boonDesc: "🔥 Boon: Perolehan Gold & EXP Party meningkat +45%",
-        curseDesc: "💀 Kutukan: Pemakai menerima +25% Damage tambahan dari musuh!"
+        boonDesc: "Boon: Perolehan Gold & EXP Party meningkat +45%",
+        curseDesc: "Curse: Pemakai menerima +25% Damage tambahan dari musuh"
     }
 };
 
@@ -203,31 +203,31 @@ function getHeroCursedRelicId(hero) {
 
 const CONSUMABLE_CATALOG = {
     potion: {
-        key: 'potion', name: "Herbal Draught", icon: "🧪",
+        key: 'potion', name: "Herbal Draught", icon: icon('satchel', 14),
         desc: "Memulihkan +35 HP & menyembuhkan status Poison Party."
     },
     hi_potion: {
-        key: 'hi_potion', name: "Greater Hi-Potion", icon: "🍷",
+        key: 'hi_potion', name: "Crimson Draught", icon: icon('heart', 14),
         desc: "Memulihkan +75 HP ke seluruh anggota Party yang hidup."
     },
     energy_potion: {
-        key: 'energy_potion', name: "Mana Vial", icon: "⚡",
+        key: 'energy_potion', name: "Astral Vial", icon: icon('bolt', 14),
         desc: "Memulihkan +30 Energi (MP) ke seluruh anggota Party."
     },
     torch_oil: {
-        key: 'torch_oil', name: "Pitch Torch Oil", icon: "🔥",
+        key: 'torch_oil', name: "Pitch Torch Oil", icon: icon('torch', 14),
         desc: "Mengisi ulang cahaya Obor (Torch) +60% agar jarak pandang kembali terang."
     },
     revive: {
-        key: 'revive', name: "Phoenix Relic", icon: "🪶",
+        key: 'revive', name: "Phoenix Pinion", icon: icon('feather', 14),
         desc: "Membangkitkan 1 anggota Party yang gugur dengan 50% Max HP."
     },
     elixir: {
-        key: 'elixir', name: "Battle Elixir", icon: "⚗️",
+        key: 'elixir', name: "Warlord's Elixir", icon: icon('arcane', 14),
         desc: "Memulihkan +25 HP & meningkatkan P.ATK / M.ATK +2 seluruh Party permanen."
     },
     tonic: {
-        key: 'tonic', name: "Iron Skin Tonic", icon: "🛡️",
+        key: 'tonic', name: "Ironbark Tonic", icon: icon('shield', 14),
         desc: "Meningkatkan Base DEF +2 & Max HP +10 seluruh Party secara permanen."
     }
 };
@@ -237,32 +237,32 @@ const CONSUMABLE_CATALOG = {
 // =========================================================
 const BESTIARY_CATALOG = {
     slime: {
-        id: 'slime', name: "Plague Dungeon Slime", icon: "🩸", targetKills: 10,
+        id: 'slime', name: "Plague Dungeon Slime", icon: icon('satchel', 14), targetKills: 10,
         role: "Swarm Ooze",
         lore: "Lendir asam pemakan bangkai yang merayap di celah batu lembap. Sering membelah diri memanggil kawanan saat terdesak."
     },
     skeleton: {
-        id: 'skeleton', name: "Fallen Dark Skeleton", icon: "💀", targetKills: 10,
+        id: 'skeleton', name: "Fallen Dark Skeleton", icon: icon('skull', 14), targetKills: 10,
         role: "Undead Halberdier",
         lore: "Kerangka prajurit kastil kuno yang bangkit oleh kutukan. Memiliki kecepatan tinggi dan tombak halberd penembus zirah."
     },
     guard: {
-        id: 'guard', name: "Royal Abyssal Guard", icon: "🛡️", targetKills: 8,
+        id: 'guard', name: "Royal Abyssal Guard", icon: icon('shield', 14), targetKills: 8,
         role: "Boss Escort",
         lore: "Pengawal pribadi para penguasa ruang bawah tanah yang selalu muncul mengapit Boss saat pertempuran pecah."
     },
     mimic: {
-        id: 'mimic', name: "Cursed Chest Mimic", icon: "📦", targetKills: 3,
+        id: 'mimic', name: "Cursed Chest Mimic", icon: icon('chest', 14), targetKills: 3,
         role: "Ambush Predator",
         lore: "Monster rakus berwujud peti harta karun. Memiliki taring Vampiric yang menyerap darah ksatria yang tertipu."
     },
     warden: {
-        id: 'warden', name: "Abyssal Gargoyle Warden", icon: "👹", targetKills: 3,
+        id: 'warden', name: "Abyssal Gargoyle Warden", icon: icon('sword', 14), targetKills: 3,
         role: "Floor 5 Mini-Boss",
         lore: "Penjaga gerbang tiap kelipatan Lantai 5. Kapak raksasanya sanggup menebas dua ksatria barisan depan sekaligus (Warden Cleave)."
     },
     overlord: {
-        id: 'overlord', name: "Nether Lich Overlord", icon: "🐉", targetKills: 2,
+        id: 'overlord', name: "Nether Lich Overlord", icon: icon('crown', 14), targetKills: 2,
         role: "Floor 10 Dread Lord",
         lore: "Penguasa tertinggi kegelapan di tiap Lantai 10. Menguasai sihir Hellfire AoE yang membakar seluruh anggota Ordo."
     }
@@ -460,17 +460,23 @@ function getSaveKey(slot) {
     return SAVE_STORAGE_KEY + '_slot_' + slot;
 }
 
-function addOverheadIcon(tileX, tileY, iconText, color = "#ffcc00", size = 15) {
+function addOverheadIcon(tileX, tileY, iconText, color = "#dfc484", size = 15) {
+    const cleanText = String(iconText)
+        .replace(/<[^>]*>/g, '')
+        .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (!cleanText) return;
     const jitterX = (Math.random() - 0.5) * 14;
     floatingPopups.push({
         x: tileX,
         y: tileY,
-        text: iconText,
+        text: cleanText,
         color: color,
         offsetX: jitterX,
         offsetY: -4,
         vy: -1.45,
-        scale: 1.28,
+        scale: 1.24,
         alpha: 1.0,
         life: 0,
         maxLife: 44,
@@ -953,7 +959,7 @@ function generateCursedRelic(floor) {
 
     return {
         id: itemIdCounter++,
-        name: `💀 Cursed ${meta.baseName}`,
+        name: `Cursed ${meta.baseName}`,
         slot: 'artifact',
         rarity: 'Cursed',
         curseId: chosenKey,
@@ -1328,7 +1334,7 @@ function openChest(chest) {
     if (chest.isMimic) {
         const ascMult = 1 + (ascensionLevel * 0.35);
         const mimicEnemy = {
-            name: `📦 Cursed Mimic [Lv.${currentFloor}]`,
+            name: `Cursed Mimic [Lv.${currentFloor}]`,
             x: chest.x, y: chest.y,
             hp: Math.floor((95 + currentFloor * 24) * ascMult),
             maxHp: Math.floor((95 + currentFloor * 24) * ascMult),
@@ -1563,9 +1569,10 @@ function getHeroFormationInfo(hero) {
     return {
         index: idx,
         posNumber: idx + 1,
+        roman: ['I', 'II', 'III', 'IV'][idx] || String(idx + 1),
         isFront: isFront,
-        roleLabel: isFront ? "⚔️FRONT" : "🛡️BACK",
-        badgeColor: isFront ? "#e67e22" : "#38ada9"
+        roleLabel: isFront ? "VANGUARD" : "REARGUARD",
+        badgeColor: isFront ? "#7a441f" : "#264d59"
     };
 }
 

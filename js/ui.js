@@ -1,4 +1,4 @@
-﻿const canvas = document.getElementById('gameCanvas');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const minimapCanvas = document.getElementById('minimapCanvas');
 const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
@@ -12,6 +12,90 @@ const WALL_HEIGHT = 20;
 let selectedHeroIndex = 0;
 let showMiniMap = true;
 let isCanvasVisible = true;
+
+// =========================================================
+// MOUNT STATIC SVG ICONS & MODERN PLATFORM FALLBACKS
+// =========================================================
+function mountStaticDungeonIcons() {
+    if (typeof icon !== 'function') return;
+    const mapIds = {
+        'brand-sigil-icon': ['crest', 17],
+        'ico-torch': ['torch', 13],
+        'ico-coin': ['coin', 14],
+        'ico-ingot': ['ingot', 14],
+        'ico-satchel': ['satchel', 14],
+        'ico-armory': ['armory', 14],
+        'ico-codex': ['codex', 14],
+        'ico-auto': ['auto', 13],
+        'ico-speed': ['speed', 13],
+        'ico-map': ['map', 13],
+        'ico-cog': ['cog', 13],
+        'ico-save': ['save', 13],
+        'ico-seed': ['seed', 13],
+        'ico-calendar': ['calendar', 13],
+        'ico-pause-cog': ['cog', 13],
+        'ico-reset': ['reset', 13],
+        'ico-cmd-ult': ['overdrive', 17],
+        'ico-cmd-attack': ['sword', 15],
+        'ico-cmd-skill': ['arcane', 15],
+        'ico-cmd-skill2': ['mastery', 15],
+        'ico-cmd-defend': ['shield', 15],
+        'ico-cmd-swap': ['swap', 15],
+        'ico-cmd-item': ['satchel', 15],
+        'ico-cmd-revive': ['feather', 15],
+        'ico-cmd-flee': ['flee', 15]
+    };
+    Object.entries(mapIds).forEach(([id, [name, sz]]) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = icon(name, sz);
+    });
+}
+mountStaticDungeonIcons();
+
+// Feature-detected Popover polyfill & Anchor positioning fallback
+if (typeof HTMLElement !== 'undefined' && !Object.hasOwn(HTMLElement.prototype, 'popover')) {
+    import('https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js').catch(() => {});
+}
+
+const expPopover = document.getElementById('expedition-popover');
+const expTrigger = document.getElementById('btn-expedition-menu');
+if (expPopover && expTrigger && typeof expPopover.addEventListener === 'function') {
+    expPopover.addEventListener('toggle', ({ newState }) => {
+        if (newState !== 'open') return;
+        if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('position-area', 'block-end')) return;
+        const t = expTrigger.getBoundingClientRect();
+        const m = expPopover.getBoundingClientRect();
+        const below = t.bottom + m.height + 8 <= window.innerHeight;
+        expPopover.style.top = `${below ? t.bottom + 6 : Math.max(8, t.top - m.height - 6)}px`;
+        expPopover.style.left = `${Math.max(8, Math.min(t.right - m.width, window.innerWidth - m.width - 8))}px`;
+    });
+}
+
+// Toolbar Roving Tabindex Fallback where native focusgroup is unsupported
+const hudToolbar = document.getElementById('hud-toolbar');
+if (hudToolbar && typeof HTMLElement !== 'undefined' && !('focusGroup' in HTMLElement.prototype)) {
+    const getItems = () => Array.from(hudToolbar.querySelectorAll('button:not(.hidden)'));
+    const initItems = getItems();
+    initItems.forEach((b, i) => { b.tabIndex = i === 0 ? 0 : -1; });
+    hudToolbar.addEventListener('focusin', ({ target }) => {
+        const items = getItems();
+        if (items.includes(target)) items.forEach(b => { b.tabIndex = b === target ? 0 : -1; });
+    });
+    hudToolbar.addEventListener('keydown', (e) => {
+        const items = getItems();
+        const idx = items.indexOf(document.activeElement);
+        if (idx < 0) return;
+        let nextIdx = -1;
+        if (e.key === 'ArrowRight') nextIdx = (idx + 1) % items.length;
+        else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + items.length) % items.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = items.length - 1;
+        if (nextIdx >= 0) {
+            e.preventDefault();
+            items[nextIdx].focus();
+        }
+    });
+}
 
 // =========================================================
 // NATIVE <dialog> MODAL HELPERS + LIGHT-DISMISS FALLBACK
@@ -41,7 +125,6 @@ function toggleDialogById(id, onOpenRender = null) {
     if (typeof onOpenRender === 'function') onOpenRender();
 }
 
-// Mandatory fallback for browsers without native HTMLDialogElement.prototype.closedBy
 if (typeof HTMLDialogElement !== 'undefined' && !('closedBy' in HTMLDialogElement.prototype)) {
     document.querySelectorAll('dialog[closedby="any"]').forEach(dialog => {
         dialog.addEventListener('click', (event) => {
@@ -58,7 +141,6 @@ if (typeof HTMLDialogElement !== 'undefined' && !('closedBy' in HTMLDialogElemen
     });
 }
 
-// Reusable Gothic Confirmation Dialog
 let pendingConfirmCallback = null;
 function openConfirmModal(titleText, htmlMessage, confirmLabel, onConfirm) {
     const dlg = document.getElementById('confirm-modal');
@@ -66,12 +148,13 @@ function openConfirmModal(titleText, htmlMessage, confirmLabel, onConfirm) {
         if (typeof onConfirm === 'function') onConfirm();
         return;
     }
+    const cleanTitle = String(titleText).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
     const titleEl = document.getElementById('confirm-modal-title');
     const bodyEl = document.getElementById('confirm-modal-body');
     const okBtn = document.getElementById('confirm-modal-ok');
-    if (titleEl) titleEl.innerText = titleText;
+    if (titleEl) titleEl.innerText = cleanTitle.toUpperCase();
     if (bodyEl) bodyEl.innerHTML = htmlMessage;
-    if (okBtn) okBtn.innerText = confirmLabel || 'Lanjutkan';
+    if (okBtn) okBtn.innerText = confirmLabel || 'Confirm';
     pendingConfirmCallback = onConfirm;
     closeAllModals();
     dlg.showModal();
@@ -91,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function confirmResetRun() {
     openConfirmModal(
-        '🔄 Reset Ekspedisi Saat Ini?',
-        'Seluruh progres lantai, level party, dan isi tas pada ekspedisi ini akan diulang dari <b>Lantai 1</b>.<br><small style="color:#78e08f;">(Data Hall of Fame, Prestige, dan Bestiary Mastery di Royal Codex tetap aman permanen!)</small>',
-        'Reset Ekspedisi',
+        'Abandon Current Expedition',
+        'Seluruh progres lantai, level party, dan isi tas pada ekspedisi ini akan diulang dari <b>Lantai 1</b>.<br><small style="color:#75b88c;">Data Hall of Fame, Prestige, dan Bestiary Mastery di Royal Codex tetap tersimpan permanen.</small>',
+        'Abandon & Restart',
         () => resetGameRun()
     );
 }
@@ -102,9 +185,9 @@ function confirmPrestige() {
     if (currentFloor < 10) return;
     const nextPrest = ((typeof getPrestigeLevel === 'function') ? getPrestigeLevel() : 0) + 1;
     openConfirmModal(
-        `👑 Aktifkan Prestige Lv.${nextPrest}?`,
-        `Ordo Ksatria akan memulai siklus baru dari Lantai 1 dengan berkah abadi <b>+${nextPrest * 5}% Semua Atribut Permanen</b> lintas ekspedisi!`,
-        `Aktifkan Prestige Lv.${nextPrest}`,
+        `Rite of Prestige Lv.${nextPrest}`,
+        `Ordo Ksatria akan memulai siklus baru dari Lantai 1 dengan berkah abadi <b>+${nextPrest * 5}% Semua Atribut Permanen</b> lintas ekspedisi.`,
+        `Claim Prestige Lv.${nextPrest}`,
         () => triggerPrestige()
     );
 }
@@ -121,17 +204,14 @@ function confirmAscensionChoice(mod) {
 function toggleMiniMap() {
     showMiniMap = !showMiniMap;
     const btn = document.getElementById('btn-minimap');
-    if (btn) {
-        btn.innerText = showMiniMap ? "🗺️ Map [M]" : "🗺️ Off [M]";
-        btn.style.opacity = showMiniMap ? "1" : "0.55";
-    }
+    if (btn) btn.setAttribute('aria-pressed', String(showMiniMap));
     if (minimapCanvas) minimapCanvas.style.display = showMiniMap ? 'block' : 'none';
     SFX.step();
     drawGame();
 }
 
 // =========================================================
-// ENGINE VISUAL MASTER 60 FPS: PARTIKEL, VFX, SHATTER & HOVER
+// 60 FPS VISUAL ENGINE: PARTICLES, VFX, SHATTER & HOVER
 // =========================================================
 const PARTICLE_COUNT = 64;
 let ambientParticles = [];
@@ -212,7 +292,6 @@ function triggerAttackVFX(fromX, fromY, toX, toY, style = 'slash', color = '#fff
         progress: 0
     });
 
-    // Spawn metallic / arcane impact sparks
     for (let i = 0; i < 10; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spdVal = 1.4 + Math.random() * 3.4;
@@ -227,7 +306,7 @@ function triggerAttackVFX(fromX, fromY, toX, toY, style = 'slash', color = '#fff
     }
 }
 
-function triggerDeathShatter(tileX, tileY, baseColor = '#ff4757') {
+function triggerDeathShatter(tileX, tileY, baseColor = '#cf4646') {
     const cx = tileX * TILE_SIZE + TILE_SIZE / 2;
     const cy = tileY * TILE_SIZE + TILE_SIZE / 2 - 8;
     for (let i = 0; i < 22; i++) {
@@ -239,23 +318,25 @@ function triggerDeathShatter(tileX, tileY, baseColor = '#ff4757') {
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed - 1.5,
             size: 2.5 + rng() * 3.5,
-            color: i % 3 === 0 ? '#fff5d6' : baseColor,
+            color: i % 3 === 0 ? '#dfd0b0' : baseColor,
             alpha: 1.0
         });
     }
 }
 
-function triggerUltimateCutIn(actorName, ultTitle, color = '#d4af37') {
+function triggerUltimateCutIn(actorName, ultTitle, color = '#c9a45c') {
+    const cleanActor = String(actorName).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
+    const cleanUlt = String(ultTitle).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
     ultimateCutIn = {
-        actorName: actorName.toUpperCase(),
-        ultTitle: ultTitle.toUpperCase(),
+        actorName: cleanActor.toUpperCase(),
+        ultTitle: cleanUlt.toUpperCase(),
         color: color,
         alpha: 1.0,
         timer: 52
     };
 }
 
-function triggerScreenShake(intensity = 6, durationMs = 220) {
+function triggerScreenShake(intensity = 6) {
     const scaled = intensity * screenShakeIntensity;
     if (scaled <= 0) return;
     screenShakeMag = Math.max(screenShakeMag, scaled);
@@ -268,7 +349,7 @@ function triggerHitFlash(unit, color = "#ffffff") {
     impactRings.push({
         x: unit.x, y: unit.y,
         radius: 5, maxRadius: 30,
-        color: color === "#ffffff" ? "#ff6b6b" : color,
+        color: color === "#ffffff" ? "#d9534f" : color,
         alpha: 1.0
     });
 }
@@ -294,32 +375,32 @@ function createBiomeParticle(biomeId, randomY = false) {
 
     if (biomeId === 'crypt') {
         p.y = Math.random() * WORLD_HEIGHT;
-        p.size = 1.2 + Math.random() * 1.8;
-        p.vx = (Math.random() - 0.5) * 0.25;
-        p.vy = -0.12 - Math.random() * 0.22;
-        p.color = Math.random() < 0.72 ? '#f5d77f' : '#78e08f';
-        p.alpha = 0.14 + Math.random() * 0.30;
+        p.size = 1.2 + Math.random() * 1.6;
+        p.vx = (Math.random() - 0.5) * 0.22;
+        p.vy = -0.10 - Math.random() * 0.20;
+        p.color = Math.random() < 0.78 ? '#dfd0b0' : '#75b88c';
+        p.alpha = 0.12 + Math.random() * 0.26;
     } else if (biomeId === 'ice') {
         p.y = randomY ? Math.random() * WORLD_HEIGHT : -10;
-        p.size = 1.4 + Math.random() * 2.2;
+        p.size = 1.3 + Math.random() * 2.0;
         p.vx = -0.45 - Math.random() * 0.5;
         p.vy = 0.75 + Math.random() * 0.95;
-        p.color = Math.random() < 0.7 ? '#ffffff' : '#82ccdd';
-        p.alpha = 0.28 + Math.random() * 0.45;
+        p.color = Math.random() < 0.7 ? '#e6f2fa' : '#8ab8d9';
+        p.alpha = 0.26 + Math.random() * 0.42;
     } else if (biomeId === 'lava') {
         p.y = randomY ? Math.random() * WORLD_HEIGHT : WORLD_HEIGHT + 10;
-        p.size = 1.5 + Math.random() * 2.4;
+        p.size = 1.4 + Math.random() * 2.2;
         p.vx = (Math.random() - 0.5) * 0.45;
         p.vy = -0.65 - Math.random() * 1.05;
-        p.color = Math.random() < 0.5 ? '#ff5e00' : (Math.random() < 0.5 ? '#ffa502' : '#fff2a6');
-        p.alpha = 0.35 + Math.random() * 0.50;
+        p.color = Math.random() < 0.5 ? '#d95b26' : '#f0be65';
+        p.alpha = 0.32 + Math.random() * 0.46;
     } else {
         p.y = randomY ? Math.random() * WORLD_HEIGHT : WORLD_HEIGHT + 10;
-        p.size = 1.5 + Math.random() * 2.4;
+        p.size = 1.4 + Math.random() * 2.2;
         p.vx = (Math.random() - 0.5) * 0.38;
         p.vy = -0.35 - Math.random() * 0.65;
-        p.color = Math.random() < 0.65 ? '#e056fd' : '#00ffff';
-        p.alpha = 0.24 + Math.random() * 0.48;
+        p.color = Math.random() < 0.65 ? '#ad7fd1' : '#7fa6c9';
+        p.alpha = 0.22 + Math.random() * 0.44;
     }
     return p;
 }
@@ -366,7 +447,7 @@ function updateAndDrawAmbientParticles() {
             continue;
         }
 
-        const flickerAlpha = Math.max(0.06, Math.min(0.92, p.alpha + Math.sin(p.phase * 1.5) * 0.14));
+        const flickerAlpha = Math.max(0.06, Math.min(0.88, p.alpha + Math.sin(p.phase * 1.5) * 0.12));
         ctx.globalAlpha = flickerAlpha;
         ctx.fillStyle = p.color;
         ctx.beginPath();
@@ -402,13 +483,11 @@ function masterRenderLoop(now) {
 
     torchFlickerPhase += 0.085 * dt;
 
-    // Decay screen shake smoothly
     if (screenShakeMag > 0.08) {
         screenShakeMag *= Math.pow(0.84, dt);
         if (screenShakeMag < 0.12) screenShakeMag = 0;
     }
 
-    // Update unit lunge & hitFlash animations
     const allUnits = [...(typeof party !== 'undefined' ? party : []), ...(typeof enemies !== 'undefined' ? enemies : [])];
     allUnits.forEach(u => {
         if (!u) return;
@@ -427,11 +506,9 @@ function masterRenderLoop(now) {
         }
     });
 
-    // Update Attack VFX
     attackVFXList.forEach(v => { v.progress += 0.095 * dt; });
     attackVFXList = attackVFXList.filter(v => v.progress < 1.0);
 
-    // Update Impact Sparks
     sparkParticles.forEach(sp => {
         sp.x += sp.vx * dt;
         sp.y += sp.vy * dt;
@@ -440,14 +517,12 @@ function masterRenderLoop(now) {
     });
     sparkParticles = sparkParticles.filter(sp => sp.alpha > 0);
 
-    // Update Impact Shockwave Rings
     impactRings.forEach(r => {
         r.radius += 1.6 * dt;
         r.alpha -= 0.065 * dt;
     });
     impactRings = impactRings.filter(r => r.alpha > 0);
 
-    // Update Death Shatter Particles
     shatterParticles.forEach(sp => {
         sp.x += sp.vx * dt;
         sp.y += sp.vy * dt;
@@ -456,7 +531,6 @@ function masterRenderLoop(now) {
     });
     shatterParticles = shatterParticles.filter(sp => sp.alpha > 0);
 
-    // Update Floating Damage / Overhead Popups
     if (typeof floatingPopups !== 'undefined') {
         floatingPopups.forEach(p => {
             p.life = (p.life || 0) + dt;
@@ -469,7 +543,6 @@ function masterRenderLoop(now) {
         floatingPopups = floatingPopups.filter(p => p.alpha > 0.02);
     }
 
-    // Update Ultimate Cut-In Banner
     if (ultimateCutIn) {
         ultimateCutIn.timer -= dt;
         if (ultimateCutIn.timer < 12) ultimateCutIn.alpha = Math.max(0, ultimateCutIn.timer / 12);
@@ -482,20 +555,25 @@ function masterRenderLoop(now) {
 }
 requestAnimationFrame(masterRenderLoop);
 
+// Literary Parchment Log (strips OS emojis automatically while keeping SVG icons)
 function addLog(msg) {
     const logBox = document.getElementById('log-box');
-    if (logBox) {
-        const entry = document.createElement('div');
-        entry.innerHTML = `⚜️ ${msg}`;
-        logBox.prepend(entry);
-        while (logBox.children.length > 60) {
-            logBox.removeChild(logBox.lastChild);
-        }
+    if (!logBox) return;
+    const cleaned = String(msg)
+        .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    const entry = document.createElement('div');
+    entry.className = 'chronicle-entry';
+    entry.innerHTML = `<span class="chronicle-bullet" aria-hidden="true">◆</span>${cleaned}`;
+    logBox.prepend(entry);
+    while (logBox.children.length > 60) {
+        logBox.removeChild(logBox.lastChild);
     }
 }
 
 // =========================================================
-// DIALOG 6: ROYAL CODEX — HALL OF FAME, ACHIEVEMENTS & BESTIARY
+// DIALOG 6: ROYAL CODEX — ANNALS, HONORS & BESTIARY
 // =========================================================
 function toggleBestiaryModal() {
     toggleDialogById('bestiary-modal', () => {
@@ -519,55 +597,55 @@ function renderBestiaryModal() {
     const achRows = (typeof ACHIEVEMENTS_CATALOG !== 'undefined' ? ACHIEVEMENTS_CATALOG : []).map(a => {
         const done = unlockedAch.includes(a.id);
         return `
-            <div class="slot-row" style="padding:6px 9px; border-color:${done ? '#d4af37' : '#3a2b18'}; opacity:${done ? '1' : '0.52'};">
+            <div class="slot-row" style="padding:6px 9px; border-color:${done ? '#665130' : '#262019'}; opacity:${done ? '1' : '0.48'};">
                 <div>
-                    <b style="color:${done ? '#f1c40f' : '#a89984'};">${done ? '🏆' : '🔒'} ${a.name}</b>
-                    <div style="font-size:11px; color:#b8a68e;">${a.desc}</div>
+                    <b style="color:${done ? '#dfd0b0' : '#8a7f6d'};">${done ? icon('trophy', 13) : icon('lock', 12)} ${a.name}</b>
+                    <div style="font-size:11.5px; color:#8f8473;">${a.desc}</div>
                 </div>
-                <span class="item-qty-badge" style="background:${done ? '#2b6e3f' : '#241b13'}; color:${done ? '#fff' : '#887862'};">${done ? 'TERBUKA' : 'Terkunci'}</span>
+                <span class="item-qty-badge" style="color:${done ? '#75b88c' : '#6e6558'};">${done ? 'EARNED' : 'Locked'}</span>
             </div>
         `;
     }).join('');
 
     const historyList = (hallOfFame.runHistory || []).slice(0, 5).map((r, i) => `
         <div class="slot-row" style="padding:5px 9px; font-size:11.5px;">
-            <span>#${i + 1} • <b>Floor ${r.floor}</b> (Asc.${r.ascension || 0} | Prest.${r.prestige || 0})</span>
-            <span style="color:#f1c40f;">💰 ${r.gold || 0}G</span>
+            <span>#${i + 1} · <b>Floor ${r.floor}</b> (Asc.${r.ascension || 0} · Prest.${r.prestige || 0})</span>
+            <span class="gold-val">${icon('coin', 12)} ${r.gold || 0}</span>
         </div>
-    `).join('') || `<div style="font-size:11.5px; color:#887862; font-style:italic; padding:4px;">Belum ada riwayat ekspedisi selesai.</div>`;
+    `).join('') || `<div style="font-size:12px; color:#7d7363; font-style:italic; padding:4px;">Belum ada ekspedisi yang tercatat.</div>`;
 
     hofEl.innerHTML = `
         <div class="slot-row">
-            <span>🏰 <b>Lantai Tertinggi Dicapai:</b></span>
-            <b style="color:#d4af37; font-size:14px;">Floor ${hallOfFame.highestFloor}</b>
+            <span><b>Deepest Descent</b></span>
+            <b style="color:#dfd0b0; font-family:var(--font-display);">Floor ${hallOfFame.highestFloor}</b>
         </div>
         <div class="slot-row">
-            <span>🌟 <b>Ascension / Prestige:</b></span>
-            <b style="color:#00ffff; font-size:13px;">Asc Lv.${hallOfFame.highestAscension} | Prest Lv.${hallOfFame.prestigeLevel || 0}</b>
+            <span><b>Ascension &amp; Prestige</b></span>
+            <b style="color:#8ab8d9;">Asc Lv.${hallOfFame.highestAscension} · Prest Lv.${hallOfFame.prestigeLevel || 0}</b>
         </div>
         <div class="slot-row">
-            <span>⚔️ <b>Total Monster & Boss Gugur:</b></span>
-            <b style="color:#78e08f;">${hallOfFame.totalKills} Musuh (${hallOfFame.bossKills} Boss)</b>
+            <span><b>Adversaries Vanquished</b></span>
+            <b style="color:#75b88c;">${hallOfFame.totalKills} Foes (${hallOfFame.bossKills} Bosses)</b>
         </div>
         <div class="slot-row">
-            <span>💰 <b>Total Emas Dikumpulkan:</b></span>
-            <b style="color:#f1c40f;">${hallOfFame.totalGoldEarned} Gold</b>
+            <span><b>Sovereigns Amassed</b></span>
+            <b class="gold-val">${hallOfFame.totalGoldEarned} Gold</b>
         </div>
         <div class="slot-row">
-            <span>📦 <b>Peti Dibuka / Titah Tuntas:</b></span>
-            <b style="color:#e0c3fc;">${hallOfFame.chestsOpened || 0} Peti / ${hallOfFame.bountiesCompleted || 0} Titah</b>
+            <span><b>Coffers &amp; Decrees</b></span>
+            <b>${hallOfFame.chestsOpened || 0} Chests · ${hallOfFame.bountiesCompleted || 0} Decrees</b>
         </div>
         <div class="slot-row">
-            <span>📖 <b>Bestiary Mastery Terbuka:</b></span>
-            <b style="color:#00ffff;">${masteredCount} / ${Object.keys(BESTIARY_CATALOG).length} Spesies</b>
+            <span><b>Bestiary Mastery</b></span>
+            <b style="color:#c9a45c;">${masteredCount} / ${Object.keys(BESTIARY_CATALOG).length} Species</b>
         </div>
         <div class="slot-row">
-            <span>🧭 <b>Total Ekspedisi:</b></span>
-            <span style="color:#a89984;">Run #${hallOfFame.totalRuns || 1} (${hallOfFame.totalWipes || 0}x Wipe)</span>
+            <span><b>Expedition Ledger</b></span>
+            <span style="color:#968b78;">Run #${hallOfFame.totalRuns || 1} (${hallOfFame.totalWipes || 0} Fallen)</span>
         </div>
-        <h3 style="margin-top:8px;">🏅 Achievements (${unlockedAch.length}/${(typeof ACHIEVEMENTS_CATALOG !== 'undefined' ? ACHIEVEMENTS_CATALOG.length : 0)})</h3>
+        <h3 style="margin-top:8px;">Honors (${unlockedAch.length}/${(typeof ACHIEVEMENTS_CATALOG !== 'undefined' ? ACHIEVEMENTS_CATALOG.length : 0)})</h3>
         ${achRows}
-        <h3 style="margin-top:8px;">📜 Riwayat Ekspedisi Terakhir</h3>
+        <h3 style="margin-top:8px;">Recent Chronicles</h3>
         ${historyList}
     `;
 
@@ -579,10 +657,10 @@ function renderBestiaryModal() {
 
         if (!isDiscovered) {
             return `
-            <div class="bag-item-row" style="opacity:0.48;">
+            <div class="bag-item-row" style="opacity:0.45;">
                 <div>
-                    <div>❓ <b>??? (Belum Terungkap)</b> <small style="color:#9c8c74">[${monster.role}]</small></div>
-                    <div class="item-buff-text" style="color:#887862;">Kalahkan makhluk ini minimal 1x di dalam dungeon untuk membuka catatan anatominya.</div>
+                    <div>${icon('lock', 13)} <b>Unknown Specimen</b> <small style="color:#7d7363">[${monster.role}]</small></div>
+                    <div class="item-buff-text" style="color:#7d7363;">Tumpas makhluk ini minimal 1x di dalam dungeon untuk membuka catatan anatominya.</div>
                 </div>
                 <span class="item-qty-badge">0 / ${monster.targetKills}</span>
             </div>
@@ -590,20 +668,20 @@ function renderBestiaryModal() {
         }
 
         return `
-        <div class="bag-item-row" style="border-color:${isMastered ? '#d4af37' : '#473620'};">
+        <div class="bag-item-row" style="border-color:${isMastered ? '#665130' : '#2e271f'};">
             <div style="flex:1;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span>
-                        ${monster.icon} <b style="color:${isMastered ? '#f1c40f' : '#e6dcc8'}">${monster.name}</b>
-                        <small style="color:#9c8c74">[${monster.role}]</small>
+                        ${monster.icon} <b style="color:${isMastered ? '#dfd0b0' : '#ded5c4'}">${monster.name}</b>
+                        <small style="color:#8f8473">[${monster.role}]</small>
                     </span>
-                    <span class="item-qty-badge" style="background:${isMastered ? '#2b6e3f' : '#2e241a'}; color:${isMastered ? '#fff' : '#d4af37'};">
-                        ${isMastered ? '★ MASTERED (+10% DMG)' : `Kills: ${kills}/${monster.targetKills}`}
+                    <span class="item-qty-badge" style="color:${isMastered ? '#75b88c' : '#c9a45c'};">
+                        ${isMastered ? 'MASTERED (+10% DMG)' : `${kills} / ${monster.targetKills}`}
                     </span>
                 </div>
-                <div style="font-size:11px; color:#c2b29b; margin-top:3px; font-style:italic;">"${monster.lore}"</div>
-                <div class="hp-bar-bg" style="height:6px; margin-top:5px;">
-                    <div class="hp-bar-fill" style="width:${progressPct}%; background-color:${isMastered ? '#f1c40f' : '#38ada9'};"></div>
+                <div style="font-family:var(--font-prose); font-size:13px; color:#a89c88; margin-top:3px; font-style:italic;">"${monster.lore}"</div>
+                <div class="hp-bar-bg" style="block-size:5px; margin-top:5px;">
+                    <div class="hp-bar-fill" style="width:${progressPct}%; background:${isMastered ? '#c9a45c' : '#4982b3'};"></div>
                 </div>
             </div>
         </div>
@@ -612,7 +690,7 @@ function renderBestiaryModal() {
 }
 
 // =========================================================
-// TRANSISI LANTAI DRAMATIS (GOTHIC SOULS-LIKE BANNER)
+// SOULS-LIKE FLOOR & DEATH TRANSITION OVERLAY
 // =========================================================
 const BIOME_LORE = {
     crypt: "Lorong makam kuno yang lembap, tempat tulang-belulang prajurit masa silam bangkit menjaga ruang bawah tanah.",
@@ -621,7 +699,7 @@ const BIOME_LORE = {
     void:  "Jurang kehampaan tanpa dasar yang melahap cahaya obor dengan cepat, namun menyimpan pusaka legendaris."
 };
 
-function showDeathTransition(titleText = "A HERO HAS FALLEN", subtitleText = "THE PARTY HAS PERISHED") {
+function showDeathTransition(titleText = "THE ORDER HAS FALLEN", subtitleText = "EXPEDITION TERMINATED") {
     const overlay = document.getElementById('floor-transition-overlay');
     if (!overlay) return;
 
@@ -634,10 +712,10 @@ function showDeathTransition(titleText = "A HERO HAS FALLEN", subtitleText = "TH
     if (subEl)   subEl.innerText = subtitleText;
     if (titleEl) titleEl.innerText = titleText;
     if (biomeEl) {
-        biomeEl.innerText = '— THE ENDLESS DUNGEON —';
-        biomeEl.style.color = '#ff4757';
+        biomeEl.innerText = 'ENDLESS DUNGEON';
+        biomeEl.style.color = '#b83236';
     }
-    if (loreEl) loreEl.innerText = '"Kegelapan menelan seluruh Ordo. Rekor terukir abadi di Royal Codex."';
+    if (loreEl) loreEl.innerText = '"Kegelapan menelan seluruh Ordo. Catatan kehormatan tetap terukir di Royal Codex."';
     if (warnEl) warnEl.classList.add('hidden');
 
     const prevMode = gameMode;
@@ -676,17 +754,17 @@ function showFloorTransition(floorNum, customSubtitle = "DESCENDING INTO THE DEP
     if (subEl)   subEl.innerText = customSubtitle;
     if (titleEl) titleEl.innerText = `FLOOR ${floorNum}`;
     if (biomeEl) {
-        biomeEl.innerText = `— ${biome.name} —`;
-        biomeEl.style.color = biome.color;
+        biomeEl.innerText = biome.name.toUpperCase();
+        biomeEl.style.color = '#c9a45c';
     }
     if (loreEl) loreEl.innerText = `"${BIOME_LORE[biome.id] || BIOME_LORE.crypt}"`;
 
     if (warnEl) {
         if (floorNum % 10 === 0) {
-            warnEl.innerText = `⚠️ PERINGATAN DREAD LORD: ${roster.grand.name.toUpperCase()} MENGUASAI LANTAI INI! ⚠️`;
+            warnEl.innerText = `DREAD LORD AWAITS: ${roster.grand.name.toUpperCase()}`;
             warnEl.classList.remove('hidden');
         } else if (floorNum % 5 === 0) {
-            warnEl.innerText = `⚠️ PERHATIAN MINI-BOSS: ${roster.mini.name.toUpperCase()} MENJAGA TANGGA! ⚠️`;
+            warnEl.innerText = `WARDEN OF THE THRESHOLD: ${roster.mini.name.toUpperCase()}`;
             warnEl.classList.remove('hidden');
         } else {
             warnEl.classList.add('hidden');
@@ -728,8 +806,8 @@ function formatStatDiffHtml(candidateItem, hero) {
     if (!currentEq) {
         const gains = statMeta
             .filter(s => (candidateItem.stats[s.key] || 0) > 0)
-            .map(s => `<span style="color:#78e08f; font-weight:bold;">▲+${candidateItem.stats[s.key]} ${s.label}</span>`);
-        return `<span style="color:#b8a68e; font-style:italic;">Vs Kosong:</span> ${gains.join(' ')}`;
+            .map(s => `<span style="color:#75b88c; font-weight:600;">+${candidateItem.stats[s.key]} ${s.label}</span>`);
+        return `<span style="color:#8f8473;">Empty Slot:</span> ${gains.join(' · ')}`;
     }
 
     const diffs = [];
@@ -739,18 +817,18 @@ function formatStatDiffHtml(candidateItem, hero) {
         const diff = newVal - oldVal;
 
         if (diff > 0) {
-            diffs.push(`<span style="color:#78e08f; font-weight:bold; background:#1e2d24; border:1px solid #3b7a4c; padding:1px 5px; border-radius:3px;">▲+${diff} ${s.label}</span>`);
+            diffs.push(`<span style="color:#75b88c; font-weight:600;">+${diff} ${s.label}</span>`);
         } else if (diff < 0) {
-            diffs.push(`<span style="color:#ff6b81; font-weight:bold; background:#2d1a1a; border:1px solid #7a3b3b; padding:1px 5px; border-radius:3px;">▼${diff} ${s.label}</span>`);
+            diffs.push(`<span style="color:#cf5b64; font-weight:600;">${diff} ${s.label}</span>`);
         } else if (newVal > 0 && diff === 0) {
-            diffs.push(`<span style="color:#9c8c74; background:#1c1612; border:1px solid #473620; padding:1px 5px; border-radius:3px;">=${s.label}</span>`);
+            diffs.push(`<span style="color:#7d7363;">=${s.label}</span>`);
         }
     });
 
     if (diffs.length === 0) {
-        return `<span style="color:#9c8c74; font-style:italic;">Vs ${currentEq.name}: Stat Identik</span>`;
+        return `<span style="color:#7d7363;">Identical to equipped</span>`;
     }
-    return `<span style="color:#d4af37; font-style:italic;">Vs Pakai (${hero.name}):</span> ${diffs.join(' ')}`;
+    return `<span style="color:#968b78;">vs ${hero.name}:</span> ${diffs.join(' · ')}`;
 }
 
 function formatSetAndCurseMetaHtml(item, hero = null) {
@@ -758,13 +836,13 @@ function formatSetAndCurseMetaHtml(item, hero = null) {
     if (item.setId && typeof EQUIPMENT_SETS !== 'undefined' && EQUIPMENT_SETS[item.setId]) {
         const s = EQUIPMENT_SETS[item.setId];
         const count = hero ? (getHeroActiveSets(hero)[item.setId] || 0) : 0;
-        html += `<div style="font-size:10.5px; color:${s.color}; margin-top:2px;">
-            ${s.icon} <b>Set ${s.name}</b> ${hero ? `(${count}/4 Aktif)` : ''} — <small>[2-Pc: ${s.bonus2Desc}]</small>
+        html += `<div style="font-size:11px; color:${s.color}; margin-top:2px;">
+            ${s.icon} <b>${s.name}</b> ${hero ? `(${count}/4)` : ''} · <small>2pc: ${s.bonus2Desc}</small>
         </div>`;
     }
     if (item.curseId) {
         html += `
-            <div style="font-size:11px; color:#ffb142; margin-top:2px; font-weight:bold;">${item.boonDesc}</div>
+            <div style="font-size:11px; color:#db822b; margin-top:2px; font-weight:600;">${item.boonDesc}</div>
             <div class="curse-drawback-text">${item.curseDesc}</div>
         `;
     }
@@ -772,7 +850,7 @@ function formatSetAndCurseMetaHtml(item, hero = null) {
 }
 
 // ==========================================
-// DIALOG 5: CAMPFIRE / REST SITE
+// DIALOG 5: CAMPFIRE / SANCTUARY HEARTH
 // ==========================================
 function openCampfireModal() {
     SFX.shrine();
@@ -798,40 +876,40 @@ function chooseCampfireAction(actionType) {
                     p.statuses = { poison: 0, burn: 0, stun: 0 };
                 }
             });
-            if (ldr) addOverheadIcon(ldr.x, ldr.y, "⛺ RESTED!", "#2ecc71");
-            addLog(`🔥 PERKEMAHAN: Seluruh Ksatria pulih +45% HP/MP & Obor menyala 100%!`);
+            if (ldr) addOverheadIcon(ldr.x, ldr.y, "RESTORED", "#75b88c");
+            addLog(`PERKEMAHAN: Seluruh Ksatria pulih +45% HP/MP & Obor menyala 100%.`);
         } else {
-            if (ldr) addOverheadIcon(ldr.x, ldr.y, "🌾 FAMINE!", "#b85d19");
-            addLog(`🌾 PERKEMAHAN: Kutukan Famine mencegah pemulihan HP, namun Obor menyala 100%.`);
+            if (ldr) addOverheadIcon(ldr.x, ldr.y, "FAMINE", "#db822b");
+            addLog(`PERKEMAHAN: Kutukan Famine mencegah pemulihan raga, namun Obor menyala 100%.`);
         }
     }
     else if (actionType === 'sharpen') {
         sharpenedBuff = true;
         party.forEach(p => { if (p.hp > 0) p.overdrive = Math.min(100, (p.overdrive || 0) + 50); });
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "⚔️ +25% DMG & OD!", "#ffcc00");
-        addLog(`🔥 BATU ASAH: Bilah pedang & tongkat diberkati! +25% DMG & +50% Overdrive!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+25% DMG", "#dfd0b0");
+        addLog(`BATU ASAH: Bilah senjata diberkati (+25% DMG & +50% Overdrive).`);
     }
     else if (actionType === 'scout') {
         for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) revealed[y][x] = true;
         }
         traps.forEach(t => t.detected = true);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "🦅 MAP REVEALED!", "#00ffff");
-        addLog(`🔥 PENGINTAIAN: Seluruh lorong kastil, musuh, dan jebakan di lantai ini terpetakan!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "SCOUTED", "#8ab8d9");
+        addLog(`PENGINTAIAN: Seluruh lorong, musuh, dan jebakan di lantai ini terpetakan.`);
     }
     else if (actionType === 'upgrade_torch') {
         const costOre = 3;
         const costGold = 50;
         if (inventory.ore < costOre || inventory.gold < costGold) {
-            addLog(`❌ Butuh ${costOre} Ore & ${costGold} Gold untuk meningkatkan Obor Abadi!`);
+            addLog(`Butuh ${costOre} Ore & ${costGold} Gold untuk menempa Obor Abadi.`);
             return;
         }
         inventory.ore -= costOre;
         inventory.gold -= costGold;
         torchUpgradeLevel = (torchUpgradeLevel || 0) + 1;
         torchLight = 100;
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, '🔥 TORCH UP!', '#f1c40f');
-        addLog(`🔥 OBOR ABADI LV.${torchUpgradeLevel}: Konsumsi obor per langkah berkurang & obor terisi penuh!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, 'TORCH FORGED', '#dfd0b0');
+        addLog(`OBOR ABADI LV.${torchUpgradeLevel}: Konsumsi obor per langkah berkurang & obor terisi penuh.`);
     }
 
     campfire.used = true;
@@ -848,37 +926,37 @@ function renderCampfireModal() {
     listEl.innerHTML = `
         <div class="bag-item-row">
             <div>
-                <b>⛺ Rest by the Embers (Peristirahatan Ksatria)</b>
-                <div class="item-buff-text">Pulihkan +45% Max HP & MP seluruh Party, sembuhkan racun/debuff, & Obor 100%.</div>
+                <b>${icon('campfire', 14)} Rest by the Embers</b>
+                <div class="item-buff-text">Pulihkan +45% Max HP &amp; MP seluruh Party, bersihkan racun/debuff, &amp; Obor 100%.</div>
             </div>
-            <button type="button" class="btn-small-use" onclick="chooseCampfireAction('rest')">Istirahat</button>
+            <button type="button" class="btn-small-use" onclick="chooseCampfireAction('rest')">Rest</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>🗡️ Whetstone & Prayer (Asah Senjata & Doa Perang)</b>
-                <div class="item-buff-text">Berikan +25% Damage pada pertarungan berikutnya & +50% Overdrive semua Ksatria!</div>
+                <b>${icon('sword', 14)} Whetstone &amp; War Prayer</b>
+                <div class="item-buff-text">Berikan +25% Damage pada pertarungan berikutnya &amp; +50% Overdrive semua Ksatria.</div>
             </div>
-            <button type="button" class="btn-small-use" style="background:#b85d19;" onclick="chooseCampfireAction('sharpen')">Asah Senjata</button>
+            <button type="button" class="btn-small-equip" onclick="chooseCampfireAction('sharpen')">Hone Blades</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>🦅 Falcon Recon (Intai Lorong Kastil)</b>
-                <div class="item-buff-text">Buka seluruh Fog of War di lantai ini & perlihatkan semua lokasi Jebakan (Trap)!</div>
+                <b>${icon('map', 14)} Falcon Recon</b>
+                <div class="item-buff-text">Buka seluruh Fog of War di lantai ini &amp; ungkap semua lokasi jebakan.</div>
             </div>
-            <button type="button" class="btn-small-use" style="background:#225c85;" onclick="chooseCampfireAction('scout')">Intai Map</button>
+            <button type="button" class="btn-small-equip" onclick="chooseCampfireAction('scout')">Scout Floor</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>🔥 Brazier Torch Upgrade (Lv.${torchUpgradeLevel || 0} → Lv.${(torchUpgradeLevel || 0) + 1})</b>
-                <div class="item-buff-text">Kurangi konsumsi obor per langkah secara permanen & isi penuh Obor. Biaya: 3 Ore + 50 Gold.</div>
+                <b>${icon('torch', 14)} Temper Iron Brazier (Lv.${torchUpgradeLevel || 0} → Lv.${(torchUpgradeLevel || 0) + 1})</b>
+                <div class="item-buff-text">Kurangi konsumsi obor per langkah secara permanen &amp; isi penuh Obor. Biaya: 3 Ore + 50 Gold.</div>
             </div>
-            <button type="button" class="btn-small-use" style="background:#8c5818;" ${!canUpgradeTorch ? 'disabled' : ''} onclick="chooseCampfireAction('upgrade_torch')">Tempa Obor</button>
+            <button type="button" class="btn-small-use" ${!canUpgradeTorch ? 'disabled' : ''} onclick="chooseCampfireAction('upgrade_torch')">Forge Torch</button>
         </div>
     `;
 }
 
 // ==========================================
-// DIALOG 4: MYSTERIOUS SHRINE / ALTAR
+// DIALOG 4: SHRINE OF THE OLD GODS
 // ==========================================
 function spawnAltarGuardians() {
     const ldr = (typeof getLeader === 'function') ? getLeader() : null;
@@ -902,8 +980,8 @@ function spawnAltarGuardians() {
         party.forEach(p => {
             if (p.hp > 0) { p.hp = Math.min(p.maxHp, p.hp + 30); p.mp = Math.min(p.maxMp, p.mp + 25); p.statuses = { poison: 0, burn: 0, stun: 0 }; }
         });
-        if (ldr) { updateFogOfWar(ldr.x, ldr.y); addOverheadIcon(ldr.x, ldr.y, "☀️ BLESSED!", "#f1c40f"); }
-        addLog("⛩️ Altar terlalu sempit untuk memanggil penjaga. Berkah Cahaya diberikan sebagai gantinya.");
+        if (ldr) { updateFogOfWar(ldr.x, ldr.y); addOverheadIcon(ldr.x, ldr.y, "BLESSED", "#dfd0b0"); }
+        addLog("Altar terlalu sempit untuk memanggil penjaga. Berkah Katedral diberikan sebagai gantinya.");
         return;
     }
 
@@ -912,21 +990,21 @@ function spawnAltarGuardians() {
         const pos = free[i];
         const hp = Math.floor((70 + currentFloor * 20) * ascMult);
         const g = {
-            name: `⛩️ Altar Guardian ${i + 1} [Lv.${currentFloor}]`,
+            name: `Altar Guardian ${i + 1} [Lv.${currentFloor}]`,
             x: pos.x, y: pos.y, hp, maxHp: hp,
             atk: Math.floor((11 + currentFloor * 3) * ascMult),
             def: 3 + Math.floor(currentFloor * 0.9),
             spd: 12 + Math.floor(currentFloor / 3) + i,
-            color: "#8e44ad", isEnemy: true, isBoss: false, bossTier: 0,
+            color: "#9d72c4", isEnemy: true, isBoss: false, bossTier: 0,
             isElite: true, affix: null,
             statuses: { burn: 0, stun: 0, break: 0 }
         };
         revealed[pos.y][pos.x] = true;
         enemies.push(g);
         guardians.push(g);
-        addOverheadIcon(pos.x, pos.y, "⚔️ PENJAGA ALTAR!", "#8e44ad");
+        addOverheadIcon(pos.x, pos.y, "GUARDIAN", "#ad7fd1");
     }
-    addLog("⛩️ TANTANGAN ALTAR! Dua Altar Guardian (Elite) bangkit! Kalahkan untuk loot Epic dijamin.");
+    addLog("TANTANGAN ALTAR: Dua Altar Guardian (Elite) bangkit menjaga monolit!");
     startCombat(guardians[0]);
 }
 
@@ -949,19 +1027,19 @@ function chooseShrineBlessing(optionType) {
         });
         const legGear = (rng() < 0.60) ? generateCursedRelic(currentFloor) : generateRandomEquipment(currentFloor, 'Epic');
         inventory.bag.push(legGear);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "🩸+CURSED RELIC!", "#ff4757");
-        addLog(`⛩️ SUMPAH DARAH: Mengorbankan 30% darah Ksatria & memperoleh pusaka [${legGear.name}]!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "CURSED RELIC", "#cf5b64");
+        addLog(`SUMPAH DARAH: Mengorbankan 30% darah Ksatria & memperoleh pusaka [${legGear.name}].`);
     }
     else if (optionType === 'wisdom') {
         const wisdomCost = 40 + (currentFloor * 10);
         if (inventory.gold < wisdomCost) {
-            addLog(`❌ Butuh minimal ${wisdomCost} Gold untuk persembahan Altar Kebijaksanaan!`);
+            addLog(`Butuh minimal ${wisdomCost} Gold untuk persembahan Altar Kebijaksanaan.`);
             return;
         }
         inventory.gold -= wisdomCost;
         gainPartyXP(75 + currentFloor * 15, ldr);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "✨+ANCIENT EXP!", "#00ffff");
-        addLog(`⛩️ ALTAR KEBIJAKSANAAN: Mempersembahkan ${wisdomCost} Koin Emas untuk pengetahuan kuno!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+ANCIENT EXP", "#8ab8d9");
+        addLog(`ALTAR KEBIJAKSANAAN: Mempersembahkan ${wisdomCost} Gold untuk pengetahuan kuno.`);
     }
     else if (optionType === 'radiance') {
         torchLight = 100;
@@ -974,9 +1052,9 @@ function chooseShrineBlessing(optionType) {
         });
         if (ldr) {
             updateFogOfWar(ldr.x, ldr.y);
-            addOverheadIcon(ldr.x, ldr.y, "☀️ BLESSED!", "#f1c40f");
+            addOverheadIcon(ldr.x, ldr.y, "SANCTIFIED", "#dfd0b0");
         }
-        addLog(`⛩️ BERKAH CAHAYA: Obor 100%, seluruh Ksatria pulih +30 HP, +25 MP & bebas kutukan!`);
+        addLog(`BERKAH KATEDRAL: Obor 100%, seluruh Ksatria pulih +30 HP, +25 MP & bebas kutukan.`);
     }
     else if (optionType === 'trial') {
         if (gameMode !== 'EXPLORE') return;
@@ -991,8 +1069,8 @@ function chooseShrineBlessing(optionType) {
     else if (optionType === 'memory') {
         shrine.used = true;
         party.forEach(p => { if (p.hp > 0) p.statPoints = (p.statPoints || 0) + 1; });
-        addLog('⛩️ SHRINE OF MEMORY: Seluruh Ksatria hidup menerima +1 Stat Point kuno!');
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, '📘 +1 STAT PARTY!', '#00ffff');
+        addLog('SHRINE OF MEMORY: Seluruh Ksatria hidup menerima +1 Stat Point kuno.');
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, '+1 STAT PT', '#8ab8d9');
         SFX.shrine();
         closeShrineModal();
         updateUI();
@@ -1014,44 +1092,44 @@ function renderShrineModal() {
     listEl.innerHTML = `
         <div class="bag-item-row">
             <div>
-                <b>🩸 Blood Tithe (Korbankan 30% HP Party)</b>
-                <div class="item-buff-text">Hadiah: Dijamin 1x Cursed Relic (Pusaka Terkutuk) atau Zirah Epic/Legendary ke Peti Zirah!</div>
+                <b class="rarity-Cursed">${icon('skull', 13)} Blood Tithe (Sacrifice 30% HP)</b>
+                <div class="item-buff-text">Dijamin 1x Cursed Relic atau Zirah Epic/Legendary masuk ke Reliquary Coffer.</div>
             </div>
-            <button type="button" class="btn-small-use" style="background:#8f241b;" onclick="chooseShrineBlessing('blood')">Korbankan</button>
+            <button type="button" class="btn-small-danger" onclick="chooseShrineBlessing('blood')">Bleed</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>📘 Tribute of Kings (Bayar ${wisdomCost} Gold)</b>
-                <div class="item-buff-text">Hadiah: Seluruh Ksatria menerima limpahan EXP kuno secara instan!</div>
+                <b class="rarity-Legendary">${icon('coin', 13)} Tribute of Kings (${wisdomCost} Gold)</b>
+                <div class="item-buff-text">Seluruh Ksatria menerima limpahan EXP kuno secara instan.</div>
             </div>
-            <button type="button" class="btn-small-use" ${inventory.gold < wisdomCost ? 'disabled' : ''} onclick="chooseShrineBlessing('wisdom')">Persembahkan</button>
+            <button type="button" class="btn-small-equip" ${inventory.gold < wisdomCost ? 'disabled' : ''} onclick="chooseShrineBlessing('wisdom')">Offer Gold</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>☀️ Grace of the Cathedral (Gratis)</b>
-                <div class="item-buff-text">Hadiah: Obor penuh 100%, pulihkan +30 HP, +25 MP & sucikan semua racun/debuff.</div>
+                <b>${icon('crest', 13)} Grace of the Cathedral</b>
+                <div class="item-buff-text">Obor penuh 100%, pulihkan +30 HP, +25 MP &amp; sucikan semua racun/debuff.</div>
             </div>
-            <button type="button" class="btn-small-use" onclick="chooseShrineBlessing('radiance')">Berdoa</button>
+            <button type="button" class="btn-small-use" onclick="chooseShrineBlessing('radiance')">Pray</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>⚔️ Trial of the Altar (Tantang 2 Elite)</b>
-                <div class="item-buff-text">Panggil 2 Altar Guardian (Elite). Kalahkan keduanya untuk loot Epic dijamin + Ore!</div>
+                <b class="rarity-Epic">${icon('sword', 13)} Trial of the Guardians</b>
+                <div class="item-buff-text">Panggil 2 Altar Guardian (Elite). Tumpas keduanya untuk jaminan zirah Epic + Ore.</div>
             </div>
-            <button type="button" class="btn-small-use" style="background:#6c3483;" onclick="chooseShrineBlessing('trial')">Tantang</button>
+            <button type="button" class="btn-small-danger" onclick="chooseShrineBlessing('trial')">Challenge</button>
         </div>
         <div class="bag-item-row">
             <div>
-                <b>🔮 Shrine of Memory (Ingatan Ksatria Silam)</b>
-                <div class="item-buff-text">Seluruh Ksatria yang hidup langsung memperoleh +1 Stat Point bebas alokasi!</div>
+                <b class="rarity-Rare">${icon('arcane', 13)} Shrine of Memory</b>
+                <div class="item-buff-text">Seluruh Ksatria hidup langsung memperoleh +1 Stat Point bebas alokasi.</div>
             </div>
-            <button type="button" class="btn-small-use" style="background:#225c85;" onclick="chooseShrineBlessing('memory')">Kenang</button>
+            <button type="button" class="btn-small-equip" onclick="chooseShrineBlessing('memory')">Commune</button>
         </div>
     `;
 }
 
 // =========================================================================
-// DIALOG 3: WANDERING MERCHANT
+// DIALOG 3: WANDERING CARAVAN (MERCHANT)
 // =========================================================================
 function ensureMerchantInventory() {
     if (!merchant) return;
@@ -1072,23 +1150,23 @@ function ensureMerchantInventory() {
     };
 
     merchant.stock = [
-        { id: 'potion', name: "🧪 Herbal Draught", desc: "Memulihkan +35 HP & menyembuhkan status Poison Party.", cost: calcPrice(20, 5), stock: 2, maxStock: 2, type: 'consumable' },
-        { id: 'energy_potion', name: "⚡ Mana Vial", desc: "Memulihkan +30 Energi (MP) ke seluruh anggota Party.", cost: calcPrice(25, 5), stock: 2, maxStock: 2, type: 'consumable' },
-        { id: 'torch_oil', name: "🔥 Pitch Torch Oil", desc: "Mengisi ulang cahaya Obor (Torch) +60% agar jarak pandang terang.", cost: calcPrice(15, 4), stock: 2, maxStock: 2, type: 'consumable' },
-        { id: 'forge_ore', name: "⚒️ Damascus Iron Ore (x2)", desc: "2x Bijih Besi Tempa untuk menaikkan level (+1, +2) Zirah Ksatria.", cost: calcPrice(30, 6), stock: 2, maxStock: 2, type: 'ore' },
-        { id: 'revive', name: "🪶 Phoenix Relic", desc: "Membangkitkan 1 Ksatria yang gugur dengan 50% Max HP.", cost: calcPrice(60, 8), stock: 1, maxStock: 1, type: 'consumable' },
+        { id: 'potion', name: `${icon('satchel', 13)} Herbal Draught`, desc: "Memulihkan +35 HP & menyembuhkan status Poison Party.", cost: calcPrice(20, 5), stock: 2, maxStock: 2, type: 'consumable' },
+        { id: 'energy_potion', name: `${icon('bolt', 13)} Astral Vial`, desc: "Memulihkan +30 Energi (MP) ke seluruh anggota Party.", cost: calcPrice(25, 5), stock: 2, maxStock: 2, type: 'consumable' },
+        { id: 'torch_oil', name: `${icon('torch', 13)} Pitch Torch Oil`, desc: "Mengisi ulang cahaya Obor (Torch) +60% agar jarak pandang terang.", cost: calcPrice(15, 4), stock: 2, maxStock: 2, type: 'consumable' },
+        { id: 'forge_ore', name: `${icon('ingot', 13)} Damascus Iron Ore (x2)`, desc: "2x Bijih Besi Tempa untuk menaikkan level (+1, +2) Zirah Ksatria.", cost: calcPrice(30, 6), stock: 2, maxStock: 2, type: 'ore' },
+        { id: 'revive', name: `${icon('feather', 13)} Phoenix Pinion`, desc: "Membangkitkan 1 Ksatria yang gugur dengan 50% Max HP.", cost: calcPrice(60, 8), stock: 1, maxStock: 1, type: 'consumable' },
         {
             id: 'specific_gear_1',
             name: `${EQUIP_SLOTS[gear1.slot].icon} ${gear1.name}`,
             rarity: gear1.rarity, slotLabel: EQUIP_SLOTS[gear1.slot].label,
-            desc: `Stat Zirah: ${formatItemBuffs(gear1.stats)}`,
+            desc: `Attributes: ${formatItemBuffs(gear1.stats)}`,
             cost: getGearPrice(gear1), stock: 1, maxStock: 1, type: 'specific_gear', gearData: gear1
         },
         {
             id: 'specific_gear_2',
             name: `${EQUIP_SLOTS[gear2.slot].icon} ${gear2.name}`,
             rarity: gear2.rarity, slotLabel: EQUIP_SLOTS[gear2.slot].label,
-            desc: `Stat Zirah: ${formatItemBuffs(gear2.stats)}`,
+            desc: `Attributes: ${formatItemBuffs(gear2.stats)}`,
             cost: getGearPrice(gear2), stock: 1, maxStock: 1, type: 'specific_gear', gearData: gear2
         }
     ];
@@ -1116,16 +1194,16 @@ function buyMerchantItem(shopIdx) {
 
     if (item.type === 'consumable') {
         addConsumableToBackpack(item.id, 1);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "🛍️+Item", "#2ecc71");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+SUPPLY", "#75b88c");
     } else if (item.type === 'ore') {
         inventory.ore += 2;
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "⚒️+2 Ore", "#00d2ff");
-        addLog(`🛍️ PEDAGANG: Membeli +2x ⚒️ Damascus Iron Ore seharga ${item.cost} Gold!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+2 ORE", "#8ab8d9");
+        addLog(`CARAVAN: Membeli +2x Damascus Iron Ore seharga ${item.cost} Gold.`);
     } else if (item.type === 'specific_gear' && item.gearData) {
         const g = item.gearData;
         inventory.bag.push(g);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, `${EQUIP_SLOTS[g.slot].icon}+Gear`, "#9b59b6");
-        addLog(`🛍️ PEDAGANG: Membeli zirah ${EQUIP_SLOTS[g.slot].icon} [${g.name}] ke Peti Zirah [E]!`);
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+ARMOR", "#c9a45c");
+        addLog(`CARAVAN: Membeli zirah [${g.name}] ke Armory [E].`);
     }
 
     updateUI();
@@ -1141,7 +1219,7 @@ function rerollMerchantStock() {
     merchant.stock = [];
     ensureMerchantInventory();
     SFX.pickup();
-    addLog(`🔄 PEDAGANG: Stok dagangan diperbarui (biaya ${cost} Gold).`);
+    addLog(`CARAVAN: Stok dagangan diperbarui (${cost} Gold).`);
     updateUI();
     renderMerchantModal();
 }
@@ -1159,25 +1237,25 @@ function renderMerchantModal() {
         const isSoldOut = (item.stock <= 0);
         const canAfford = (inventory.gold >= item.cost && !isSoldOut);
         const titleClass = item.rarity ? `class="rarity-${item.rarity}"` : '';
-        const slotTag = item.slotLabel ? `<small style="color:#9c8c74">[${item.slotLabel}]</small>` : '';
+        const slotTag = item.slotLabel ? `<small style="color:#8f8473">[${item.slotLabel}]</small>` : '';
         const stockBadge = isSoldOut
-            ? `<span class="item-qty-badge" style="background:#5c1916; color:#ff7675;">HABIS</span>`
-            : `<span class="item-qty-badge">Stok: ${item.stock}/${item.maxStock}</span>`;
+            ? `<span class="item-qty-badge" style="color:#cf5b64;">SOLD</span>`
+            : `<span class="item-qty-badge">${item.stock}/${item.maxStock}</span>`;
 
         const extraMeta = (item.type === 'specific_gear' && item.gearData)
             ? `${formatSetAndCurseMetaHtml(item.gearData, previewHero)}<div style="font-size:11px; margin-top:2px;">${formatStatDiffHtml(item.gearData, previewHero)}</div>`
             : '';
 
         return `
-        <div class="bag-item-row" style="opacity:${isSoldOut ? '0.45' : '1'};">
+        <div class="bag-item-row" style="opacity:${isSoldOut ? '0.42' : '1'};">
             <div>
                 <div><b ${titleClass}>${item.name}</b> ${slotTag} ${stockBadge}</div>
                 <div class="item-buff-text">${item.desc}</div>
                 ${extraMeta}
-                <div style="font-size:11px; color:#f1c40f; margin-top:2px;">💰 Harga Lantai ${currentFloor}: <b>${item.cost} Gold</b></div>
+                <div style="font-size:11px; color:#c9a45c; margin-top:2px;">Price: <b>${item.cost} Gold</b></div>
             </div>
             <button type="button" class="btn-small-use" ${!canAfford ? 'disabled' : ''} onclick="buyMerchantItem(${idx})">
-                ${isSoldOut ? 'Terjual' : 'Beli'}
+                ${isSoldOut ? 'Sold' : 'Acquire'}
             </button>
         </div>
         `;
@@ -1185,45 +1263,43 @@ function renderMerchantModal() {
 
     const rerollCost = 35 + currentFloor * 8;
     const rerollRow = `
-        <div class="bag-item-row" style="border-top:1px solid rgba(212,175,55,0.3); margin-top:8px;">
+        <div class="bag-item-row" style="margin-top:6px;">
             <div>
-                <b>🔄 Minta Dagangan Baru</b>
-                <div class="item-buff-text">${merchant.rerolled ? '<b>Sudah dipakai di pedagang ini.</b>' : `Ganti seluruh stok lantai ini (sekali per pedagang). Biaya: ${rerollCost} Gold.`}</div>
+                <b>${icon('reset', 13)} Restock Caravan Wares</b>
+                <div class="item-buff-text">${merchant.rerolled ? 'Sudah digunakan pada pedagang lantai ini.' : `Perbarui seluruh stok lantai ini (sekali per pedagang). Biaya: ${rerollCost} Gold.`}</div>
             </div>
-            <button type="button" class="btn-small-use" ${(merchant.rerolled || inventory.gold < rerollCost) ? 'disabled' : ''} onclick="rerollMerchantStock()">
-                ${merchant.rerolled ? 'Sudah Reroll' : `Reroll (${rerollCost}G)`}
+            <button type="button" class="btn-small-equip" ${(merchant.rerolled || inventory.gold < rerollCost) ? 'disabled' : ''} onclick="rerollMerchantStock()">
+                ${merchant.rerolled ? 'Used' : `Restock (${rerollCost}G)`}
             </button>
         </div>
     `;
 
     const sellRows = inventory.bag.length === 0
-        ? `<div class="bag-item-row"><div class="item-buff-text">Peti zirah kosong — tidak ada yang bisa dijual.</div></div>`
+        ? `<div class="bag-item-row"><div class="item-buff-text" style="color:#7d7363;">Reliquary Coffer kosong — tidak ada zirah cadangan untuk dijual.</div></div>`
         : inventory.bag.map((item, idx) => {
-            const icon = (EQUIP_SLOTS[item.slot] && EQUIP_SLOTS[item.slot].icon) ? EQUIP_SLOTS[item.slot].icon : '📦';
+            const ico = (EQUIP_SLOTS[item.slot] && EQUIP_SLOTS[item.slot].icon) ? EQUIP_SLOTS[item.slot].icon : icon('chest', 13);
             const slotLabel = (EQUIP_SLOTS[item.slot] && EQUIP_SLOTS[item.slot].label) ? EQUIP_SLOTS[item.slot].label : item.slot;
             const up = item.upgradeLevel ? ` +${item.upgradeLevel}` : '';
             return `
             <div class="bag-item-row">
                 <div>
-                    <b class="rarity-${item.rarity || 'Common'}">${icon} ${item.name}</b> <small style="color:#9c8c74">[${slotLabel}${up}]</small>
+                    <b class="rarity-${item.rarity || 'Common'}">${ico} ${item.name}</b> <small style="color:#8f8473">[${slotLabel}${up}]</small>
                     <div class="item-buff-text">${formatItemBuffs(item.stats)}</div>
                 </div>
-                <button type="button" class="btn-small-use" style="background:#7f6a2d;" onclick="sellBagItem(${idx})">Jual +${getItemSellValue(item)}G</button>
+                <button type="button" class="btn-small-unequip" onclick="sellBagItem(${idx})">Sell +${getItemSellValue(item)}G</button>
             </div>
             `;
         }).join('');
 
     listEl.innerHTML += `
         ${rerollRow}
-        <div class="bag-item-row" style="border-top:1px solid rgba(212,175,55,0.3); margin-top:6px;">
-            <div><b>💰 Jual Zirah dari Peti Zirah</b><div class="item-buff-text">Tukarkan equipment cadangan menjadi Koin Emas (≈45% nilai lantai).</div></div>
-        </div>
+        <h3 style="margin-top:10px;">Barter Spare Equipment</h3>
         ${sellRows}
     `;
 }
 
 // ==========================================
-// DIALOG 1: BACKPACK CONSUMABLES
+// DIALOG 1: APOTHECARY SATCHEL
 // ==========================================
 function toggleBackpackModal() {
     toggleDialogById('backpack-modal', renderBackpackModal);
@@ -1235,7 +1311,7 @@ function renderBackpackModal() {
     const keys = Object.keys(CONSUMABLE_CATALOG).filter(k => (inventory.consumables[k] || 0) > 0);
 
     if (keys.length === 0) {
-        listEl.innerHTML = `<div style="color:#887862; font-style:italic; padding:18px; text-align:center;">Satchel kosong. Kalahkan monster, buka peti harta, atau kunjungi Pedagang Kelana!</div>`;
+        listEl.innerHTML = `<div style="color:#7d7363; font-family:var(--font-prose); font-style:italic; font-size:15px; padding:22px; text-align:center;">Satchel kosong. Tumpas penghuni ruang bawah tanah atau temui Wandering Caravan.</div>`;
         return;
     }
 
@@ -1251,7 +1327,7 @@ function renderBackpackModal() {
                 <div>${meta.icon} <b>${meta.name}</b> <span class="item-qty-badge">x${qty}</span></div>
                 <div class="item-buff-text">${meta.desc}</div>
             </div>
-            <button type="button" class="btn-small-use" ${isEnemyTurn ? 'disabled' : ''} onclick="useBackpackItem('${key}')">Gunakan</button>
+            <button type="button" class="btn-small-use" ${isEnemyTurn ? 'disabled' : ''} onclick="useBackpackItem('${key}')">Imbibe</button>
         </div>
         `;
     }).join('');
@@ -1295,7 +1371,7 @@ function renderEquipModal() {
             return `
             <button type="button" class="hero-tab-btn ${idx === selectedHeroIndex ? 'active' : ''}" onclick="selectHeroTab(${idx})">
                 ${avatarUrl ? `<img src="${avatarUrl}" alt="${p.role}">` : ''}
-                <span>${p.name} (Lv.${p.level})</span>
+                <span>${p.name} · Lv.${p.level}</span>
             </button>
             `;
         }).join('');
@@ -1303,64 +1379,64 @@ function renderEquipModal() {
 
     const pts = hero.statPoints;
     const btnHtml = (stat, label) => pts > 0
-        ? `<button type="button" class="btn-small-use" style="padding:2px 6px; font-size:10px; margin-left:3px;" onclick="allocateStatPoint(${selectedHeroIndex}, '${stat}')">+${label}</button>`
+        ? `<button type="button" class="btn-small-use" style="padding:1px 5px; font-size:9.5px; margin-left:4px;" onclick="allocateStatPoint(${selectedHeroIndex}, '${stat}')">+${label}</button>`
         : '';
 
-    const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hero) : { posNumber: selectedHeroIndex + 1, roleLabel: 'FRONT' };
+    const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hero) : { roman: 'I', roleLabel: 'VANGUARD' };
 
     document.getElementById('modal-hero-title').innerHTML = `
-        Ksatria: ${hero.name} [Pos ${form.posNumber} ${form.roleLabel}] — EXP: ${hero.xp}/${hero.maxXp}
-        ${pts > 0 ? `<span style="color:#78e08f; margin-left:6px;">[+${pts} Stat Pt!]</span>` : ''}
+        ${hero.name} (${hero.role}) · Rank ${form.roman} ${form.roleLabel} <small>EXP ${hero.xp}/${hero.maxXp}</small>
+        ${pts > 0 ? `<span style="color:#75b88c; margin-left:6px;">[+${pts} Attr Pt]</span>` : ''}
     `;
 
     document.getElementById('modal-hero-stats').innerHTML = `
-        <span>❤️HP:<b>${hero.maxHp}</b>${btnHtml('hp','12')}</span>
-        <span>⚡MP:<b>${hero.maxMp}</b>${btnHtml('mp','8')}</span>
-        <span>🗡️P.ATK:<b>${hero.patk}</b>${btnHtml('patk','2')}</span>
-        <span>🔮M.ATK:<b>${hero.matk}</b>${btnHtml('matk','2')}</span>
-        <span>🛡️DEF:<b>${hero.def}</b>${btnHtml('def','2')}</span>
-        <span>🥾SPD:<b>${hero.spd}</b>${btnHtml('spd','1')}</span>
+        <span>HP<b>${hero.maxHp}</b>${btnHtml('hp','12')}</span>
+        <span>MP<b>${hero.maxMp}</b>${btnHtml('mp','8')}</span>
+        <span>P.ATK<b>${hero.patk}</b>${btnHtml('patk','2')}</span>
+        <span>M.ATK<b>${hero.matk}</b>${btnHtml('matk','2')}</span>
+        <span>DEF<b>${hero.def}</b>${btnHtml('def','2')}</span>
+        <span>SPD<b>${hero.spd}</b>${btnHtml('spd','1')}</span>
     `;
 
     const setCounts = getHeroActiveSets(hero);
     const activeSetBadges = Object.keys(setCounts).map(sKey => {
         const s = EQUIPMENT_SETS[sKey];
         const cnt = setCounts[sKey];
-        const b2 = cnt >= 2 ? `<b style="color:#78e08f">[2-Pc Aktif: ${s.bonus2Desc}]</b>` : `<small style="color:#887862">(Butuh 2-Pc)</small>`;
-        const b4 = cnt >= 4 ? ` <b style="color:#00ffff">[4-Pc Aktif: ${s.bonus4Desc}]</b>` : '';
+        const b2 = cnt >= 2 ? `<b style="color:#75b88c">[2pc: ${s.bonus2Desc}]</b>` : `<small style="color:#7d7363">(Requires 2pc)</small>`;
+        const b4 = cnt >= 4 ? ` <b style="color:#c9a45c">[4pc: ${s.bonus4Desc}]</b>` : '';
         return `<div style="margin-top:2px;"><span style="color:${s.color}">${s.icon} <b>${s.name} (${cnt}/4):</b></span> ${b2}${b4}</div>`;
     }).join('');
 
     const perkEl = document.getElementById('modal-hero-perks');
-    const activePerkNames = (hero.perks || []).map(k => PERK_CATALOG[k] ? PERK_CATALOG[k].name : k).join(', ') || 'Belum ada';
+    const activePerkNames = (hero.perks || []).map(k => PERK_CATALOG[k] ? PERK_CATALOG[k].name : k).join(', ') || 'None';
     const perkBtns = Object.values(PERK_CATALOG).map(pk => {
         const owned = hero.perks && hero.perks.includes(pk.id);
-        return `<button type="button" class="btn-small-equip" style="background:${owned ? '#2b6e3f' : '#4a235a'}; opacity:${(owned || hero.perkPoints > 0) ? '1' : '0.45'};"
+        return `<button type="button" class="${owned ? 'btn-small-use' : 'btn-small-unequip'}"
             ${(owned || hero.perkPoints <= 0) ? 'disabled' : ''}
             title="${pk.desc}" onclick="unlockHeroPerk(${selectedHeroIndex}, '${pk.id}')">
-            ${owned ? '✔ ' : ''}${pk.name}
+            ${owned ? `${icon('check', 11)} ` : ''}${pk.name}
         </button>`;
     }).join('');
 
     const masteryBtns = Object.values(MASTERY_CATALOG).map(m => {
         const owned = hero.mastery && hero.mastery.includes(m.id);
-        return `<button type="button" class="btn-small-equip" style="background:${owned ? '#2b6e3f' : '#3a2452'}; opacity:${(owned || hero.perkPoints > 0) ? '1' : '0.45'};"
+        return `<button type="button" class="${owned ? 'btn-small-use' : 'btn-small-unequip'}"
             ${(owned || (hero.perkPoints || 0) <= 0) ? 'disabled' : ''}
             title="${m.desc}" onclick="unlockMastery(${selectedHeroIndex}, '${m.id}')">
-            ${owned ? '✔ ' : ''}${m.name}
+            ${owned ? `${icon('check', 11)} ` : ''}${m.name}
         </button>`;
     }).join('');
-    const activeMastery = (hero.mastery || []).map(k => MASTERY_CATALOG[k].name).join(', ') || 'Belum ada';
+    const activeMastery = (hero.mastery || []).map(k => MASTERY_CATALOG[k].name).join(', ') || 'None';
 
     perkEl.innerHTML = `
-        <div>🌟 <b>Knightly Vows (Perks):</b> <span style="color:#f1c40f">${activePerkNames}</span>
-        ${hero.perkPoints > 0 ? `<b style="color:#00ffff; margin-left:6px;">(${hero.perkPoints} Perk Point!)</b>` : `<small style="color:#9c8c74">(Tiap Lv. Ganjil)</small>`}</div>
+        <div><b>Knightly Vows:</b> <span style="color:#dfd0b0">${activePerkNames}</span>
+        ${hero.perkPoints > 0 ? `<b style="color:#75b88c; margin-left:6px;">(${hero.perkPoints} Vow Pt Available)</b>` : `<small style="color:#7d7363">(Odd Levels)</small>`}</div>
         <div class="perk-btn-row">${perkBtns}</div>
-        <div style="margin-top:6px; border-top:1px dashed #523e24; padding-top:4px;">
-            🎯 <b>Mastery (Skill Tree):</b> <span style="color:#f1c40f">${activeMastery}</span>
+        <div style="margin-top:6px; border-top:1px solid #262019; padding-top:5px;">
+            <b>Combat Mastery:</b> <span style="color:#dfd0b0">${activeMastery}</span>
             <div class="perk-btn-row">${masteryBtns}</div>
         </div>
-        ${activeSetBadges ? `<div style="border-top:1px dashed #523e24; margin-top:5px; padding-top:4px;">${activeSetBadges}</div>` : ''}
+        ${activeSetBadges ? `<div style="border-top:1px solid #262019; margin-top:5px; padding-top:4px;">${activeSetBadges}</div>` : ''}
     `;
 
     const runeEl = document.getElementById('modal-hero-runes');
@@ -1368,16 +1444,16 @@ function renderEquipModal() {
         const runes = hero.runes || [];
         const charm = hero.charm;
         let html = charm
-            ? `<div>✨ <b>Charm:</b> <span style="color:#d7bde2;">${charm.name}</span> <small style="color:#9c8c74">(${charm.desc})</small></div>`
-            : `<div>✨ <b>Charm:</b> <small style="color:#9c8c74">Belum ada (Drop dari Boss).</small></div>`;
+            ? `<div>${icon('relic', 12)} <b>Charm:</b> <span style="color:#dfd0b0;">${charm.name}</span> <small style="color:#8f8473">(${charm.desc})</small></div>`
+            : `<div>${icon('relic', 12)} <b>Charm:</b> <small style="color:#7d7363">Empty (Dropped by Bosses)</small></div>`;
         if (runes.length === 0) {
-            html += `<div>🔮 <b>Rune:</b> <small style="color:#9c8c74">Belum ada (Drop dari Elite/Boss).</small></div>`;
+            html += `<div style="margin-top:2px;">${icon('arcane', 12)} <b>Runes:</b> <small style="color:#7d7363">None inscribed (Dropped by Elites &amp; Bosses)</small></div>`;
         } else {
             const list = runes.map(k => {
                 const r = (typeof RUNE_CATALOG !== 'undefined') ? RUNE_CATALOG[k] : null;
-                return r ? `<span style="color:#d7bde2; margin-right:6px;" title="${r.desc}">🔮 ${r.name}</span>` : k;
+                return r ? `<span style="color:#c9b3e6; margin-right:8px;" title="${r.desc}">${r.name}</span>` : k;
             }).join('');
-            html += `<div>🔮 <b>Rune (${runes.length}):</b> ${list}</div>`;
+            html += `<div style="margin-top:2px;">${icon('arcane', 12)} <b>Runes (${runes.length}):</b> ${list}</div>`;
         }
         runeEl.innerHTML = html;
     }
@@ -1394,37 +1470,37 @@ function renderEquipModal() {
             const canForge = (inventory.ore >= costOre && inventory.gold >= costGold);
 
             return `
-            <div class="slot-row" style="${eqItem.curseId ? 'border-color:#ff4757;' : ''}">
+            <div class="slot-row" style="${eqItem.curseId ? 'border-color:#78282e;' : ''}">
                 <div>
                     <div>
                         ${slotMeta.icon} <b>${slotMeta.label}:</b>
-                        <span class="rarity-${eqItem.rarity}">${eqItem.name} ${upgLv > 0 ? `<b style="color:#00ffff">+${upgLv}</b>` : ''}</span>
+                        <span class="rarity-${eqItem.rarity}">${eqItem.name} ${upgLv > 0 ? `<b style="color:#8ab8d9">+${upgLv}</b>` : ''}</span>
                     </div>
                     <div class="item-buff-text">${formatItemBuffs(eqItem.stats)}</div>
                     ${formatSetAndCurseMetaHtml(eqItem, hero)}
                 </div>
                 <div style="display:flex; gap:5px;">
-                    <button type="button" class="btn-small-use" style="background:#1e5f8a;" ${!canForge ? 'disabled' : ''}
-                        title="Tempa: Butuh ${costOre} Ore & ${costGold} Gold"
+                    <button type="button" class="btn-small-equip" ${!canForge ? 'disabled' : ''}
+                        title="Temper: Requires ${costOre} Ore & ${costGold} Gold"
                         onclick="upgradeEquippedItem(${selectedHeroIndex}, '${slotKey}')">
-                        ⬆️Tempa (${costOre}⚒️ ${costGold}G)
+                        Temper (${costOre} Ore · ${costGold}G)
                     </button>
-                    <button type="button" class="btn-small-unequip" onclick="unequipItemFromHero(${selectedHeroIndex}, '${slotKey}')">Lepas</button>
+                    <button type="button" class="btn-small-unequip" onclick="unequipItemFromHero(${selectedHeroIndex}, '${slotKey}')">Unequip</button>
                 </div>
             </div>
             `;
         }
         return `
-        <div class="slot-row" style="opacity:0.58;">
-            <div>${slotMeta.icon} <b>${slotMeta.label}:</b> <i>(Kosong)</i></div>
-            <span style="color:#666; font-size:11px;">—</span>
+        <div class="slot-row" style="opacity:0.5;">
+            <div>${slotMeta.icon} <b>${slotMeta.label}:</b> <i>Unadorned</i></div>
+            <span style="color:#5c5346;">—</span>
         </div>
         `;
     }).join('');
 
     const bagEl = document.getElementById('bag-items-list');
     if (inventory.bag.length === 0) {
-        bagEl.innerHTML = '<div style="color:#887862; font-style:italic; padding:12px;">Peti Zirah kosong.</div>';
+        bagEl.innerHTML = '<div style="color:#7d7363; font-family:var(--font-prose); font-style:italic; font-size:14px; padding:14px;">Reliquary Coffer kosong.</div>';
         return;
     }
 
@@ -1457,7 +1533,7 @@ function renderEquipModal() {
     }
 
     if (indexed.length === 0) {
-        bagEl.innerHTML = '<div style="color:#887862; font-style:italic; padding:12px;">Tidak ada item yang cocok dengan filter.</div>';
+        bagEl.innerHTML = '<div style="color:#7d7363; font-style:italic; padding:12px;">Tidak ada zirah yang sesuai filter.</div>';
         return;
     }
 
@@ -1468,62 +1544,72 @@ function renderEquipModal() {
         const upgLv = item.upgradeLevel || 0;
         const diffHtml = formatStatDiffHtml(item, hero);
         return `
-        <div class="bag-item-row" style="${item.curseId ? 'border-color:#ff4757;' : ''}">
+        <div class="bag-item-row" style="${item.curseId ? 'border-color:#78282e;' : ''}">
             <div>
-                <div>${slotMeta.icon} <span class="rarity-${item.rarity}">${item.name}${upgLv > 0 ? ' +' + upgLv : ''}</span> <small style="color:#9c8c74">[${slotMeta.label}]</small></div>
+                <div>${slotMeta.icon} <span class="rarity-${item.rarity}">${item.name}${upgLv > 0 ? ' +' + upgLv : ''}</span> <small style="color:#8f8473">[${slotMeta.label}]</small></div>
                 <div class="item-buff-text">${formatItemBuffs(item.stats)}</div>
                 ${formatSetAndCurseMetaHtml(item, hero)}
-                <div style="font-size:11px; margin-top:4px; padding:3px 6px; background:#140f0a; border:1px solid #3a2a18; border-radius:4px;">${diffHtml}</div>
+                <div style="font-size:11px; margin-top:4px; padding:3px 6px; background:#0a0807; border:1px solid #262019;">${diffHtml}</div>
             </div>
             <div style="display:flex; gap:5px;">
-                <button type="button" class="btn-small-equip" onclick="equipItemToHero(${bagIdx}, ${selectedHeroIndex})">Pasang</button>
-                <button type="button" class="btn-small-unequip" title="Lebur jadi Forge Ore & Gold" onclick="dismantleBagItem(${bagIdx})">Lebur</button>
+                <button type="button" class="btn-small-equip" onclick="equipItemToHero(${bagIdx}, ${selectedHeroIndex})">Equip</button>
+                <button type="button" class="btn-small-unequip" title="Lebur menjadi Forge Ore & Gold" onclick="dismantleBagItem(${bagIdx})">Smelt</button>
             </div>
         </div>`;
     }).join('');
 }
 
 // =========================================================
-// HUD & TURN QUEUE RENDERER
+// INITIATIVE RIBBON, COMMAND DECK & THE ORDER SIDEBAR
 // =========================================================
 function updateTurnQueueUI() {
     const queueEl = document.getElementById('turn-queue-list');
     const roundLbl = document.getElementById('round-counter-label');
     const movePosLbl = document.getElementById('lbl-move-pos');
+    const subMovePos = document.getElementById('sub-move-pos');
     const movePosBtn = document.getElementById('btn-move-pos');
     const skill2Btn  = document.getElementById('btn-skill2');
     const skill2Lbl  = document.getElementById('lbl-skill2');
+    const subSkill2  = document.getElementById('sub-skill2');
+    const subSkill   = document.getElementById('sub-skill');
+    const subAttack  = document.getElementById('sub-attack');
+    const ultBtn     = document.getElementById('btn-ult');
+    const subUlt     = document.getElementById('sub-ult');
 
     if (gameMode !== 'COMBAT' || turnQueue.length === 0) {
-        if (roundLbl) roundLbl.innerHTML = `⏳ BATTLE ORDER:`;
+        if (roundLbl) roundLbl.innerHTML = `EXPLORATION`;
         const clearHint = !isFloorCleared()
-            ? `⚔️ Tumpas sisa ${enemies.length} makhluk kegelapan untuk membuka Gerbang Tangga! ${sharpenedBuff ? '🔥[+25% DMG Aktif]' : ''}`
-            : `🚪 AREA CLEAR! Gerbang tangga kuno telah terbuka — segera turun ke lantai berikutnya!`;
-        queueEl.innerHTML = `<span class="queue-empty" style="color:${isFloorCleared() ? '#78e08f' : '#d4af37'}">${clearHint}</span>`;
-        document.getElementById('active-actor-name').innerText = '-';
-        document.getElementById('lbl-skill').innerText = '✨ Primary Art';
-        if (skill2Lbl) skill2Lbl.innerText = '🌟 Mastery Art (Lv.5)';
+            ? `Vanquish ${enemies.length} remaining adversaries to unseal the stairwell${sharpenedBuff ? ' · Honed Blades (+25% DMG)' : ''}`
+            : `Stairwell unsealed — descend to Floor ${currentFloor + 1}`;
+        queueEl.innerHTML = `<span class="queue-empty" style="color:${isFloorCleared() ? '#75b88c' : '#b8ad99'}">${clearHint}</span>`;
+        document.getElementById('active-actor-name').innerText = '—';
+        document.getElementById('lbl-attack').innerText = 'Strike';
+        if (subAttack) subAttack.innerText = 'Basic Attack';
+        document.getElementById('lbl-skill').innerText = 'Primary Art';
+        if (subSkill) subSkill.innerText = 'Class Technique';
+        if (skill2Lbl) skill2Lbl.innerText = 'Mastery Art';
+        if (subSkill2) subSkill2.innerText = 'Unlocks at Lv.5';
         if (skill2Btn) skill2Btn.disabled = true;
-        document.getElementById('lbl-ult').innerText = '💥 Ultimate Art (100% OD)';
-        if (movePosLbl) movePosLbl.innerText = '🔄 Reposition (Tukar Barisan)';
+        document.getElementById('lbl-ult').innerText = 'Overdrive Art';
+        if (subUlt) subUlt.innerText = 'Requires 100% Overdrive';
+        if (ultBtn) { ultBtn.disabled = true; ultBtn.style.setProperty('--od-pct', '0%'); }
+        if (movePosLbl) movePosLbl.innerText = 'Reposition';
+        if (subMovePos) subMovePos.innerText = 'Shift Rank · +4 MP';
         if (movePosBtn) movePosBtn.disabled = true;
-        document.getElementById('btn-ult').disabled = true;
         return;
     }
 
     if (roundLbl && typeof combatRound !== 'undefined') {
         const isEnrage = combatRound >= 8;
-        const comboTxt = (typeof comboCounter !== 'undefined' && comboCounter > 1) ? ` • 🔥x${comboCounter}` : '';
+        const comboTxt = (typeof comboCounter !== 'undefined' && comboCounter > 1) ? ` · ${comboCounter}x CHAIN` : '';
         roundLbl.innerHTML = isEnrage
-            ? `<span style="color:#ff4757">😡 RONDE ${combatRound} (ENRAGE!)${comboTxt}:</span>`
-            : `⏳ RONDE ${combatRound}/7${comboTxt}:`;
+            ? `<span style="color:#cf4646">ROUND ${combatRound} · ENRAGED${comboTxt}</span>`
+            : `ROUND ${combatRound}/7${comboTxt}`;
     }
 
     const activeActor = getCurrentActor();
     if (activeActor) {
-        document.getElementById('active-actor-name').innerText = activeActor.isEnemy
-            ? `${activeActor.name}`
-            : `${activeActor.name} (${activeActor.dmgType})`;
+        document.getElementById('active-actor-name').innerText = activeActor.name;
 
         if (!activeActor.isEnemy) {
             const actualCost = (typeof getEffectiveSkillCost === 'function')
@@ -1534,22 +1620,30 @@ function updateTurnQueueUI() {
                 : (activeActor.skill2Cost || 15);
 
             const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(activeActor) : { isFront: true };
-            const moveDirText = form.isFront ? "Mundur ke Backline" : "Maju ke Frontline";
+            const moveDirText = form.isFront ? "Step to Rearguard" : "Advance to Vanguard";
+            const odVal = Math.min(100, activeActor.overdrive || 0);
 
-            document.getElementById('lbl-skill').innerText = `✨ ${activeActor.skillName} (${actualCost} MP)`;
-            if (skill2Lbl) {
-                skill2Lbl.innerText = activeActor.level >= 5
-                    ? `🌟 ${activeActor.skill2Name} (${actualCost2} MP)`
-                    : `🔒 ${activeActor.skill2Name} (Butuh Lv.5)`;
-            }
+            document.getElementById('lbl-attack').innerText = 'Strike';
+            if (subAttack) subAttack.innerText = `${activeActor.dmgType} · +25% OD`;
+
+            document.getElementById('lbl-skill').innerText = activeActor.skillName;
+            if (subSkill) subSkill.innerText = `Costs ${actualCost} MP`;
+
+            if (skill2Lbl) skill2Lbl.innerText = activeActor.skill2Name;
+            if (subSkill2) subSkill2.innerText = activeActor.level >= 5 ? `Costs ${actualCost2} MP` : 'Locked (Requires Lv.5)';
             if (skill2Btn) skill2Btn.disabled = (activeActor.level < 5);
 
-            document.getElementById('lbl-attack').innerText = `⚔️ Strike (${activeActor.dmgType})`;
-            if (movePosLbl) movePosLbl.innerText = `🔄 Reposition (${moveDirText})`;
-            document.getElementById('lbl-ult').innerText = `💥 ${activeActor.ultName} (${activeActor.overdrive || 0}% OD)`;
-            document.getElementById('btn-ult').disabled = ((activeActor.overdrive || 0) < 100);
+            if (movePosLbl) movePosLbl.innerText = 'Reposition';
+            if (subMovePos) subMovePos.innerText = `${moveDirText} · +4 MP`;
+
+            document.getElementById('lbl-ult').innerText = activeActor.ultName;
+            if (subUlt) subUlt.innerText = odVal >= 100 ? 'READY — UNLEASH OVERDRIVE' : `Overdrive Charge: ${odVal}%`;
+            if (ultBtn) {
+                ultBtn.disabled = (odVal < 100);
+                ultBtn.style.setProperty('--od-pct', `${odVal}%`);
+            }
         } else {
-            document.getElementById('btn-ult').disabled = true;
+            if (ultBtn) { ultBtn.disabled = true; ultBtn.style.setProperty('--od-pct', '0%'); }
             if (skill2Btn) skill2Btn.disabled = true;
             if (movePosBtn) movePosBtn.disabled = true;
         }
@@ -1558,18 +1652,26 @@ function updateTurnQueueUI() {
     queueEl.innerHTML = turnQueue.map((unit, idx) => {
         const isCurrent = (idx === turnIndex);
         const isSelectedTarget = (unit.isEnemy && unit === activeEnemy);
-        const badgeClass = `turn-badge ${isCurrent ? 'active-turn' : ''} ${unit.isEnemy ? 'enemy-turn' : ''}`;
-        const icon = unit.isEnemy ? (isSelectedTarget ? '🎯' : (unit.isBoss ? '👑' : '💀')) : '⚜️';
-        const arrow = idx < turnQueue.length - 1 ? `<span class="turn-arrow">➔</span>` : '';
+        const classes = [
+            'turn-badge',
+            isCurrent ? 'active-turn' : '',
+            unit.isEnemy ? 'enemy-turn' : '',
+            isSelectedTarget ? 'target-locked' : ''
+        ].filter(Boolean).join(' ');
+
+        const sigil = unit.isEnemy
+            ? (isSelectedTarget ? icon('target', 11) : (unit.isBoss ? icon('crown', 11) : icon('skull', 11)))
+            : icon('crest', 11);
+        const arrow = idx < turnQueue.length - 1 ? `<span class="turn-arrow" aria-hidden="true">›</span>` : '';
         const enemyIdx = unit.isEnemy ? activeEnemies.indexOf(unit) : -1;
         const clickAttr = (unit.isEnemy && enemyIdx >= 0)
-            ? `style="cursor:pointer; ${isSelectedTarget ? 'border:1.5px solid #00ffff;' : ''}" title="Klik untuk jadikan Target" onclick="cycleCombatTarget(activeEnemies[${enemyIdx}])"`
+            ? `style="cursor:pointer;" title="Klik untuk kunci Target" onclick="cycleCombatTarget(activeEnemies[${enemyIdx}])"`
             : '';
 
         return `
-            <div class="${badgeClass}" ${clickAttr}>
-                <span style="color:${unit.color}">${icon}</span>
-                <span>${unit.name} <small>(${unit.hp}HP)</small></span>
+            <div class="${classes}" ${clickAttr}>
+                <span style="color:${unit.color || '#c9a45c'}">${sigil}</span>
+                <span>${unit.name} <small>${unit.hp}</small></span>
             </div>
             ${arrow}
         `;
@@ -1579,51 +1681,47 @@ function updateTurnQueueUI() {
 function updateUI() {
     const biome = getCurrentBiome();
     const biomeEl = document.getElementById('biome-badge');
-    if (biomeEl) {
-        biomeEl.innerText = biome.name;
-        biomeEl.style.color = biome.color;
-    }
-
-    const roster = (typeof BIOME_BOSS_ROSTER !== 'undefined' && BIOME_BOSS_ROSTER[biome.id])
-        ? BIOME_BOSS_ROSTER[biome.id]
-        : null;
-
-    let floorSuffix = "";
-    if (currentFloor % 10 === 0) {
-        floorSuffix = roster ? ` (${roster.grand.name})` : " (🐉 DREAD LORD)";
-    } else if (currentFloor % 5 === 0) {
-        floorSuffix = roster ? ` (${roster.mini.name})` : " (👹 WARDEN)";
-    }
+    if (biomeEl) biomeEl.innerText = biome.name;
 
     let modSuffix = "";
     if (typeof floorModifier !== 'undefined' && floorModifier) {
-        const modIcons = { blood_moon:'🌑', famine:'🌾', gilded:'💰', darkness:'🕯️', silence:'🤫' };
-        modSuffix = ` ${modIcons[floorModifier] || ''}`;
+        const modLabels = { blood_moon:' · Blood Moon', famine:' · Famine', gilded:' · Gilded', darkness:' · Pitch Dark', silence:' · Silence' };
+        modSuffix = modLabels[floorModifier] || '';
     }
-    document.getElementById('current-floor').innerText = currentFloor + floorSuffix + modSuffix;
+    document.getElementById('current-floor').innerText = currentFloor + modSuffix;
 
     const seedBadge = document.getElementById('run-seed-badge');
-    if (seedBadge) seedBadge.innerText = (typeof runSeed !== 'undefined' && runSeed) ? runSeed : 'Acak';
+    if (seedBadge) seedBadge.innerText = (typeof runSeed !== 'undefined' && runSeed) ? runSeed : 'Random';
 
     const prestBadge = document.getElementById('prestige-badge');
     if (prestBadge && typeof getPrestigeLevel === 'function') prestBadge.innerText = `Lv.${getPrestigeLevel()}`;
 
-    const speedBtn = document.getElementById('btn-speed-menu');
-    if (speedBtn) speedBtn.innerText = '⏩ x' + (typeof gameSpeed !== 'undefined' ? gameSpeed : 1) + ' [V]';
+    const speedValEl = document.getElementById('lbl-speed-val');
+    if (speedValEl) speedValEl.innerText = 'x' + (typeof gameSpeed !== 'undefined' ? gameSpeed : 1);
+
     const autoBtn = document.getElementById('btn-autobattle-menu');
-    if (autoBtn) {
-        const isAuto = (typeof autoBattle !== 'undefined' && autoBattle);
-        autoBtn.style.color = isAuto ? '#78e08f' : '#f39c12';
-        autoBtn.style.borderColor = isAuto ? '#2ecc71' : '#e67e22';
-    }
+    if (autoBtn) autoBtn.setAttribute('aria-pressed', String(Boolean(typeof autoBattle !== 'undefined' && autoBattle)));
+
     const stratBtn = document.getElementById('btn-strategy-menu');
-    if (stratBtn) stratBtn.innerText = '🎯 ' + (typeof autoBattleStrategy !== 'undefined' ? autoBattleStrategy.toUpperCase() : 'BALANCED') + ' [K]';
+    if (stratBtn) {
+        const st = (typeof autoBattleStrategy !== 'undefined' ? autoBattleStrategy : 'balanced').slice(0, 3).toUpperCase();
+        stratBtn.innerText = `AI: ${st} [K]`;
+    }
     const tacticBtn = document.getElementById('btn-tactic-menu');
-    if (tacticBtn) tacticBtn.innerText = '⚔️ ' + (typeof formationTactic !== 'undefined' ? formationTactic.toUpperCase() : 'BALANCED') + ' [T]';
+    if (tacticBtn) {
+        tacticBtn.innerText = `${(typeof formationTactic !== 'undefined' ? formationTactic : 'balanced').toUpperCase()} [T]`;
+    }
 
     document.getElementById('ascension-badge').innerText = `Lv.${ascensionLevel}`;
+
+    // Update Darkest-Dungeon Torch Gauge
     document.getElementById('torch-count').innerText = `${torchLight}%`;
-    document.getElementById('torch-count').style.color = torchLight > 25 ? '#ff9f43' : '#ff4757';
+    const torchStateEl = document.getElementById('torch-state-label');
+    if (torchStateEl) {
+        if (torchLight > 50) { torchStateEl.innerText = 'RADIANT'; torchStateEl.style.color = '#db822b'; }
+        else if (torchLight > 15) { torchStateEl.innerText = 'DIMMING'; torchStateEl.style.color = '#c9a45c'; }
+        else { torchStateEl.innerText = 'ABYSSAL'; torchStateEl.style.color = '#cf4646'; }
+    }
     const torchBar = document.getElementById('torch-bar-fill');
     if (torchBar) torchBar.style.width = `${Math.max(0, Math.min(100, torchLight))}%`;
 
@@ -1636,20 +1734,20 @@ function updateUI() {
     if (synEl && typeof getPartySynergyBonus === 'function') {
         const syn = getPartySynergyBonus();
         const parts = [];
-        if (syn.def) parts.push(`+${syn.def}DEF`);
-        if (syn.patk) parts.push(`+${syn.patk}ATK`);
-        if (syn.spd) parts.push(`+${syn.spd}SPD`);
-        synEl.innerText = parts.length > 0 ? `✨ ${parts.join(' ')}` : '✨ Tiada Sinergi';
+        if (syn.def) parts.push(`+${syn.def} DEF`);
+        if (syn.patk) parts.push(`+${syn.patk} ATK`);
+        if (syn.spd) parts.push(`+${syn.spd} SPD`);
+        synEl.innerText = parts.length > 0 ? parts.join(' · ') : '';
     }
 
     const bountyEl = document.getElementById('bounty-badge');
     if (bountyEl && typeof floorBounty !== 'undefined' && floorBounty) {
         if (floorBounty.completed) {
-            bountyEl.innerHTML = `📜 Titah: <span style="color:#78e08f">✔ TUNTAS!</span>`;
+            bountyEl.innerHTML = `${icon('scroll', 12)} <span style="color:#75b88c; font-weight:600;">Decree Fulfilled</span>`;
         } else if (floorBounty.failed) {
-            bountyEl.innerHTML = `📜 Titah: <span style="color:#ff5252">✖ GAGAL</span>`;
+            bountyEl.innerHTML = `${icon('scroll', 12)} <span style="color:#cf5b64;">Decree Failed</span>`;
         } else {
-            bountyEl.innerHTML = `📜 ${floorBounty.desc} (${floorBounty.progress}/${floorBounty.target}) [🎁${floorBounty.rewardGold}G +${floorBounty.rewardOre}⚒️]`;
+            bountyEl.innerHTML = `${icon('scroll', 12)} <span>${floorBounty.desc} (${floorBounty.progress}/${floorBounty.target}) · <b style="color:#c9a45c">+${floorBounty.rewardGold}G</b></span>`;
         }
     }
 
@@ -1672,71 +1770,83 @@ function updateUI() {
         const hpPercent = Math.max(0, Math.floor((p.hp / p.maxHp) * 100));
         const mpPercent = Math.max(0, Math.floor((p.mp / p.maxMp) * 100));
         const odPercent = Math.min(100, p.overdrive || 0);
-        const barColor = hpPercent > 50 ? '#2ecc71' : (hpPercent > 25 ? '#f1c40f' : '#e74c3c');
-        const leaderBadge = (p === currentLeader) ? '👑 ' : '';
+        const vitClass = hpPercent <= 30 ? 'fill-vitality-low' : 'fill-vitality';
+        const isLeader = (p === currentLeader);
         const isMyTurn = (gameMode === 'COMBAT' && activeActor === p);
         const totalPts = (p.statPoints || 0) + (p.perkPoints || 0);
-        const pointBadge = totalPts > 0 ? `<span style="color:#78e08f; font-weight:bold;">[+${totalPts}Pt]</span>` : '';
+        const pointBadge = totalPts > 0 ? `<span class="unspent-pt">+${totalPts}pt</span>` : '';
         const avatarUrl = (typeof getHeroPortraitDataURL === 'function') ? getHeroPortraitDataURL(p.role) : '';
 
         const form = (typeof getHeroFormationInfo === 'function')
             ? getHeroFormationInfo(p)
-            : { posNumber: idx + 1, isFront: idx < 2, badgeColor: idx < 2 ? '#e67e22' : '#38ada9' };
+            : { roman: ['I', 'II', 'III', 'IV'][idx] || String(idx + 1), isFront: idx < 2 };
 
         const swapUpBtn = (gameMode === 'EXPLORE' && idx > 0)
-            ? `<button type="button" class="btn-small-unequip" style="padding:0px 4px; font-size:9px; margin-right:2px;" title="Maju 1 Barisan" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx - 1})">▲</button>` : '';
+            ? `<button type="button" class="btn-rank-step" title="Advance Rank" aria-label="Advance ${p.name} Rank" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx - 1})">▲</button>` : '';
         const swapDownBtn = (gameMode === 'EXPLORE' && idx < party.length - 1)
-            ? `<button type="button" class="btn-small-unequip" style="padding:0px 4px; font-size:9px; margin-right:4px;" title="Mundur 1 Barisan" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx + 1})">▼</button>` : '';
+            ? `<button type="button" class="btn-rank-step" title="Step Back Rank" aria-label="Move ${p.name} Back" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx + 1})">▼</button>` : '';
 
         const eqIcons = Object.keys(EQUIP_SLOTS).map(slotKey => {
             const item = p.equipment[slotKey];
-            const icon = item && item.curseId ? '💀' : EQUIP_SLOTS[slotKey].icon;
-            return `<span style="opacity:${item ? '1' : '0.25'}" title="${item ? item.name : 'Kosong'}">${icon}</span>`;
-        }).join(' ');
+            const cls = item ? (item.curseId ? 'eq-slot-pip cursed' : 'eq-slot-pip') : 'eq-slot-pip empty';
+            const ico = item && item.curseId ? icon('skull', 11) : EQUIP_SLOTS[slotKey].icon;
+            return `<span class="${cls}" title="${item ? item.name : `${EQUIP_SLOTS[slotKey].label}: Empty`}">${ico}</span>`;
+        }).join('');
 
         let statusHtml = '';
         if (p.statuses) {
-            if (p.statuses.poison > 0) statusHtml += `<span style="color:#78e08f">🤢${p.statuses.poison}</span>`;
-            if (p.statuses.burn > 0)   statusHtml += `<span style="color:#ff5252">🔥${p.statuses.burn}</span>`;
-            if (p.statuses.stun > 0)   statusHtml += `<span style="color:#00ffff">❄️Stn</span>`;
+            if (p.statuses.poison > 0) statusHtml += `<span class="tag-poison">PSN ${p.statuses.poison}</span>`;
+            if (p.statuses.burn > 0)   statusHtml += `<span class="tag-burn">BRN ${p.statuses.burn}</span>`;
+            if (p.statuses.stun > 0)   statusHtml += `<span class="tag-stun">STUN</span>`;
         }
-        const curseId = getHeroCursedRelicId(p);
-        if (curseId) statusHtml += `<span style="color:#ff4757">💀Cursed</span>`;
+        if (getHeroCursedRelicId(p)) statusHtml += `<span class="tag-curse">CURSED</span>`;
 
-        const runeHtml = (p.runes && p.runes.length > 0)
-            ? `<span style="color:#c56cf0; margin-left:4px;" title="${(p.runes || []).map(k => (typeof RUNE_CATALOG !== 'undefined' && RUNE_CATALOG[k]) ? RUNE_CATALOG[k].name : k).join(', ')}">🔮×${p.runes.length}</span>`
+        const runeCount = (p.runes && p.runes.length > 0)
+            ? `<span style="color:#ad7fd1; font-size:9.5px; margin-left:4px;">${icon('arcane', 10)}${p.runes.length}</span>`
             : '';
 
         return `
-        <div class="member-card ${isMyTurn ? 'active-turn-card' : ''}" onclick="toggleEquipModal(${idx})" style="opacity:${p.hp > 0 ? '1' : '0.42'}">
+        <div class="member-card ${isMyTurn ? 'active-turn-card' : ''}" onclick="toggleEquipModal(${idx})" style="opacity:${p.hp > 0 ? '1' : '0.38'}">
             <div class="hero-portrait-frame">
                 ${avatarUrl ? `<img src="${avatarUrl}" alt="${p.role}">` : ''}
+                <span class="rank-numeral" title="${form.isFront ? 'Vanguard (+15% Melee DMG)' : 'Rearguard (-25% DMG Taken)'}">${form.roman}</span>
             </div>
             <div class="member-details">
                 <div class="member-header">
-                    <span>
-                        <span style="background:${form.badgeColor}; color:#fff; padding:1px 4px; border-radius:3px; font-size:9px; margin-right:3px;">P${form.posNumber}:${form.isFront ? 'FRONT' : 'BACK'}</span>
-                        <b>${leaderBadge}${p.name}</b> <small style="color:#d4af37">Lv.${p.level}</small> ${pointBadge}
+                    <span class="hero-name-group">
+                        ${isLeader ? `<span style="color:#c9a45c" title="Expedition Leader">${icon('crown', 11)}</span>` : ''}
+                        <span class="hero-name-title">${p.name}</span>
+                        <span class="hero-lv-tag">Lv.${p.level}</span>
+                        ${pointBadge}
                     </span>
-                    <span>
-                        ${swapUpBtn}${swapDownBtn}❤️${p.hp}/${p.maxHp}
+                    <span class="vital-readout">
+                        <span class="rank-swap-controls">${swapUpBtn}${swapDownBtn}</span>
+                        <span>${p.hp}/${p.maxHp}</span>
                     </span>
                 </div>
-                <div class="hp-bar-bg">
-                    <div class="hp-bar-fill" style="width:${hpPercent}%; background-color:${barColor};"></div>
+                <div class="bar-stack">
+                    <div class="hp-bar-bg">
+                        <div class="hp-bar-fill ${vitClass}" style="width:${hpPercent}%;"></div>
+                    </div>
+                    <div class="hp-bar-bg" style="block-size:3.5px; border:none;">
+                        <div class="hp-bar-fill fill-spirit" style="width:${mpPercent}%;"></div>
+                    </div>
+                    <div class="hp-bar-bg" style="block-size:2.5px; border:none;">
+                        <div class="hp-bar-fill fill-overdrive" style="width:${odPercent}%;"></div>
+                    </div>
                 </div>
-                <div class="hp-bar-bg" style="height:4px; margin-top:2px; border:none;">
-                    <div class="hp-bar-fill" style="width:${mpPercent}%; background-color:#2e86de;"></div>
-                </div>
-                <div class="hp-bar-bg" style="height:3px; margin-top:2px; border:none;">
-                    <div class="hp-bar-fill" style="width:${odPercent}%; background-color:#e84118;"></div>
-                </div>
-                <div style="font-size:10px; color:#b8a68e; margin-top:2px; display:flex; justify-content:space-between;">
-                    <span>🗡️${p.patk} 🔮${p.matk} 🛡️${p.def} 🥾${p.spd} | <span style="color:#70a1ff">⚡${p.mp}</span> <span style="color:#ff6b81">💥${odPercent}%</span></span>
-                    <span style="color:${isMyTurn ? '#f7d774' : '#887862'}">${isMyTurn ? '▶ GILIRAN!' : (p.hp > 0 ? `EXP:${p.xp}/${p.maxXp}` : '💀 Gugur')}</span>
+                <div class="member-substats">
+                    <span class="stat-cluster">
+                        <span>ATK <b>${p.dmgType === 'Magic' ? p.matk : p.patk}</b></span>
+                        <span>DEF <b>${p.def}</b></span>
+                        <span>SPD <b>${p.spd}</b></span>
+                        <span>MP <b style="color:#6ca0d4">${p.mp}</b></span>
+                        <span>OD <b style="color:#db822b">${odPercent}%</b></span>
+                    </span>
+                    <span style="color:${isMyTurn ? '#dfd0b0' : '#7d7363'}; font-weight:${isMyTurn ? '600' : '400'};">${isMyTurn ? 'ACTING' : (p.hp > 0 ? '' : 'FALLEN')}</span>
                 </div>
                 <div class="mini-equip-icons">
-                    <div>${eqIcons} ${runeHtml}</div>
+                    <div class="equip-silhouette-row">${eqIcons}${runeCount}</div>
                     <div class="status-tags">${statusHtml}</div>
                 </div>
             </div>
@@ -1761,14 +1871,14 @@ function updateModeUI() {
     const modeEl = document.getElementById('game-mode');
     if (!modeEl) return;
     if (gameMode === 'EXPLORE' || gameMode === 'TRANSITION') {
-        modeEl.innerText = 'EKSPLORASI';
-        modeEl.className = 'mode-explore';
+        modeEl.innerText = 'EXPLORE';
+        modeEl.className = 'mode-tag mode-explore';
     } else if (gameMode === 'AMBUSH') {
-        modeEl.innerText = '⚠️ DISERGAP!';
-        modeEl.className = 'mode-combat';
+        modeEl.innerText = 'AMBUSH';
+        modeEl.className = 'mode-tag mode-combat';
     } else {
-        modeEl.innerText = activeEnemy && activeEnemy.isBoss ? '🔥 BOSS COMBAT' : 'COMBAT';
-        modeEl.className = 'mode-combat';
+        modeEl.innerText = activeEnemy && activeEnemy.isBoss ? 'BOSS' : 'COMBAT';
+        modeEl.className = 'mode-tag mode-combat';
     }
 }
 
@@ -1782,7 +1892,8 @@ function setCombatButtons(disabled) {
     const skill2Btn = document.getElementById('btn-skill2');
     if (moveBtn) moveBtn.disabled = disabled;
     if (disabled) {
-        document.getElementById('btn-ult').disabled = true;
+        const ultBtn = document.getElementById('btn-ult');
+        if (ultBtn) ultBtn.disabled = true;
         if (skill2Btn) skill2Btn.disabled = true;
     }
 }
@@ -1825,7 +1936,6 @@ function drawAttackVFX(dynamicLights) {
             ctx.arc(currX + Math.cos(angle) * 8, currY + Math.sin(angle) * 8, 2.5, 0, Math.PI * 2);
             ctx.fill();
         } else {
-            // Arcane / Hellfire glowing comet
             const g = ctx.createRadialGradient(currX, currY, 1, currX, currY, 13);
             g.addColorStop(0, '#ffffff');
             g.addColorStop(0.4, v.color);
@@ -1836,7 +1946,7 @@ function drawAttackVFX(dynamicLights) {
             ctx.fill();
 
             if (dynamicLights) {
-                dynamicLights.push({ x: currX, y: currY, r: 95, color: 'rgba(255, 160, 220, 0.22)', cutout: 0.65 });
+                dynamicLights.push({ x: currX, y: currY, r: 95, color: 'rgba(220, 160, 230, 0.22)', cutout: 0.65 });
             }
         }
         ctx.restore();
@@ -1868,70 +1978,67 @@ function drawHoverCursor() {
     if (!revealed[hy] || !revealed[hy][hx]) return;
 
     ctx.save();
-    ctx.strokeStyle = 'rgba(245, 208, 97, 0.78)';
-    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = 'rgba(201, 164, 92, 0.72)';
+    ctx.lineWidth = 1.4;
     ctx.strokeRect(hx * TILE_SIZE + 2, hy * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);
     ctx.restore();
 }
 
 function drawScreenSpaceOverlays() {
-    // Subtle dark cinematic edge vignette
     const edgeVig = ctx.createRadialGradient(
         WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_HEIGHT * 0.42,
         WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH * 0.62
     );
     edgeVig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.46)');
+    edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.50)');
     ctx.fillStyle = edgeVig;
     ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-    // Low-HP Heartbeat Vignette
     const alive = party.filter(p => p.hp > 0);
     if (alive.length > 0) {
         const avgHpRatio = alive.reduce((sum, p) => sum + (p.hp / p.maxHp), 0) / alive.length;
         if (avgHpRatio < 0.32) {
-            const pulse = 0.20 + Math.abs(Math.sin(torchFlickerPhase * 0.9)) * 0.25;
+            const pulse = 0.20 + Math.abs(Math.sin(torchFlickerPhase * 0.9)) * 0.22;
             const redGrad = ctx.createRadialGradient(
                 WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_HEIGHT * 0.25,
                 WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH * 0.65
             );
             redGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            redGrad.addColorStop(1, `rgba(180, 10, 20, ${pulse})`);
+            redGrad.addColorStop(1, `rgba(140, 12, 18, ${pulse})`);
             ctx.fillStyle = redGrad;
             ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
         }
     }
 
-    // Ultimate Cut-In Banner
     if (ultimateCutIn) {
         ctx.save();
         ctx.globalAlpha = ultimateCutIn.alpha;
-        const cy = WORLD_HEIGHT / 2 - 40;
+        const cy = WORLD_HEIGHT / 2 - 38;
 
         const bGrad = ctx.createLinearGradient(0, cy, WORLD_WIDTH, cy);
-        bGrad.addColorStop(0, 'rgba(8, 5, 4, 0.72)');
-        bGrad.addColorStop(0.5, 'rgba(24, 14, 10, 0.95)');
-        bGrad.addColorStop(1, 'rgba(8, 5, 4, 0.72)');
+        bGrad.addColorStop(0, 'rgba(8, 6, 5, 0.70)');
+        bGrad.addColorStop(0.5, 'rgba(20, 14, 10, 0.96)');
+        bGrad.addColorStop(1, 'rgba(8, 6, 5, 0.70)');
         ctx.fillStyle = bGrad;
-        ctx.fillRect(0, cy, WORLD_WIDTH, 80);
+        ctx.fillRect(0, cy, WORLD_WIDTH, 76);
 
-        ctx.strokeStyle = ultimateCutIn.color;
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#c9a45c';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, cy); ctx.lineTo(WORLD_WIDTH, cy);
-        ctx.moveTo(0, cy + 80); ctx.lineTo(WORLD_WIDTH, cy + 80);
+        ctx.moveTo(0, cy + 76); ctx.lineTo(WORLD_WIDTH, cy + 76);
         ctx.stroke();
 
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#f1c40f';
-        ctx.font = 'bold 13px Cinzel, serif';
-        ctx.fillText(`⚜️ OVERDRIVE UNLEASHED — ${ultimateCutIn.actorName} ⚜️`, WORLD_WIDTH / 2, cy + 27);
+        ctx.fillStyle = '#c9a45c';
+        ctx.font = '600 11px Cinzel, serif';
+        ctx.fillText(`◆  OVERDRIVE UNLEASHED · ${ultimateCutIn.actorName}  ◆`, WORLD_WIDTH / 2, cy + 25);
 
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#ede3d2';
         ctx.shadowColor = ultimateCutIn.color;
-        ctx.shadowBlur = 14;
-        ctx.font = 'bold 27px Cinzel, serif';
-        ctx.fillText(`💥 ${ultimateCutIn.ultTitle} 💥`, WORLD_WIDTH / 2, cy + 58);
+        ctx.shadowBlur = 12;
+        ctx.font = '700 26px Cinzel, serif';
+        ctx.fillText(ultimateCutIn.ultTitle, WORLD_WIDTH / 2, cy + 56);
         ctx.textAlign = 'left';
         ctx.restore();
     }
@@ -1946,7 +2053,6 @@ function drawMiniMapRadar() {
     const cell = 7.5;
     const pad = 10;
     const headerH = 20;
-    const mapW = COLS * cell;
     const mapH = ROWS * cell;
     const boxW = minimapCanvas.width;
     const boxH = minimapCanvas.height;
@@ -1956,16 +2062,16 @@ function drawMiniMapRadar() {
     const biome = getCurrentBiome();
 
     minimapCtx.save();
-    minimapCtx.fillStyle = 'rgba(10, 8, 6, 0.88)';
+    minimapCtx.fillStyle = 'rgba(10, 8, 7, 0.92)';
     minimapCtx.fillRect(0, 0, boxW, boxH);
 
-    minimapCtx.fillStyle = '#d4af37';
-    minimapCtx.font = 'bold 9.5px Cinzel, serif';
-    minimapCtx.fillText(`🗺️ F${currentFloor} • ${biome.name}`, pad, 14);
+    minimapCtx.fillStyle = '#c9a45c';
+    minimapCtx.font = '600 9px Cinzel, serif';
+    minimapCtx.fillText(`F${currentFloor} · ${biome.name.toUpperCase()}`, pad, 13.5);
 
     minimapCtx.textAlign = 'right';
-    minimapCtx.fillStyle = isFloorCleared() ? '#2ecc71' : '#ff6b81';
-    minimapCtx.fillText(isFloorCleared() ? '🚪OPEN' : `⚔️${enemies.length}`, boxW - pad, 14);
+    minimapCtx.fillStyle = isFloorCleared() ? '#75b88c' : '#cf5b64';
+    minimapCtx.fillText(isFloorCleared() ? 'CLEAR' : `${enemies.length} FOES`, boxW - pad, 13.5);
     minimapCtx.textAlign = 'left';
 
     for (let y = 0; y < ROWS; y++) {
@@ -1974,18 +2080,18 @@ function drawMiniMapRadar() {
             const py = gridOriginY + y * cell;
 
             if (!revealed[y] || !revealed[y][x]) {
-                minimapCtx.fillStyle = 'rgba(4, 3, 2, 0.95)';
+                minimapCtx.fillStyle = '#060504';
                 minimapCtx.fillRect(px, py, cell, cell);
                 continue;
             }
             if (map[y][x] === 1) {
-                minimapCtx.fillStyle = biome.wallTop || '#4a4a5a';
+                minimapCtx.fillStyle = '#3b332a';
                 minimapCtx.fillRect(px, py, cell, cell);
             } else if (map[y][x] === 2) {
-                minimapCtx.fillStyle = '#f39c12';
+                minimapCtx.fillStyle = '#c9a45c';
                 minimapCtx.fillRect(px, py, cell, cell);
             } else {
-                minimapCtx.fillStyle = 'rgba(48, 40, 32, 0.88)';
+                minimapCtx.fillStyle = '#1c1814';
                 minimapCtx.fillRect(px, py, cell - 0.5, cell - 0.5);
             }
         }
@@ -1993,43 +2099,43 @@ function drawMiniMapRadar() {
 
     traps.forEach(t => {
         if (revealed[t.y] && revealed[t.y][t.x] && (t.detected || t.triggered)) {
-            minimapCtx.fillStyle = '#eb2f06';
+            minimapCtx.fillStyle = '#b83236';
             minimapCtx.fillRect(gridOriginX + t.x * cell + 2, gridOriginY + t.y * cell + 2, cell - 4, cell - 4);
         }
     });
 
     chests.forEach(c => {
         if (!c.opened && revealed[c.y] && revealed[c.y][c.x]) {
-            minimapCtx.fillStyle = '#f1c40f';
+            minimapCtx.fillStyle = '#d4a64a';
             minimapCtx.fillRect(gridOriginX + c.x * cell + 1.5, gridOriginY + c.y * cell + 1.5, cell - 3, cell - 3);
         }
     });
 
     lootDrops.forEach(d => {
         if (revealed[d.y] && revealed[d.y][d.x]) {
-            minimapCtx.fillStyle = '#a55eea';
+            minimapCtx.fillStyle = '#ad7fd1';
             minimapCtx.fillRect(gridOriginX + d.x * cell + 1.5, gridOriginY + d.y * cell + 1.5, cell - 3, cell - 3);
         }
     });
 
     if (merchant && revealed[merchant.y] && revealed[merchant.y][merchant.x]) {
-        minimapCtx.fillStyle = '#2ecc71';
+        minimapCtx.fillStyle = '#75b88c';
         minimapCtx.fillRect(gridOriginX + merchant.x * cell + 1, gridOriginY + merchant.y * cell + 1, cell - 2, cell - 2);
     }
     if (shrine && !shrine.used && revealed[shrine.y] && revealed[shrine.y][shrine.x]) {
-        minimapCtx.fillStyle = '#00ffff';
+        minimapCtx.fillStyle = '#7bb3db';
         minimapCtx.fillRect(gridOriginX + shrine.x * cell + 1, gridOriginY + shrine.y * cell + 1, cell - 2, cell - 2);
     }
     if (campfire && !campfire.used && revealed[campfire.y] && revealed[campfire.y][campfire.x]) {
-        minimapCtx.fillStyle = '#ffa502';
+        minimapCtx.fillStyle = '#db822b';
         minimapCtx.fillRect(gridOriginX + campfire.x * cell + 1, gridOriginY + campfire.y * cell + 1, cell - 2, cell - 2);
     }
 
     if ((revealed[stairs.y] && revealed[stairs.y][stairs.x]) || isFloorCleared()) {
-        minimapCtx.fillStyle = isFloorCleared() ? '#2ecc71' : '#95a5a6';
+        minimapCtx.fillStyle = isFloorCleared() ? '#75b88c' : '#7d7363';
         minimapCtx.fillRect(gridOriginX + stairs.x * cell, gridOriginY + stairs.y * cell, cell, cell);
-        minimapCtx.strokeStyle = '#ffffff';
-        minimapCtx.lineWidth = 1;
+        minimapCtx.strokeStyle = '#ded5c4';
+        minimapCtx.lineWidth = 0.8;
         minimapCtx.strokeRect(gridOriginX + stairs.x * cell, gridOriginY + stairs.y * cell, cell, cell);
     }
 
@@ -2037,12 +2143,12 @@ function drawMiniMapRadar() {
         if (revealed[e.y] && revealed[e.y][e.x]) {
             const ex = gridOriginX + e.x * cell;
             const ey = gridOriginY + e.y * cell;
-            minimapCtx.fillStyle = e.isBoss ? (e.color || '#f1c40f') : '#ff4757';
+            minimapCtx.fillStyle = e.isBoss ? '#dfd0b0' : '#cf4646';
             if (e.isBoss) minimapCtx.fillRect(ex - 0.5, ey - 0.5, cell + 1, cell + 1);
             else minimapCtx.fillRect(ex + 1, ey + 1, cell - 2, cell - 2);
 
             if (gameMode === 'COMBAT' && e === activeEnemy) {
-                minimapCtx.strokeStyle = '#00ffff';
+                minimapCtx.strokeStyle = '#8ab8d9';
                 minimapCtx.lineWidth = 1;
                 minimapCtx.strokeRect(ex - 1, ey - 1, cell + 2, cell + 2);
             }
@@ -2051,7 +2157,7 @@ function drawMiniMapRadar() {
 
     party.forEach(p => {
         if (p.hp > 0) {
-            minimapCtx.fillStyle = '#70a1ff';
+            minimapCtx.fillStyle = '#6ca0d4';
             minimapCtx.fillRect(gridOriginX + p.x * cell + 1, gridOriginY + p.y * cell + 1, cell - 2, cell - 2);
         }
     });
@@ -2060,7 +2166,7 @@ function drawMiniMapRadar() {
     if (ldr) {
         const lx = gridOriginX + ldr.x * cell;
         const ly = gridOriginY + ldr.y * cell;
-        minimapCtx.fillStyle = '#fffa65';
+        minimapCtx.fillStyle = '#dfd0b0';
         minimapCtx.fillRect(lx, ly, cell, cell);
         minimapCtx.strokeStyle = '#000000';
         minimapCtx.lineWidth = 1;
@@ -2068,12 +2174,12 @@ function drawMiniMapRadar() {
     }
 
     const legY = gridOriginY + mapH + 13;
-    minimapCtx.font = '9px Georgia, serif';
-    minimapCtx.fillStyle = '#fffa65'; minimapCtx.fillText('■You', pad, legY);
-    minimapCtx.fillStyle = '#ff4757'; minimapCtx.fillText('■Foe', pad + 35, legY);
-    minimapCtx.fillStyle = '#f1c40f'; minimapCtx.fillText('■Chest', pad + 68, legY);
-    minimapCtx.fillStyle = '#00ffff'; minimapCtx.fillText('■NPC', pad + 109, legY);
-    minimapCtx.fillStyle = '#2ecc71'; minimapCtx.fillText('■Exit', pad + 145, legY);
+    minimapCtx.font = '8.5px Inter, sans-serif';
+    minimapCtx.fillStyle = '#dfd0b0'; minimapCtx.fillText('■ Order', pad, legY);
+    minimapCtx.fillStyle = '#cf4646'; minimapCtx.fillText('■ Foe', pad + 42, legY);
+    minimapCtx.fillStyle = '#d4a64a'; minimapCtx.fillText('■ Chest', pad + 75, legY);
+    minimapCtx.fillStyle = '#7bb3db'; minimapCtx.fillText('■ Site', pad + 116, legY);
+    minimapCtx.fillStyle = '#75b88c'; minimapCtx.fillText('■ Stairs', pad + 148, legY);
 
     minimapCtx.restore();
 }
@@ -2096,7 +2202,6 @@ function drawGame() {
     const currentLeader = getLeader();
     const dynamicLights = [];
 
-    // 1. Realistic Floor Masonry + Cast Ambient Shadows
     for (let y = 0; y < ROWS; y++) {
         for (let x = 0; x < COLS; x++) {
             if (!revealed[y] || !revealed[y][x]) {
@@ -2108,21 +2213,18 @@ function drawGame() {
         }
     }
 
-    // 2. Realistic Blood / Bone / Scorch Decals & Stairs (Sealed or Open!)
     drawRealisticDecals(ctx);
 
     if (revealed[stairs.y] && revealed[stairs.y][stairs.x]) {
         drawRealisticStairs(ctx, stairs.x, stairs.y, isFloorCleared(), torchFlickerPhase, dynamicLights);
     }
 
-    // 3. Floor Traps
     traps.forEach(t => {
         if (revealed[t.y] && revealed[t.y][t.x] && (t.detected || t.triggered)) {
             drawPropMiniature(ctx, 'trap', t.x, t.y, { trapType: t.type, triggered: t.triggered }, torchFlickerPhase);
         }
     });
 
-    // 4. Y-Sorted Painter's Algorithm for 3D Walls, Props, Monsters & Heroes
     for (let y = 0; y < ROWS; y++) {
         for (let x = 0; x < COLS; x++) {
             if (revealed[y] && revealed[y][x] && map[y][x] >= 1) {
@@ -2136,7 +2238,7 @@ function drawGame() {
                 if (!c.opened) {
                     dynamicLights.push({
                         x: c.x * TILE_SIZE + 24, y: c.y * TILE_SIZE + 24,
-                        r: 52, color: 'rgba(241, 196, 15, 0.12)', cutout: 0.28
+                        r: 52, color: 'rgba(201, 164, 92, 0.12)', cutout: 0.28
                     });
                 }
             }
@@ -2156,9 +2258,9 @@ function drawGame() {
             });
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#ffeaa7';
-            ctx.font = 'bold 9.5px Cinzel, serif';
-            ctx.fillText("MERCHANT", merchant.x * TILE_SIZE + 24, merchant.y * TILE_SIZE - 10);
+            ctx.fillStyle = '#dfd0b0';
+            ctx.font = '600 9px Cinzel, serif';
+            ctx.fillText("CARAVAN", merchant.x * TILE_SIZE + 24, merchant.y * TILE_SIZE - 10);
             ctx.restore();
         }
 
@@ -2167,14 +2269,14 @@ function drawGame() {
             if (!shrine.used) {
                 dynamicLights.push({
                     x: shrine.x * TILE_SIZE + 24, y: shrine.y * TILE_SIZE + 16,
-                    r: 115, color: 'rgba(0, 255, 255, 0.24)', cutout: 0.68
+                    r: 115, color: 'rgba(120, 210, 240, 0.22)', cutout: 0.68
                 });
             }
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.fillStyle = shrine.used ? '#7f8fa6' : '#7ef9ff';
-            ctx.font = 'bold 9.5px Cinzel, serif';
-            ctx.fillText(shrine.used ? "SHRINE (USED)" : "ANCIENT SHRINE", shrine.x * TILE_SIZE + 24, shrine.y * TILE_SIZE - 12);
+            ctx.fillStyle = shrine.used ? '#7d7363' : '#9ec8ed';
+            ctx.font = '600 9px Cinzel, serif';
+            ctx.fillText(shrine.used ? "DEPLETED" : "SHRINE", shrine.x * TILE_SIZE + 24, shrine.y * TILE_SIZE - 12);
             ctx.restore();
         }
 
@@ -2189,13 +2291,12 @@ function drawGame() {
             }
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.fillStyle = campfire.used ? '#95a5a6' : '#ffb142';
-            ctx.font = 'bold 9.5px Cinzel, serif';
-            ctx.fillText(campfire.used ? "RESTED" : "CAMPFIRE", campfire.x * TILE_SIZE + 24, campfire.y * TILE_SIZE - 6);
+            ctx.fillStyle = campfire.used ? '#7d7363' : '#e6a255';
+            ctx.font = '600 9px Cinzel, serif';
+            ctx.fillText(campfire.used ? "ASHES" : "HEARTH", campfire.x * TILE_SIZE + 24, campfire.y * TILE_SIZE - 6);
             ctx.restore();
         }
 
-        // Monsters on row y
         enemies.forEach((e, eIdx) => {
             if (e.y !== y || !revealed[e.y] || !revealed[e.y][e.x]) return;
             const inCurrentBattle = (gameMode === 'COMBAT' && typeof activeEnemies !== 'undefined' && activeEnemies.includes(e));
@@ -2207,21 +2308,21 @@ function drawGame() {
 
             if (e.isBoss || e.affix) {
                 ctx.save();
-                ctx.strokeStyle = e.color || '#f1c40f';
-                ctx.lineWidth = 1.8;
+                ctx.strokeStyle = e.color || '#c9a45c';
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, e.isBoss ? 21 : 17, e.isBoss ? 8 : 6.5, 0, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
                 if (e.isBoss) {
-                    dynamicLights.push({ x: cx, y: baseY - 18, r: 95, color: 'rgba(255, 80, 95, 0.18)', cutout: 0.50 });
+                    dynamicLights.push({ x: cx, y: baseY - 18, r: 95, color: 'rgba(215, 75, 85, 0.16)', cutout: 0.50 });
                 }
             }
 
             if (gameMode === 'COMBAT' && e === activeEnemy) {
                 ctx.save();
-                ctx.strokeStyle = '#00ffff';
-                ctx.lineWidth = 2.2;
+                ctx.strokeStyle = '#8ab8d9';
+                ctx.lineWidth = 2.0;
                 ctx.setLineDash([5, 3]);
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, 23, 9, 0, 0, Math.PI * 2);
@@ -2231,8 +2332,8 @@ function drawGame() {
 
             if (gameMode === 'COMBAT' && activeActor === e) {
                 ctx.save();
-                ctx.strokeStyle = '#ff4757';
-                ctx.lineWidth = 2.6;
+                ctx.strokeStyle = '#cf4646';
+                ctx.lineWidth = 2.4;
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, 19, 7, 0, 0, Math.PI * 2);
                 ctx.stroke();
@@ -2247,26 +2348,25 @@ function drawGame() {
                 const barY = e.y * TILE_SIZE - (e.isBoss ? 22 : 12) + (e.animOffsetY || 0) + bobY;
                 const hpPercent = Math.max(0, e.hp / e.maxHp);
 
-                ctx.fillStyle = 'rgba(5, 4, 3, 0.88)';
-                ctx.fillRect(barX - 1, barY - 1, barW + 2, 7);
-                ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+                ctx.fillStyle = 'rgba(6, 5, 4, 0.92)';
+                ctx.fillRect(barX - 1, barY - 1, barW + 2, 6);
+                ctx.strokeStyle = 'rgba(150, 125, 80, 0.55)';
                 ctx.lineWidth = 0.8;
-                ctx.strokeRect(barX - 1, barY - 1, barW + 2, 7);
+                ctx.strokeRect(barX - 1, barY - 1, barW + 2, 6);
 
-                ctx.fillStyle = e.color || (e.isBoss ? '#f1c40f' : '#ff4757');
-                ctx.fillRect(barX, barY, Math.max(0, barW * hpPercent), 5);
+                ctx.fillStyle = e.isBoss ? '#c9a45c' : '#b83236';
+                ctx.fillRect(barX, barY, Math.max(0, barW * hpPercent), 4);
             }
 
             if (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(e)) {
                 ctx.save();
-                ctx.fillStyle = '#f1c40f';
-                ctx.font = 'bold 10px Cinzel, serif';
-                ctx.fillText('★', cx + 14, e.y * TILE_SIZE + 6);
+                ctx.fillStyle = '#c9a45c';
+                ctx.font = 'bold 9px Cinzel, serif';
+                ctx.fillText('◆', cx + 14, e.y * TILE_SIZE + 6);
                 ctx.restore();
             }
         });
 
-        // Party Heroes on row y
         for (let i = party.length - 1; i >= 0; i--) {
             const p = party[i];
             if (p.hp <= 0 || p.y !== y) continue;
@@ -2279,8 +2379,8 @@ function drawGame() {
 
             if (gameMode === 'COMBAT' && activeActor === p) {
                 ctx.save();
-                ctx.strokeStyle = '#f7d774';
-                ctx.lineWidth = 2.6;
+                ctx.strokeStyle = '#c9a45c';
+                ctx.lineWidth = 2.2;
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, 20, 7.5, 0, 0, Math.PI * 2);
                 ctx.stroke();
@@ -2291,11 +2391,11 @@ function drawGame() {
 
             if (p === currentLeader) {
                 ctx.save();
-                ctx.fillStyle = '#f1c40f';
+                ctx.fillStyle = '#c9a45c';
                 ctx.beginPath();
                 ctx.moveTo(cx, baseY - 49 + bobY);
-                ctx.lineTo(cx - 4.5, baseY - 55 + bobY);
-                ctx.lineTo(cx + 4.5, baseY - 55 + bobY);
+                ctx.lineTo(cx - 4, baseY - 54 + bobY);
+                ctx.lineTo(cx + 4, baseY - 54 + bobY);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
@@ -2303,7 +2403,6 @@ function drawGame() {
         }
     }
 
-    // 5. Combat VFX & Ambient Particles
     drawAttackVFX(dynamicLights);
     updateAndDrawAmbientParticles();
 
@@ -2313,17 +2412,15 @@ function drawGame() {
         ctx.save();
         ctx.globalAlpha = Math.max(0, r.alpha);
         ctx.strokeStyle = r.color;
-        ctx.lineWidth = 2.4;
+        ctx.lineWidth = 2.0;
         ctx.beginPath();
         ctx.arc(cx, cy, r.radius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
     });
 
-    // 6. Dynamic Volumetric Multi-Light Darkness + Feathered Fog of War
     drawFeatheredFogAndDynamicLighting(ctx, biome.id, currentLeader, torchLight, torchFlickerPhase, dynamicLights);
 
-    // 7. Crisp Scaled Floating Damage & Status Popups (above darkness so always readable!)
     if (typeof floatingPopups !== 'undefined') {
         floatingPopups.forEach(pop => {
             ctx.save();
@@ -2335,10 +2432,10 @@ function drawGame() {
             ctx.scale(sc, sc);
 
             const popSize = pop.size || 15;
-            ctx.font = `800 ${popSize}px Cinzel, serif`;
+            ctx.font = `700 ${popSize}px Cinzel, serif`;
             ctx.textAlign = 'center';
             ctx.lineWidth = 3.5;
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.92)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.94)';
             ctx.strokeText(pop.text, 0, 0);
             ctx.fillStyle = pop.color;
             ctx.fillText(pop.text, 0, 0);
@@ -2354,7 +2451,7 @@ function drawGame() {
 }
 
 // =========================================================
-// SEED MODAL, SAVE SLOTS, HOVER TOOLTIP, PAUSE & SHAKE
+// SEED MODAL, SAVE ARCHIVES, HOVER TOOLTIP, PAUSE & SHAKE
 // =========================================================
 function promptSetSeed() {
     toggleDialogById('seed-modal', () => {
@@ -2369,7 +2466,7 @@ function applySeedPreset(mode) {
         setRunSeed(`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`);
     } else {
         setRunSeed(null);
-        addLog('🎲 Mode normal diaktifkan: tata letak lantai acak.');
+        addLog('Mode normal aktif: tata letak ruang bawah tanah kembali acak.');
     }
     closeDialogById('seed-modal');
     updateUI();
@@ -2402,7 +2499,7 @@ function renderSaveSlotModal() {
     let html = '';
     for (let i = 1; i <= 3; i++) {
         const raw = localStorage.getItem('endless_dungeon_save_v2_slot_' + i);
-        let info = 'Kosong';
+        let info = 'Empty Archive';
         if (raw) {
             try {
                 const s = JSON.parse(raw);
@@ -2411,19 +2508,19 @@ function renderSaveSlotModal() {
                     const avgLv = Math.round(s.party.reduce((a, p) => a + (p.level || 1), 0) / s.party.length);
                     const totalHp = s.party.reduce((a, p) => a + (p.hp || 0), 0);
                     const totalMax = s.party.reduce((a, p) => a + (p.maxHp || 0), 0);
-                    partyInfo = ` | Party HP ${totalHp}/${totalMax} | Lv~${avgLv}`;
+                    partyInfo = ` · HP ${totalHp}/${totalMax} · Lv~${avgLv}`;
                 }
-                info = `Lantai ${s.currentFloor || '?'} | Asc ${s.ascensionLevel || 0}${partyInfo}`;
-            } catch (e) { info = 'Data Rusak'; }
+                info = `Floor ${s.currentFloor || '?'} · Asc ${s.ascensionLevel || 0}${partyInfo}`;
+            } catch (e) { info = 'Corrupted Seal'; }
         }
-        const active = (typeof activeSaveSlot !== 'undefined' && activeSaveSlot === i) ? ' <span style="color:#78e08f;">(Aktif)</span>' : '';
+        const active = (typeof activeSaveSlot !== 'undefined' && activeSaveSlot === i) ? ' <span style="color:#75b88c;">(Active)</span>' : '';
         html += `
         <div class="bag-item-row">
-            <div><b>Slot ${i}${active}</b><div class="item-buff-text">${info}</div></div>
+            <div><b>Archive Slot ${i}${active}</b><div class="item-buff-text">${info}</div></div>
             <div style="display:flex; gap:5px;">
-                <button type="button" class="btn-small-use" onclick="saveToSlot(${i})">Simpan</button>
-                <button type="button" class="btn-small-use" style="background:#225c85;" onclick="loadFromSlot(${i})">Muat</button>
-                <button type="button" class="btn-small-unequip" onclick="deleteSlot(${i})">Hapus</button>
+                <button type="button" class="btn-small-use" onclick="saveToSlot(${i})">Inscribe</button>
+                <button type="button" class="btn-small-equip" onclick="loadFromSlot(${i})">Restore</button>
+                <button type="button" class="btn-small-unequip" onclick="deleteSlot(${i})">Erase</button>
             </div>
         </div>`;
     }
@@ -2438,10 +2535,10 @@ function saveToSlot(n) {
 
 function loadFromSlot(n) {
     const raw = localStorage.getItem('endless_dungeon_save_v2_slot_' + n);
-    if (!raw) { addLog(`❌ Slot ${n} masih kosong.`); return; }
+    if (!raw) { addLog(`Archive Slot ${n} masih kosong.`); return; }
     if (typeof loadGameProgress === 'function' && loadGameProgress(n)) {
         activeSaveSlot = n;
-        addLog(`📂 Berhasil memuat petualangan dari Slot ${n}.`);
+        addLog(`Memulihkan ekspedisi dari Archive Slot ${n}.`);
         closeDialogById('save-slot-modal');
         updateModeUI();
         updateUI();
@@ -2453,7 +2550,7 @@ function deleteSlot(n) {
     localStorage.removeItem('endless_dungeon_save_v2_slot_' + n);
     if (activeSaveSlot === n) activeSaveSlot = null;
     renderSaveSlotModal();
-    addLog(`🗑️ Data pada Slot ${n} telah dihapus.`);
+    addLog(`Catatan pada Archive Slot ${n} telah dihapus.`);
 }
 
 function exportSave() {
@@ -2463,7 +2560,7 @@ function exportSave() {
         ? ('endless_dungeon_save_v2_slot_' + activeSaveSlot)
         : 'endless_dungeon_save_v2';
     ta.value = localStorage.getItem(key) || '';
-    addLog('📤 Data Save berhasil diekspor ke kotak teks JSON.');
+    addLog('Data ekspedisi diekspor ke kotak teks JSON.');
 }
 
 function importSave() {
@@ -2480,9 +2577,9 @@ function importSave() {
         updateModeUI();
         updateUI();
         drawGame();
-        addLog('📥 Data Save berhasil diimpor dan langsung dimuat!');
+        addLog('Data ekspedisi berhasil diimpor dan dimuat.');
     } catch (e) {
-        addLog('❌ Format JSON tidak valid: ' + e.message);
+        addLog('Format JSON tidak valid: ' + e.message);
     }
 }
 
@@ -2507,61 +2604,58 @@ function updateHoverTooltipHtml(clientX, clientY) {
         return;
     }
 
-    let title = null, sub = null, badgeColor = '#d4af37';
+    let title = null, sub = null, badgeColor = '#dfd0b0';
     const en = enemies.find(e => e.x === hx && e.y === hy && e.hp > 0);
     const ch = chests.find(c => c.x === hx && c.y === hy && !c.opened);
     const tr = traps.find(tp => tp.x === hx && tp.y === hy && (tp.detected || tp.triggered));
     const hr = party.find(p => p.x === hx && p.y === hy && p.hp > 0);
 
     if (en) {
-        const mastered = (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(en)) ? ' ★Mastered (+10% DMG)' : '';
+        const mastered = (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(en)) ? ' · Mastered (+10% DMG)' : '';
         title = `${en.name}${mastered}`;
-        sub = `❤️ HP: ${en.hp}/${en.maxHp} • 🗡️ ATK: ${en.atk} • 🛡️ DEF: ${en.def} • 🥾 SPD: ${en.spd}${en.bossSkillName ? ` • ✨ Art: ${en.bossSkillName}` : ''}`;
-        badgeColor = en.color || '#ff4757';
+        sub = `HP ${en.hp}/${en.maxHp} · ATK ${en.atk} · DEF ${en.def} · SPD ${en.spd}${en.bossSkillName ? ` · Art: ${en.bossSkillName}` : ''}`;
+        badgeColor = en.isBoss ? '#dfd0b0' : '#cf5b64';
     } else if (merchant && merchant.x === hx && merchant.y === hy) {
-        title = '⚖️ Wandering Merchant (Pedagang Kelana)';
-        sub = 'Hampiri untuk membeli ramuan, bijih besi Damaskus, dan zirah pilihan.';
-        badgeColor = '#f1c40f';
+        title = 'Wandering Caravan';
+        sub = 'Hampiri untuk membeli perbekalan, bijih Damaskus, dan zirah tempaan.';
+        badgeColor = '#c9a45c';
     } else if (shrine && shrine.x === hx && shrine.y === hy) {
-        title = '⛩️ Ancient Shrine (Altar Kuno)';
-        sub = shrine.used ? 'Altar ini sudah digunakan.' : 'Hampiri untuk memilih berkah katedral, Sumpah Darah, atau Tantangan Elite.';
-        badgeColor = '#00ffff';
+        title = 'Shrine of the Old Gods';
+        sub = shrine.used ? 'Energi monolit ini telah habis.' : 'Hampiri untuk mengucap sumpah persembahan atau tantangan Elite.';
+        badgeColor = '#8ab8d9';
     } else if (campfire && campfire.x === hx && campfire.y === hy) {
-        title = '🔥 Knight Campfire (Perkemahan)';
-        sub = campfire.used ? 'Api unggun telah padam.' : 'Hampiri untuk istirahat (+45% HP/MP), asah senjata, intai peta, atau tempa obor.';
-        badgeColor = '#ffa502';
+        title = 'Sanctuary Hearth';
+        sub = campfire.used ? 'Bara api unggun telah padam.' : 'Hampiri untuk beristirahat (+45% HP/MP), mengasah bilah, atau menempa obor.';
+        badgeColor = '#db822b';
     } else if (ch) {
-        title = '📦 Treasure Chest (Peti Harta)';
-        sub = 'Berisi Zirah, Gold, atau Ore. Waspada: 18% peluang Cursed Mimic!';
-        badgeColor = '#f1c40f';
+        title = 'Ironbound Coffer';
+        sub = 'Berisi Zirah, Sovereigns, atau Damascus Ore. Waspadai peluang Cursed Mimic.';
+        badgeColor = '#c9a45c';
     } else if (map[hy][hx] === 2) {
-        title = '🧱 Cracked Castle Wall (Dinding Retak)';
-        sub = 'Tabrak dinding retak ini untuk menjebol ruang simpanan rahasia (Secret Vault)!';
-        badgeColor = '#f39c12';
+        title = 'Fractured Masonry';
+        sub = 'Tabrak dinding retak ini untuk menjebol ruang simpanan rahasia (Secret Vault).';
+        badgeColor = '#dfd0b0';
     } else if (hx === stairs.x && hy === stairs.y) {
-        title = isFloorCleared() ? '🚪 Descending Stairs (Terbuka)' : '🔒 Sealed Dungeon Gate (Terkunci)';
+        title = isFloorCleared() ? 'Descending Stairwell (Unsealed)' : 'Iron Portcullis (Sealed)';
         sub = isFloorCleared()
-            ? `Injak untuk menuruni tangga menuju Lantai ${currentFloor + 1}.`
-            : `Tumpas sisa ${enemies.length} musuh di lantai ini untuk membuka segel gerbang!`;
-        badgeColor = isFloorCleared() ? '#2ecc71' : '#ff6b81';
+            ? `Melangkah ke sini untuk turun menuju Lantai ${currentFloor + 1}.`
+            : `Tumpas sisa ${enemies.length} musuh di lantai ini untuk membuka segel gerbang.`;
+        badgeColor = isFloorCleared() ? '#75b88c' : '#cf5b64';
     } else if (tr) {
-        title = `⚠️ Floor Trap (${tr.type.toUpperCase()})`;
-        sub = tr.triggered ? 'Jebakan sudah tidak aktif.' : 'Jebakan terdeteksi! Ksatria dengan SPD ≥ 15 dapat menjinakkannya otomatis.';
-        badgeColor = '#ff4757';
+        title = `Floor Mechanism (${tr.type.toUpperCase()})`;
+        sub = tr.triggered ? 'Mekanisme jebakan sudah tidak aktif.' : 'Jebakan terdeteksi. Ksatria dengan SPD ≥ 15 dapat menjinakkannya otomatis.';
+        badgeColor = '#cf5b64';
     } else if (hr) {
-        const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hr) : { posNumber: 1, roleLabel: 'FRONT' };
-        title = `⚜️ ${hr.name} (Lv.${hr.level} ${hr.role}) — Pos ${form.posNumber}`;
+        const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hr) : { roman: 'I', roleLabel: 'VANGUARD' };
+        title = `${hr.name} · Lv.${hr.level} ${hr.role} (Rank ${form.roman})`;
         let extra = '';
         if (typeof getHeroActiveSets === 'function') {
             const sc = getHeroActiveSets(hr);
             const setNames = Object.keys(sc).map(k => (EQUIPMENT_SETS[k] ? `${EQUIPMENT_SETS[k].name} ${sc[k]}pc` : k)).join(', ');
-            if (setNames) extra += ` • Set: ${setNames}`;
+            if (setNames) extra += ` · ${setNames}`;
         }
-        const curse = (typeof getHeroCursedRelicId === 'function') ? getHeroCursedRelicId(hr) : null;
-        if (curse) extra += ` • Cursed`;
-        if (hr.runes && hr.runes.length > 0) extra += ` • Runes: ${hr.runes.length}`;
-        sub = `❤️ HP: ${hr.hp}/${hr.maxHp} • ⚡ MP: ${hr.mp}/${hr.maxMp} • 💥 OD: ${hr.overdrive || 0}%${extra}`;
-        badgeColor = hr.color;
+        sub = `HP ${hr.hp}/${hr.maxHp} · MP ${hr.mp}/${hr.maxMp} · Overdrive ${hr.overdrive || 0}%${extra}`;
+        badgeColor = '#dfd0b0';
     }
 
     if (!title) {
@@ -2576,7 +2670,7 @@ function updateHoverTooltipHtml(clientX, clientY) {
     const crect = container.getBoundingClientRect();
     let x = clientX - crect.left + 14;
     let y = clientY - crect.top + 14;
-    if (x + 410 > crect.width) x = clientX - crect.left - 410;
+    if (x + 390 > crect.width) x = clientX - crect.left - 390;
     if (y + 84 > crect.height) y = clientY - crect.top - 84;
     if (x < 6) x = 6;
     if (y < 6) y = 6;
@@ -2591,7 +2685,7 @@ function togglePauseModal() {
 function toggleScreenShake() {
     screenShakeIntensity = (screenShakeIntensity > 0) ? 0 : 1;
     const btn = document.getElementById('btn-shake-toggle');
-    if (btn) btn.innerText = `📳 Screen Shake: ${screenShakeIntensity > 0 ? 'ON' : 'OFF'}`;
-    addLog(screenShakeIntensity > 0 ? '📳 Efek getaran kamera (Screen Shake) DIAKTIFKAN.' : '📳 Efek getaran kamera (Screen Shake) DINONAKTIFKAN.');
+    if (btn) btn.innerText = `Screen Impact Shake: ${screenShakeIntensity > 0 ? 'ON' : 'OFF'}`;
+    addLog(screenShakeIntensity > 0 ? 'Getaran benturan kamera diaktifkan.' : 'Getaran benturan kamera dinonaktifkan.');
     updateUI();
 }

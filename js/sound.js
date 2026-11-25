@@ -88,12 +88,15 @@ window.addEventListener('pointerdown', () => initAudio(), { once: true });
 function syncAudioControlsUI() {
     const btn = document.getElementById('btn-mute');
     if (btn) {
-        btn.innerText = isMuted ? '🔇 Muted' : '🔊 Audio';
-        btn.style.color = isMuted ? '#ff7675' : '#d6c6b2';
+        const ico = (typeof icon === 'function') ? icon(isMuted ? 'soundOff' : 'soundOn', 13) : '';
+        btn.innerHTML = `${ico}<span>${isMuted ? 'Muted' : 'Audio'}</span>`;
+        btn.setAttribute('aria-pressed', String(!isMuted));
     }
     const slider = document.getElementById('volume-slider');
     if (slider) {
-        slider.value = String(Math.round(masterVolume * 100));
+        const pct = Math.round(masterVolume * 100);
+        slider.value = String(pct);
+        slider.style.setProperty('--progress', `${pct}%`);
     }
 }
 
