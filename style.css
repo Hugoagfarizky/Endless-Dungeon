@@ -93,15 +93,13 @@ body {
 }
 
 #game-wrapper {
-    inline-size: 100%;
-    block-size: 100%;
+    position: relative;
+    inline-size: 100dvw;
+    block-size: 100dvh;
     overflow: clip;
-    background: transparent;
-    padding-block: 10px 8px;
-    padding-inline: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    background-color: #060504;
+    padding: 0;
+    margin: 0;
 }
 
 .svg-ico {
@@ -199,82 +197,104 @@ body {
 }
 
 /* =========================================================
-   TOP BANNER ("DARK FANTASY Ultimate UI PACK V2.0" HEADER)
-   Carved stone lintel + weathered stone double-frieze + keystone crests
+   FULLSCREEN DIEGETIC HUD ZONES & TOP-LEFT BRAND PLAQUE
    ========================================================= */
-.mist-banner-header {
-    position: relative;
-    display: flex;
-    align-items: safe center;
-    justify-content: space-between;
-    gap: 14px;
-    min-block-size: 56px;
-    padding-block: 6px;
-    padding-inline: 18px;
-    background-image:
-        var(--stone-mineral-grain),
-        radial-gradient(ellipse at 50% 50%, rgba(52, 44, 48, 0.72) 0%, rgba(24, 21, 25, 0.94) 62%, rgba(15, 13, 17, 0.25) 100%);
-    background-blend-mode: soft-light, normal;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
-    flex-shrink: 0;
-}
-
-/* Weathered Chiseled Stone + Bronze Double-Rule Friezes (masked for chipped stone feel!) */
-.mist-banner-header::before,
-.mist-banner-header::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    block-size: 5px;
+#hud-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
     pointer-events: none;
-    -webkit-mask-image: var(--stone-weathered-mask);
-    -webkit-mask-repeat: repeat-x;
-    -webkit-mask-size: 160px 24px;
-    mask-image: var(--stone-weathered-mask);
-    mask-repeat: repeat-x;
-    mask-size: 160px 24px;
 }
 
-.mist-banner-header::before {
-    inset-block-start: 0;
-    background:
-        linear-gradient(90deg, transparent 0%, #4b4248 12%, var(--filigree-bright) 50%, #4b4248 88%, transparent 100%) top / 100% 2px no-repeat,
-        linear-gradient(90deg, transparent 6%, rgba(14, 12, 16, 0.9) 25%, rgba(14, 12, 16, 0.9) 75%, transparent 94%) center / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 8%, rgba(142, 118, 96, 0.48) 28%, rgba(199, 174, 145, 0.58) 50%, rgba(142, 118, 96, 0.48) 72%, transparent 92%) bottom / 100% 1px no-repeat;
-}
-
-.mist-banner-header::after {
-    inset-block-end: 0;
-    background:
-        linear-gradient(90deg, transparent 8%, rgba(142, 118, 96, 0.48) 28%, rgba(199, 174, 145, 0.58) 50%, rgba(142, 118, 96, 0.48) 72%, transparent 92%) top / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 6%, rgba(14, 12, 16, 0.9) 25%, rgba(14, 12, 16, 0.9) 75%, transparent 94%) center / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 0%, #4b4248 12%, var(--filigree-bright) 50%, #4b4248 88%, transparent 100%) bottom / 100% 2px no-repeat;
-}
-
-.header-crest {
+.hud-zone {
     position: absolute;
+    pointer-events: none;
+}
+
+.hud-top-left {
+    inset-block-start: 10px;
+    inset-inline-start: 12px;
+    inline-size: 256px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-block-size: calc(100dvh - 122px);
+}
+
+.hud-top-center {
+    inset-block-start: 10px;
     inset-inline-start: 50%;
     translate: -50% 0;
-    pointer-events: none;
-    line-height: 0;
-}
-.header-crest-top { inset-block-start: -11px; }
-.header-crest-bottom { inset-block-end: -11px; }
-
-.filigree-crest-svg {
-    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
+    max-inline-size: min(440px, calc(100dvw - 610px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.header-left-wing {
+.hud-top-right {
+    inset-block-start: 10px;
+    inset-inline-end: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.hud-top-right-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    pointer-events: auto;
+}
+
+.hud-bottom-left {
+    inset-block-end: 10px;
+    inset-inline-start: 12px;
+    inline-size: min(296px, 23dvw);
+    pointer-events: auto;
+}
+
+.hud-bottom-center {
+    inset-block-end: 10px;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-inline-size: calc(100dvw - 24px);
+}
+
+.hud-brand-plaque {
+    pointer-events: auto;
+    padding: 4px 12px 5px 8px;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(90deg, rgba(20, 17, 22, 0.86) 0%, rgba(20, 17, 22, 0.56) 74%, transparent 100%);
+    background-blend-mode: soft-light, normal;
+    border-inline-start: 2px solid var(--filigree-mid);
+    border-block-end: 1px solid rgba(142, 118, 96, 0.35);
     display: flex;
     flex-direction: column;
     gap: 1px;
 }
 
+.header-crest {
+    pointer-events: none;
+    line-height: 0;
+    margin-block-end: -3px;
+    z-index: 2;
+}
+
+.filigree-crest-svg {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
+}
+
 .title-lockup {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .sigil-inline {
@@ -285,67 +305,68 @@ body {
 .title-lockup h1 {
     margin: 0;
     font-family: var(--font-gothic);
-    font-size: 21px;
+    font-size: 16.5px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.07em;
     color: var(--filigree-ivory);
-    text-shadow: 0 2px 0 #090809, 0 0 14px rgba(199, 174, 145, 0.2);
+    text-shadow: 0 2px 3px #050406;
 }
 
 .mode-tag {
     font-family: var(--font-gothic);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.08em;
-    padding: 0 6px;
+    padding: 0 5px;
     border: 1px solid var(--filigree-mid);
-    background: var(--slot-charcoal);
+    background: rgba(24, 20, 25, 0.88);
     color: var(--text-sand);
 }
 .mode-combat {
     border-color: #a8383b;
-    color: #e08285;
+    color: #e88d90;
 }
 
 .expedition-sub {
     display: flex;
     align-items: center;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 4px;
     font-family: var(--font-prose);
-    font-size: 13px;
-    color: var(--text-taupe);
+    font-size: 11.5px;
+    color: var(--text-sand);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
 }
-.expedition-sub b { color: var(--text-sand); font-weight: 600; }
+.expedition-sub b { color: var(--filigree-ivory); font-weight: 600; }
 .biome-name { color: var(--filigree-bright); font-family: var(--font-gothic); }
-.dot-sep { color: #4a3f36; }
+.dot-sep { color: #6e5e52; }
 
 /* =========================================================
-   CURRENCY & TORCH PLAQUES ("[ 90210 $ ]" REFERENCE STYLE)
+   FLOATING CURRENCY & TORCH PLAQUES ("[ 90210 $ ]" STYLE)
    ========================================================= */
 .header-center-plaques {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
 }
 
 .currency-plaque {
-    min-inline-size: 94px;
-    block-size: 34px;
-    padding-inline: 8px;
-    background-color: var(--slot-charcoal);
+    min-inline-size: 76px;
+    block-size: 32px;
+    padding-inline: 7px;
+    background-color: rgba(24, 20, 26, 0.88);
     background-image:
         var(--stone-mineral-grain),
-        linear-gradient(to bottom var(--in-oklab), #282329, #171418);
+        linear-gradient(to bottom var(--in-oklab), rgba(40, 35, 42, 0.9), rgba(20, 17, 22, 0.92));
     background-blend-mode: soft-light, normal;
     border: 5px solid transparent;
     border-image: var(--filigree-9slice-slot) 10 stretch;
     box-shadow:
         inset 0 1px 0 rgba(230, 212, 188, 0.12),
-        inset 0 -2px 0 rgba(7, 6, 9, 0.85),
-        0 3px 6px rgba(0, 0, 0, 0.65);
+        0 4px 10px rgba(0, 0, 0, 0.78);
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 6px;
+    gap: 5px;
     font-family: var(--font-gothic);
 }
 
@@ -368,7 +389,7 @@ body {
 }
 
 .torch-plaque {
-    inline-size: 168px;
+    inline-size: 132px;
     justify-content: flex-start;
 }
 
@@ -532,6 +553,7 @@ body {
     inset: auto;
     position-area: block-end span-inline-start;
     position-try-fallbacks: flip-block, flip-inline;
+    transform-origin: top right;
     margin-block-start: 6px;
     inline-size: 268px;
     padding: 10px 12px;
@@ -543,7 +565,16 @@ body {
     display: flex;
     flex-direction: column;
     gap: 7px;
+    animation: popover-fade 140ms ease-out both;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+    .expedition-popover:is(:popover-open, .\:popover-open) {
+        animation: popover-grow 240ms linear(0, 0.55 20%, 1.04 50%, 1) both, popover-fade 140ms ease-out both;
+    }
+}
+@keyframes popover-grow { from { scale: 0.92; } }
+@keyframes popover-fade { from { opacity: 0; } }
 
 @supports not (position-area: block-end) {
     .expedition-popover { position: fixed; inset: auto; margin: 0; }
@@ -621,37 +652,21 @@ body {
 }
 
 /* =========================================================
-   MAIN 2D WORKSPACE GRID
+   FULLSCREEN DUNGEON VIEWPORT & FLOATING TOP-CENTER RIBBON
    ========================================================= */
-#main-content {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 364px;
-    gap: 10px;
-    flex: 1;
-    min-block-size: 0;
-}
-
-#left-column {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-inline-size: 0;
-    min-block-size: 0;
-}
-
-/* "MAP FOUND" STYLE FADED CARVED STONE INITIATIVE STRIP */
 .mist-strip {
+    pointer-events: auto;
     position: relative;
-    block-size: 36px;
+    min-block-size: 30px;
+    padding-block: 3px;
     padding-inline: 18px;
     background-image:
         var(--stone-mineral-grain),
-        linear-gradient(90deg, transparent 0%, rgba(30, 26, 31, 0.95) 14%, rgba(24, 21, 25, 0.96) 86%, transparent 100%);
+        linear-gradient(90deg, transparent 0%, rgba(20, 17, 23, 0.86) 16%, rgba(18, 15, 21, 0.88) 84%, transparent 100%);
     background-blend-mode: soft-light, normal;
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+    gap: 10px;
 }
 
 .mist-strip::before,
@@ -674,18 +689,18 @@ body {
 
 .queue-label {
     font-family: var(--font-gothic);
-    font-size: 14px;
+    font-size: 12.5px;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--filigree-ivory);
-    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.95);
     white-space: nowrap;
 }
 
 #turn-queue-list {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-snap-type: x proximity;
@@ -696,35 +711,36 @@ body {
 .queue-empty {
     font-family: var(--font-prose);
     font-style: italic;
-    font-size: 13.5px;
+    font-size: 12.5px;
     color: var(--text-taupe);
+    white-space: nowrap;
 }
 
 .decree-whisper {
     font-family: var(--font-prose);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-sand);
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
 .turn-badge {
     scroll-snap-align: start;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 2px 8px;
-    background-color: var(--slot-charcoal);
+    gap: 4px;
+    padding: 1px 7px;
+    background-color: rgba(24, 20, 26, 0.9);
     background-image:
         var(--stone-mineral-grain),
         linear-gradient(to bottom var(--in-oklab), #29242a, #171419);
     background-blend-mode: soft-light, normal;
     border: 1px solid #483e44;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.72);
     font-family: var(--font-gothic);
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--text-sand);
     white-space: nowrap;
 }
@@ -740,32 +756,22 @@ body {
 .turn-badge.target-locked { border-color: #6c99c2; }
 .turn-arrow { color: var(--filigree-dim); font-size: 11px; }
 
-/* HEWN STONE ARCHWAY DUNGEON VIEWPORT */
+/* FULLSCREEN 100% EDGE-TO-EDGE DUNGEON CANVAS */
 #canvas-container {
-    position: relative;
-    flex: 1;
-    min-block-size: 0;
-    background-color: #070608;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: #060504;
     padding: 0;
     overflow: clip;
-    display: flex;
-    place-content: center;
-    place-items: center;
-    content-visibility: auto;
-    contain-intrinsic-size: auto none auto 672px;
 }
 
-/* Inner Chiseled Stone Window Ledge Shadow */
-.stone-archway-frame::after {
+#canvas-container::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 3;
-    box-shadow:
-        inset 0 6px 16px rgba(0, 0, 0, 0.88),
-        inset 0 -4px 12px rgba(0, 0, 0, 0.82),
-        inset 0 0 0 2px rgba(56, 48, 53, 0.52);
+    box-shadow: inset 0 0 90px rgba(4, 3, 5, 0.72);
 }
 
 #gameCanvas {
@@ -776,26 +782,23 @@ body {
 }
 
 #minimapCanvas {
-    position: absolute;
-    inset-block-start: 8px;
-    inset-inline-end: 8px;
-    inline-size: 204px;
-    block-size: 148px;
+    position: relative;
+    inline-size: 196px;
+    block-size: 142px;
     pointer-events: none;
-    z-index: 7;
     border: 6px solid transparent;
     border-image: var(--filigree-9slice-slot) 10 stretch;
-    background: rgba(16, 14, 18, 0.93);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.85);
+    background: rgba(14, 12, 16, 0.85);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.82);
 }
 
 .hover-tooltip {
-    position: absolute;
-    z-index: 12;
+    position: fixed;
+    z-index: 25;
     pointer-events: none;
     max-inline-size: 360px;
     padding: 6px 10px;
-    background-color: rgba(22, 19, 23, 0.97);
+    background-color: rgba(20, 17, 22, 0.96);
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.94);
     display: none;
 }
@@ -814,22 +817,25 @@ body {
 .hover-tooltip.visible { display: block; }
 
 /* =========================================================
-   "POTION CRAFTING TIPS" CARVED CHRONICLE TABLET + RUNIC OBELISKS
+   BOTTOM-LEFT SEMI-TRANSPARENT DUNGEON CHRONICLE OVERLAY
    ========================================================= */
 .mist-lore-box {
-    position: relative;
-    block-size: 104px;
-    flex-shrink: 0;
+    block-size: 92px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-inline: 8px;
+    gap: 6px;
+    padding-inline: 6px 10px;
     background-image:
-        var(--stone-slab-cracks),
         var(--stone-mineral-grain),
-        linear-gradient(90deg, transparent 0%, rgba(28, 24, 29, 0.96) 10%, rgba(24, 21, 26, 0.97) 50%, rgba(28, 24, 29, 0.96) 90%, transparent 100%);
-    background-blend-mode: normal, soft-light, normal;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+        linear-gradient(90deg, rgba(16, 14, 19, 0.82) 0%, rgba(16, 14, 19, 0.68) 72%, transparent 100%);
+    background-blend-mode: soft-light, normal;
+    transition: background-color 160ms ease-out;
+}
+
+@media (hover: hover) {
+    .mist-lore-box:hover {
+        background-color: rgba(16, 14, 19, 0.88);
+    }
 }
 
 .mist-lore-box::before,
@@ -837,7 +843,7 @@ body {
     content: "";
     position: absolute;
     inset-inline: 0;
-    block-size: 5px;
+    block-size: 3px;
     pointer-events: none;
     -webkit-mask-image: var(--stone-weathered-mask);
     -webkit-mask-repeat: repeat-x;
@@ -848,15 +854,11 @@ body {
 }
 .mist-lore-box::before {
     inset-block-start: 0;
-    background:
-        linear-gradient(90deg, transparent 4%, #4b4248 18%, var(--filigree-bright) 50%, #4b4248 82%, transparent 96%) top / 100% 2px no-repeat,
-        linear-gradient(90deg, transparent 14%, rgba(142, 118, 96, 0.42) 35%, rgba(199, 174, 145, 0.52) 50%, rgba(142, 118, 96, 0.42) 65%, transparent 86%) bottom / 100% 1px no-repeat;
+    background: linear-gradient(90deg, var(--filigree-bright) 0%, rgba(142, 118, 96, 0.5) 55%, transparent 100%) top / 100% 1px no-repeat;
 }
 .mist-lore-box::after {
     inset-block-end: 0;
-    background:
-        linear-gradient(90deg, transparent 14%, rgba(142, 118, 96, 0.42) 35%, rgba(199, 174, 145, 0.52) 50%, rgba(142, 118, 96, 0.42) 65%, transparent 86%) top / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 4%, #4b4248 18%, var(--filigree-bright) 50%, #4b4248 82%, transparent 96%) bottom / 100% 2px no-repeat;
+    background: linear-gradient(90deg, var(--filigree-bright) 0%, rgba(142, 118, 96, 0.5) 55%, transparent 100%) bottom / 100% 1px no-repeat;
 }
 
 .gothic-spear-svg {
@@ -923,36 +925,14 @@ body {
 }
 
 /* =========================================================
-   RIGHT SIDEBAR: SCALABLE FILIGREE PANELS & HERO HUD WIDGETS
+   FLOATING TOP-LEFT PARTY FRAMES (NO OUTER WRAPPER BOX!)
    ========================================================= */
-#right-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-block-size: 0;
-}
-
-.sidebar-plaque {
-    padding: 6px 8px;
-    display: flex;
-    flex-direction: column;
-}
-
 #party-status {
-    flex: 1;
     min-block-size: 0;
     overflow-y: auto;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
-}
-
-.plaque-heading-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-block-end: 4px;
-    margin-block-end: 6px;
-    background: linear-gradient(90deg, var(--filigree-mid), rgba(142, 118, 96, 0.15)) bottom / 100% 1px no-repeat;
+    pointer-events: none;
 }
 
 h3 {
@@ -964,82 +944,60 @@ h3 {
     color: var(--filigree-ivory);
 }
 
-h3 small {
-    font-family: var(--font-prose);
-    font-size: 11.5px;
-    font-weight: 400;
-    color: var(--text-taupe);
-    margin-inline-start: 6px;
-}
-
 .synergy-readout {
     font-family: var(--font-gothic);
-    font-size: 11px;
-    color: #78ab8c;
+    font-size: 10.5px;
+    color: #88bd9c;
+    margin-inline-start: 4px;
 }
 
 #party-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1;
-    justify-content: space-between;
+    gap: 5px;
 }
 
-/* TOP-LEFT REFERENCE HUD WIDGET FOR EACH KNIGHT:
-   Carved Crypt Stone Tablet + 32x32 Ornate Portrait + Sunken Slot Wells + 3 Pointed Bars! */
+/* Individual Floating Hero HUD Unit over Live Dungeon */
 .member-card {
+    pointer-events: auto;
     position: relative;
-    padding: 5px 7px;
-    background-color: #171419;
+    padding: 4px 8px 4px 4px;
     background-image:
-        var(--stone-slab-cracks),
         var(--stone-mineral-grain),
-        linear-gradient(to bottom var(--in-oklab), #262228 0%, #19161b 60%, #141116 100%);
-    background-blend-mode: normal, soft-light, normal;
-    border: 1px solid #3c343a;
-    border-block-start-color: #52484f;
-    border-block-end-color: #0d0b0f;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        0 3px 6px rgba(0, 0, 0, 0.62);
+        linear-gradient(90deg, rgba(22, 19, 25, 0.86) 0%, rgba(18, 15, 21, 0.62) 74%, transparent 100%);
+    background-blend-mode: soft-light, normal;
+    border: none;
+    border-inline-start: 2px solid rgba(142, 118, 96, 0.55);
     display: flex;
-    gap: 8px;
+    gap: 7px;
     align-items: center;
     cursor: pointer;
 }
 
 @media (hover: hover) {
     .member-card:hover {
-        border-color: var(--filigree-mid);
+        border-inline-start-color: var(--filigree-ivory);
         background-image:
-            var(--stone-slab-cracks),
             var(--stone-mineral-grain),
-            linear-gradient(to bottom var(--in-oklab), #2f2930 0%, #1e1a20 100%);
+            linear-gradient(90deg, rgba(36, 30, 38, 0.92) 0%, rgba(24, 20, 27, 0.72) 78%, transparent 100%);
     }
 }
 
 .member-card.active-turn-card {
-    border-color: var(--filigree-ivory);
+    border-inline-start: 3px solid var(--filigree-ivory);
     background-image:
-        var(--stone-slab-cracks),
         var(--stone-mineral-grain),
-        linear-gradient(to bottom var(--in-oklab), #332a27 0%, #201a19 100%);
-    box-shadow:
-        inset 2px 0 0 var(--filigree-ivory),
-        inset 0 1px 0 rgba(230, 212, 188, 0.16),
-        0 4px 10px rgba(0, 0, 0, 0.75);
+        linear-gradient(90deg, rgba(46, 37, 34, 0.92) 0%, rgba(28, 22, 22, 0.74) 80%, transparent 100%);
 }
 
-/* Exact 32x32 / 48x48 Square Ornate Stone+Filigree Portrait Box */
 .hero-portrait-frame {
     position: relative;
-    inline-size: 48px;
-    block-size: 48px;
+    inline-size: 42px;
+    block-size: 42px;
     background-color: #121014;
-    border: 6px solid transparent;
+    border: 5px solid transparent;
     border-image: var(--filigree-9slice-ornate) 16 stretch;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.72);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.85);
     flex-shrink: 0;
     overflow: clip;
 }
@@ -1189,31 +1147,71 @@ h3 small {
 .tag-curse  { color: #cf5b64; }
 
 /* =========================================================
-   COMMAND DECK: FILIGREE [icon] SLOTS & OVERDRIVE PLAQUE
+   BOTTOM-CENTER INTEGRATED CARVED-STONE RPG SKILL HOTBAR
    ========================================================= */
-.cmd-actor { color: var(--filigree-bright); }
+.hotbar-top-strip {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 12px;
+    background: linear-gradient(90deg, transparent 0%, rgba(18, 15, 21, 0.85) 20%, rgba(18, 15, 21, 0.85) 80%, transparent 100%);
+    border-block-end: 1px solid rgba(142, 118, 96, 0.35);
+}
+
+.hotbar-actor-pill {
+    font-family: var(--font-gothic);
+    font-size: 11.5px;
+    color: var(--text-sand);
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+}
+
+.cmd-actor { color: var(--filigree-ivory); }
 
 .stance-switches { display: inline-flex; gap: 4px; }
 .stance-chip {
     padding: 1px 6px;
-    background: #141214;
+    background: rgba(20, 17, 23, 0.92);
     color: var(--text-sand);
     border: 1px solid var(--filigree-dim);
     font-family: var(--font-gothic);
-    font-size: 10.5px;
+    font-size: 10px;
     cursor: pointer;
+}
+
+.hotbar-dock {
+    pointer-events: auto;
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+    padding: 5px 7px;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), rgba(30, 25, 32, 0.84), rgba(16, 13, 19, 0.9));
+    background-blend-mode: soft-light, normal;
+    border-block-start: 1px solid rgba(199, 174, 145, 0.42);
+    border-inline: 1px solid rgba(110, 90, 73, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.88);
+    max-inline-size: 100%;
+}
+
+.hotbar-divider {
+    inline-size: 1px;
+    background: linear-gradient(to bottom, transparent, var(--filigree-mid), transparent);
+    margin-block: 3px;
+    flex-shrink: 0;
 }
 
 .btn-ult-plaque {
     position: relative;
-    inline-size: 100%;
-    min-block-size: 38px;
-    margin-block-end: 5px;
-    padding: 3px 8px;
-    background-color: #19161b;
+    inline-size: 116px;
+    block-size: 46px;
+    padding: 3px 7px;
+    background-color: rgba(25, 22, 27, 0.94);
     background-image:
         var(--stone-mineral-grain),
-        linear-gradient(to bottom var(--in-oklab), #29242a 0%, #171419 100%);
+        linear-gradient(to bottom var(--in-oklab), #2b252c 0%, #171419 100%);
     background-blend-mode: soft-light, normal;
     color: var(--text-bone);
     border: 5px solid transparent;
@@ -1221,13 +1219,14 @@ h3 small {
     box-shadow:
         inset 0 1px 0 rgba(230, 212, 188, 0.14),
         inset 0 -2px 0 rgba(6, 5, 8, 0.9),
-        0 3px 6px rgba(0, 0, 0, 0.7);
+        0 3px 8px rgba(0, 0, 0, 0.75);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     text-align: left;
     overflow: clip;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .ult-charge-fill {
@@ -1235,7 +1234,7 @@ h3 small {
     inset-block: 0;
     inset-inline-start: 0;
     inline-size: var(--od-pct, 0%);
-    background: linear-gradient(to right var(--in-oklab), rgba(122, 38, 41, 0.42), rgba(199, 141, 68, 0.42));
+    background: linear-gradient(to right var(--in-oklab), rgba(122, 38, 41, 0.45), rgba(199, 141, 68, 0.45));
     pointer-events: none;
     transition: inline-size 220ms ease-out;
 }
@@ -1244,24 +1243,29 @@ h3 small {
     border-image-source: var(--filigree-9slice-slot-active);
 }
 .btn-ult-plaque:disabled {
-    opacity: 0.48;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 .action-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    align-items: stretch;
     gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
 }
 
 .btn-action {
+    scroll-snap-align: start;
     position: relative;
-    min-block-size: 38px;
-    padding: 2px 6px;
-    background-color: #18151a;
+    inline-size: 68px;
+    block-size: 46px;
+    padding: 3px 4px 2px;
+    background-color: rgba(24, 21, 26, 0.94);
     background-image:
         var(--stone-mineral-grain),
-        linear-gradient(to bottom var(--in-oklab), #282329 0%, #161318 100%);
+        linear-gradient(to bottom var(--in-oklab), #29242a 0%, #161318 100%);
     background-blend-mode: soft-light, normal;
     color: var(--text-bone);
     border: 5px solid transparent;
@@ -1269,13 +1273,15 @@ h3 small {
     box-shadow:
         inset 0 1px 0 rgba(230, 212, 188, 0.13),
         inset 0 -2px 0 rgba(6, 5, 8, 0.88),
-        0 3px 6px rgba(0, 0, 0, 0.68);
+        0 3px 8px rgba(0, 0, 0, 0.72);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    text-align: left;
+    justify-content: center;
+    gap: 1px;
+    text-align: center;
     cursor: pointer;
-    min-inline-size: 0;
+    flex-shrink: 0;
 }
 
 @media (hover: hover) {
@@ -1283,28 +1289,36 @@ h3 small {
         border-image-source: var(--filigree-9slice-slot-active);
         background-image:
             var(--stone-mineral-grain),
-            linear-gradient(to bottom var(--in-oklab), #332c33 0%, #1e1a20 100%);
+            linear-gradient(to bottom var(--in-oklab), #352e35 0%, #1f1b21 100%);
     }
 }
 
 .btn-action:disabled {
-    opacity: 0.36;
+    opacity: 0.42;
     cursor: not-allowed;
+}
+
+.btn-action .key-cap {
+    position: absolute;
+    inset-block-start: -2px;
+    inset-inline-start: -2px;
+    inline-size: 13px;
+    block-size: 13px;
+    font-size: 8.5px;
 }
 
 .key-cap {
     position: relative;
-    z-index: 1;
-    inline-size: 16px;
-    block-size: 16px;
+    z-index: 2;
+    inline-size: 15px;
+    block-size: 15px;
     display: grid;
     place-items: center;
-    background: #0e0c10;
+    background: #0d0b0f;
     border: 1px solid #483d36;
-    border-block-start-color: #08070a;
-    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
     font-family: var(--font-gothic);
-    font-size: 10px;
+    font-size: 9.5px;
     color: var(--filigree-bright);
     flex-shrink: 0;
 }
@@ -1316,6 +1330,7 @@ h3 small {
     display: grid;
     place-items: center;
     flex-shrink: 0;
+    line-height: 0;
 }
 
 .cmd-copy {
@@ -1324,13 +1339,14 @@ h3 small {
     display: flex;
     flex-direction: column;
     min-inline-size: 0;
+    max-inline-size: 100%;
 }
 
 .cmd-title {
     font-family: var(--font-gothic);
-    font-size: 12px;
+    font-size: 10.5px;
     font-weight: 700;
-    line-height: 1.1;
+    line-height: 1.05;
     color: var(--filigree-ivory);
     white-space: nowrap;
     overflow: clip;
@@ -1339,7 +1355,8 @@ h3 small {
 
 .cmd-sub {
     font-family: var(--font-prose);
-    font-size: 10.5px;
+    font-size: 9px;
+    line-height: 1;
     color: var(--text-taupe);
     white-space: nowrap;
     overflow: clip;

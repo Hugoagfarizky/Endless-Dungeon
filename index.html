@@ -12,105 +12,244 @@
 </head>
 <body>
     <div id="game-wrapper">
-        <!-- TOP BANNER: FADED DOUBLE HORIZONTAL RULES + SYMMETRICAL FILIGREE CREST -->
-        <header id="game-header" class="mist-banner-header">
-            <div id="header-crest-top" class="header-crest header-crest-top" aria-hidden="true"></div>
+        <!-- LAYER 0: FULLSCREEN 2.5D DUNGEON VIEWPORT -->
+        <div id="canvas-container">
+            <canvas id="gameCanvas" width="2304" height="1344" aria-label="Peta Taktis Endless Dungeon"></canvas>
+            <div id="hover-tooltip" class="hover-tooltip filigree-frame" role="status" aria-live="polite"></div>
+        </div>
 
-            <!-- LEFT: FLOOR, BIOME & EXPEDITION STATE -->
-            <div class="header-left-wing">
-                <div class="title-lockup">
-                    <span id="brand-sigil-icon" class="sigil-inline" aria-hidden="true"></span>
-                    <h1>ENDLESS DUNGEON</h1>
-                    <span id="game-mode" class="mode-tag mode-explore">EXPLORE</span>
-                </div>
-                <div class="expedition-sub">
-                    <span>Floor <b id="current-floor">1</b></span>
-                    <span class="dot-sep">·</span>
-                    <span id="biome-badge" class="biome-name">Abandoned Crypt</span>
-                    <span class="dot-sep">·</span>
-                    <span>Asc <b id="ascension-badge">Lv.0</b></span>
-                    <span class="dot-sep">·</span>
-                    <span>Prest <b id="prestige-badge">Lv.0</b></span>
-                </div>
+        <!-- LAYER 1: DIEGETIC IN-GAME FLOATING HUD OVERLAY -->
+        <div id="hud-overlay">
+            <!-- TOP-LEFT: EXPEDITION CREST + FLOATING HERO FRAMES -->
+            <div id="hud-top-left" class="hud-zone hud-top-left">
+                <header id="game-header" class="hud-brand-plaque">
+                    <div class="title-lockup">
+                        <span id="brand-sigil-icon" class="sigil-inline" aria-hidden="true"></span>
+                        <h1>ENDLESS DUNGEON</h1>
+                        <span id="game-mode" class="mode-tag mode-explore">EXPLORE</span>
+                    </div>
+                    <div class="expedition-sub">
+                        <span>Floor <b id="current-floor">1</b></span>
+                        <span class="dot-sep">·</span>
+                        <span id="biome-badge" class="biome-name">Abandoned Crypt</span>
+                        <span class="dot-sep">·</span>
+                        <span>Asc <b id="ascension-badge">Lv.0</b></span>
+                        <span class="dot-sep">·</span>
+                        <span>Prest <b id="prestige-badge">Lv.0</b></span>
+                        <span id="synergy-pill" class="synergy-readout"></span>
+                    </div>
+                </header>
+
+                <section id="party-status" aria-label="Status Party">
+                    <div id="party-list"></div>
+                </section>
             </div>
 
-            <!-- CENTER: CURRENCY & TORCH PLAQUES ([ 90210 $ ] REFERENCE STYLE) -->
-            <div class="header-center-plaques" aria-label="Sumber Daya Ekspedisi">
-                <div class="currency-plaque torch-plaque" title="Cahaya Obor mempengaruhi jangkauan Fog of War">
-                    <span id="ico-torch" class="plaque-ico"></span>
-                    <div class="torch-plaque-body">
-                        <div class="torch-plaque-row">
-                            <em id="torch-state-label">RADIANT</em>
-                            <b id="torch-count">100%</b>
+            <!-- TOP-CENTER: FLOATING INITIATIVE & DECREE MIST BANNER -->
+            <div id="hud-top-center" class="hud-zone hud-top-center">
+                <div id="header-crest-top" class="header-crest header-crest-top" aria-hidden="true"></div>
+                <div id="turn-queue-bar" class="mist-strip">
+                    <span class="queue-label" id="round-counter-label">EXPLORATION</span>
+                    <div id="turn-queue-list" role="region" aria-label="Urutan Giliran Pertempuran" tabindex="0">
+                        <span class="queue-empty">Menyusuri lorong bawah tanah...</span>
+                    </div>
+                    <div id="bounty-badge" class="decree-whisper">Decree: —</div>
+                </div>
+                <div id="header-crest-bottom" class="header-crest header-crest-bottom hidden" aria-hidden="true"></div>
+            </div>
+
+            <!-- TOP-RIGHT: SQUARE [icon] TILES, RESOURCES & MINIMAP RADAR -->
+            <div id="hud-top-right" class="hud-zone hud-top-right">
+                <div class="hud-top-right-bar">
+                    <div id="hud-toolbar" class="hud-toolbar" role="toolbar" focusgroup="toolbar wrap" aria-label="Kontrol Utama Dungeon">
+                        <div class="toolbar-group" role="group" aria-label="Menu Utama">
+                            <button type="button" id="btn-backpack-menu" class="icon-slot-btn" onclick="toggleBackpackModal()" title="Satchel Perbekalan [B]">
+                                <span id="ico-satchel"></span>
+                                <span class="slot-lbl">Bag</span>
+                                <span id="item-bag-count" class="slot-badge">0</span>
+                            </button>
+                            <button type="button" id="btn-equip-menu" class="icon-slot-btn" onclick="toggleEquipModal()" title="Royal Armory & Forge [E]">
+                                <span id="ico-armory"></span>
+                                <span class="slot-lbl">Armory</span>
+                                <span id="bag-count" class="slot-badge">0</span>
+                            </button>
+                            <button type="button" id="btn-codex-menu" class="icon-slot-btn" onclick="toggleBestiaryModal()" title="Royal Codex & Bestiary [C]">
+                                <span id="ico-codex"></span>
+                                <span class="slot-lbl">Codex</span>
+                            </button>
+                            <button type="button" id="btn-ascend" class="icon-slot-btn slot-highlight hidden" onclick="triggerAscension()" title="Rite of Ascension">
+                                <span class="slot-lbl">Ascend</span>
+                            </button>
+                            <button type="button" id="btn-prestige" class="icon-slot-btn slot-highlight hidden" onclick="confirmPrestige()" title="Prestige">
+                                <span class="slot-lbl">Prest</span>
+                            </button>
                         </div>
-                        <div class="pointed-bar-track bar-track-torch">
-                            <span id="torch-bar-fill" class="pointed-bar-fill fill-amber" style="width:100%;"></span>
+
+                        <span class="toolbar-sep" role="separator" aria-orientation="vertical"></span>
+
+                        <div class="toolbar-group" role="group" aria-label="Taktis dan Sistem">
+                            <button type="button" id="btn-autobattle-menu" class="icon-slot-btn" aria-pressed="false" onclick="toggleAutoBattle()" title="Auto-Battle [G]">
+                                <span id="ico-auto"></span>
+                                <span class="slot-lbl">Auto</span>
+                            </button>
+                            <button type="button" id="btn-speed-menu" class="icon-slot-btn" onclick="toggleGameSpeed()" title="Kecepatan Pertempuran [V]">
+                                <span id="ico-speed"></span>
+                                <span id="lbl-speed-val" class="slot-lbl">x1</span>
+                            </button>
+                            <button type="button" id="btn-minimap" class="icon-slot-btn" aria-pressed="true" onclick="toggleMiniMap()" title="Radar Peta [M]">
+                                <span id="ico-map"></span>
+                                <span class="slot-lbl">Map</span>
+                            </button>
+                            <button type="button" id="btn-expedition-menu" class="icon-slot-btn" popovertarget="expedition-popover" aria-label="Menu Sistem dan Ekspedisi" title="Save, Seed, Audio & Reset">
+                                <span id="ico-cog"></span>
+                                <span class="slot-lbl">Menu</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="header-center-plaques" aria-label="Sumber Daya Ekspedisi">
+                        <div class="currency-plaque torch-plaque" title="Cahaya Obor mempengaruhi jangkauan Fog of War">
+                            <span id="ico-torch" class="plaque-ico"></span>
+                            <div class="torch-plaque-body">
+                                <div class="torch-plaque-row">
+                                    <em id="torch-state-label">RADIANT</em>
+                                    <b id="torch-count">100%</b>
+                                </div>
+                                <div class="pointed-bar-track bar-track-torch">
+                                    <span id="torch-bar-fill" class="pointed-bar-fill fill-amber" style="width:100%;"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="currency-plaque" title="Koin Emas (Gold)">
+                            <span id="ico-coin" class="plaque-ico"></span>
+                            <span id="gold-count" class="currency-num">0</span>
+                            <span class="currency-sym">G</span>
+                        </div>
+
+                        <div class="currency-plaque" title="Bijih Besi Tempa (Damascus Ore)">
+                            <span id="ico-ingot" class="plaque-ico"></span>
+                            <span id="ore-count" class="currency-num">0</span>
+                            <span class="currency-sym">ORE</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="currency-plaque" title="Koin Emas (Gold)">
-                    <span id="ico-coin" class="plaque-ico"></span>
-                    <span id="gold-count" class="currency-num">0</span>
-                    <span class="currency-sym">G</span>
-                </div>
-
-                <div class="currency-plaque" title="Bijih Besi Tempa (Damascus Ore)">
-                    <span id="ico-ingot" class="plaque-ico"></span>
-                    <span id="ore-count" class="currency-num">0</span>
-                    <span class="currency-sym">ORE</span>
-                </div>
+                <canvas id="minimapCanvas" width="204" height="148"></canvas>
             </div>
 
-            <!-- RIGHT: SQUARE [icon] FILIGREE TILES (16x16 / 32x32 REFERENCE STYLE) -->
-            <div id="hud-toolbar" class="hud-toolbar" role="toolbar" focusgroup="toolbar wrap" aria-label="Kontrol Utama Dungeon">
-                <div class="toolbar-group" role="group" aria-label="Menu Utama">
-                    <button type="button" id="btn-backpack-menu" class="icon-slot-btn" onclick="toggleBackpackModal()" title="Satchel Perbekalan [B]">
-                        <span id="ico-satchel"></span>
-                        <span class="slot-lbl">Bag</span>
-                        <span id="item-bag-count" class="slot-badge">0</span>
-                    </button>
-                    <button type="button" id="btn-equip-menu" class="icon-slot-btn" onclick="toggleEquipModal()" title="Royal Armory & Forge [E]">
-                        <span id="ico-armory"></span>
-                        <span class="slot-lbl">Armory</span>
-                        <span id="bag-count" class="slot-badge">0</span>
-                    </button>
-                    <button type="button" id="btn-codex-menu" class="icon-slot-btn" onclick="toggleBestiaryModal()" title="Royal Codex & Bestiary [C]">
-                        <span id="ico-codex"></span>
-                        <span class="slot-lbl">Codex</span>
-                    </button>
-                    <button type="button" id="btn-ascend" class="icon-slot-btn slot-highlight hidden" onclick="triggerAscension()" title="Rite of Ascension">
-                        <span class="slot-lbl">Ascend</span>
-                    </button>
-                    <button type="button" id="btn-prestige" class="icon-slot-btn slot-highlight hidden" onclick="confirmPrestige()" title="Prestige">
-                        <span class="slot-lbl">Prest</span>
-                    </button>
+            <!-- BOTTOM-LEFT: SEMI-TRANSPARENT WHISPERING DUNGEON CHRONICLE -->
+            <section id="log-container" class="hud-zone hud-bottom-left mist-lore-box" aria-label="Kronik Petualangan">
+                <div id="chronicle-spear-left" class="spear-margin-ornament" aria-hidden="true"></div>
+                <div class="mist-lore-inner">
+                    <div class="mist-lore-title">Dungeon Chronicle</div>
+                    <div id="log-box"></div>
+                    <div class="mist-lore-caret" aria-hidden="true">▼</div>
+                </div>
+                <div id="chronicle-spear-ornament" class="spear-margin-ornament hidden" aria-hidden="true"></div>
+            </section>
+
+            <!-- BOTTOM-CENTER: INTEGRATED CARVED-STONE RPG SKILL HOTBAR -->
+            <section id="action-panel" class="hud-zone hud-bottom-center" aria-label="Dek Komando Pertempuran">
+                <div class="hotbar-top-strip">
+                    <span class="hotbar-actor-pill">Command · <b class="cmd-actor" id="active-actor-name">—</b></span>
+                    <div class="stance-switches">
+                        <button type="button" id="btn-tactic-menu" class="stance-chip" onclick="cycleFormationTactic()" title="Taktik Formasi [T]">BAL [T]</button>
+                        <button type="button" id="btn-strategy-menu" class="stance-chip" onclick="cycleAutoBattleStrategy()" title="Doktrin AI [K]">AI:BAL [K]</button>
+                    </div>
                 </div>
 
-                <span class="toolbar-sep" role="separator" aria-orientation="vertical"></span>
+                <div class="hotbar-dock">
+                    <!-- OVERDRIVE ULTIMATE STONE MEDALLION -->
+                    <button type="button" class="btn-ult-plaque" id="btn-ult" disabled style="--od-pct: 0%;" title="Overdrive Ultimate [6]">
+                        <span class="ult-charge-fill" aria-hidden="true"></span>
+                        <span class="key-cap">6</span>
+                        <span id="ico-cmd-ult" class="cmd-ico"></span>
+                        <span class="cmd-copy">
+                            <span id="lbl-ult" class="cmd-title">Overdrive Art</span>
+                            <span id="sub-ult" class="cmd-sub">Charge 0%</span>
+                        </span>
+                    </button>
 
-                <div class="toolbar-group" role="group" aria-label="Taktis dan Sistem">
-                    <button type="button" id="btn-autobattle-menu" class="icon-slot-btn" aria-pressed="false" onclick="toggleAutoBattle()" title="Auto-Battle [G]">
-                        <span id="ico-auto"></span>
-                        <span class="slot-lbl">Auto</span>
-                    </button>
-                    <button type="button" id="btn-speed-menu" class="icon-slot-btn" onclick="toggleGameSpeed()" title="Kecepatan Pertempuran [V]">
-                        <span id="ico-speed"></span>
-                        <span id="lbl-speed-val" class="slot-lbl">x1</span>
-                    </button>
-                    <button type="button" id="btn-minimap" class="icon-slot-btn" aria-pressed="true" onclick="toggleMiniMap()" title="Radar Peta [M]">
-                        <span id="ico-map"></span>
-                        <span class="slot-lbl">Map</span>
-                    </button>
-                    <button type="button" id="btn-expedition-menu" class="icon-slot-btn" popovertarget="expedition-popover" aria-label="Menu Sistem dan Ekspedisi" title="Save, Seed, Audio & Reset">
-                        <span id="ico-cog"></span>
-                        <span class="slot-lbl">Menu</span>
-                    </button>
+                    <span class="hotbar-divider" aria-hidden="true"></span>
+
+                    <!-- 8 HORIZONTAL RPG SKILL SLOTS -->
+                    <div class="action-grid">
+                        <button type="button" class="btn-action" id="btn-attack" disabled title="Serangan Dasar [1]">
+                            <span class="key-cap">1</span>
+                            <span id="ico-cmd-attack" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span id="lbl-attack" class="cmd-title">Strike</span>
+                                <span id="sub-attack" class="cmd-sub">Basic</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action" id="btn-skill" disabled title="Teknik Utama Kelas [2]">
+                            <span class="key-cap">2</span>
+                            <span id="ico-cmd-skill" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span id="lbl-skill" class="cmd-title">Primary</span>
+                                <span id="sub-skill" class="cmd-sub">Skill</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action btn-mastery" id="btn-skill2" disabled title="Teknik Mastery Lv.5 [8]">
+                            <span class="key-cap">8</span>
+                            <span id="ico-cmd-skill2" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span id="lbl-skill2" class="cmd-title">Mastery</span>
+                                <span id="sub-skill2" class="cmd-sub">Lv.5</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action" id="btn-defend" disabled title="Bertahan -60% DMG & +5 MP [3]">
+                            <span class="key-cap">3</span>
+                            <span id="ico-cmd-defend" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span class="cmd-title">Guard</span>
+                                <span class="cmd-sub">-60% DMG</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action" id="btn-move-pos" disabled title="Tukar Barisan Vanguard/Rearguard [7]">
+                            <span class="key-cap">7</span>
+                            <span id="ico-cmd-swap" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span id="lbl-move-pos" class="cmd-title">Shift</span>
+                                <span id="sub-move-pos" class="cmd-sub">+4 MP</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action btn-potion" id="btn-item" title="Buka Satchel Ramuan & Minyak [4 / B]">
+                            <span class="key-cap">4</span>
+                            <span id="ico-cmd-item" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span class="cmd-title">Satchel</span>
+                                <span class="cmd-sub">Items [B]</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action btn-revive" id="btn-revive" title="Bangkitkan Ksatria Gugur [5]">
+                            <span class="key-cap">5</span>
+                            <span id="ico-cmd-revive" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span class="cmd-title">Revive</span>
+                                <span class="cmd-sub">50% HP</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="btn-action btn-flee" id="btn-flee" disabled title="Mundur dari Pertempuran (-20% Gold) [0]">
+                            <span class="key-cap">0</span>
+                            <span id="ico-cmd-flee" class="cmd-ico"></span>
+                            <span class="cmd-copy">
+                                <span class="cmd-title">Retreat</span>
+                                <span class="cmd-sub">-20% G</span>
+                            </span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <div id="header-crest-bottom" class="header-crest header-crest-bottom" aria-hidden="true"></div>
-        </header>
+            </section>
+        </div>
 
         <!-- SYSTEM POPOVER (ORNATE FILIGREE SCALABLE FRAME) -->
         <div id="expedition-popover" class="expedition-popover filigree-frame" popover aria-label="Pengaturan Ekspedisi">
@@ -146,147 +285,6 @@
                 <span>Abandon Expedition</span>
             </button>
         </div>
-
-        <!-- MAIN WORKSPACE -->
-        <main id="main-content">
-            <div id="left-column">
-                <!-- "MAP FOUND" STYLE FADED DOUBLE-LINE MIST BANNER -->
-                <div id="turn-queue-bar" class="mist-strip">
-                    <span class="queue-label" id="round-counter-label">EXPLORATION</span>
-                    <div id="turn-queue-list" role="region" aria-label="Urutan Giliran Pertempuran" tabindex="0">
-                        <span class="queue-empty">Menyusuri lorong batu bawah tanah...</span>
-                    </div>
-                    <div id="bounty-badge" class="decree-whisper">
-                        Decree: —
-                    </div>
-                </div>
-
-                <!-- ORNATE 9-SLICE CARVED STONE & FILIGREE DUNGEON VIEWPORT -->
-                <div id="canvas-container" class="filigree-frame stone-archway-frame">
-                    <canvas id="gameCanvas" width="2304" height="1344" aria-label="Peta Taktis Endless Dungeon"></canvas>
-                    <canvas id="minimapCanvas" width="204" height="148"></canvas>
-                    <div id="hover-tooltip" class="hover-tooltip filigree-frame" role="status" aria-live="polite"></div>
-                </div>
-
-                <!-- "POTION CRAFTING TIPS" STYLE FADED LORE / CHRONICLE TABLET + STONE STELE PILLARS -->
-                <section id="log-container" class="mist-lore-box" aria-label="Kronik Petualangan">
-                    <div id="chronicle-spear-left" class="spear-margin-ornament" aria-hidden="true"></div>
-                    <div class="mist-lore-inner">
-                        <div class="mist-lore-title">Dungeon Chronicle</div>
-                        <div id="log-box"></div>
-                        <div class="mist-lore-caret" aria-hidden="true">▼</div>
-                    </div>
-                    <div id="chronicle-spear-ornament" class="spear-margin-ornament" aria-hidden="true"></div>
-                </section>
-            </div>
-
-            <!-- RIGHT SIDEBAR: SCALABLE ORNATE FILIGREE PANELS -->
-            <aside id="right-sidebar">
-                <section id="party-status" class="filigree-frame sidebar-plaque">
-                    <div class="plaque-heading-row">
-                        <h3>The Order <small>Click = Armory</small></h3>
-                        <span id="synergy-pill" class="synergy-readout"></span>
-                    </div>
-                    <div id="party-list"></div>
-                </section>
-
-                <section id="action-panel" class="filigree-frame sidebar-plaque">
-                    <div class="plaque-heading-row">
-                        <h3>Command · <span class="cmd-actor" id="active-actor-name">—</span></h3>
-                        <div class="stance-switches">
-                            <button type="button" id="btn-tactic-menu" class="stance-chip" onclick="cycleFormationTactic()" title="Taktik Formasi [T]">BAL [T]</button>
-                            <button type="button" id="btn-strategy-menu" class="stance-chip" onclick="cycleAutoBattleStrategy()" title="Doktrin AI [K]">AI:BAL [K]</button>
-                        </div>
-                    </div>
-
-                    <!-- OVERDRIVE ULTIMATE BAR -->
-                    <button type="button" class="btn-ult-plaque" id="btn-ult" disabled style="--od-pct: 0%;">
-                        <span class="ult-charge-fill" aria-hidden="true"></span>
-                        <span class="key-cap">6</span>
-                        <span id="ico-cmd-ult" class="cmd-ico"></span>
-                        <span class="cmd-copy">
-                            <span id="lbl-ult" class="cmd-title">Overdrive Art</span>
-                            <span id="sub-ult" class="cmd-sub">Requires 100% Overdrive</span>
-                        </span>
-                    </button>
-
-                    <!-- 2x4 FILIGREE SLOT COMMAND GRID -->
-                    <div class="action-grid">
-                        <button type="button" class="btn-action" id="btn-attack" disabled>
-                            <span class="key-cap">1</span>
-                            <span id="ico-cmd-attack" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span id="lbl-attack" class="cmd-title">Strike</span>
-                                <span id="sub-attack" class="cmd-sub">Basic Attack</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action" id="btn-skill" disabled>
-                            <span class="key-cap">2</span>
-                            <span id="ico-cmd-skill" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span id="lbl-skill" class="cmd-title">Primary Art</span>
-                                <span id="sub-skill" class="cmd-sub">Class Technique</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action btn-mastery" id="btn-skill2" disabled>
-                            <span class="key-cap">8</span>
-                            <span id="ico-cmd-skill2" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span id="lbl-skill2" class="cmd-title">Mastery Art</span>
-                                <span id="sub-skill2" class="cmd-sub">Unlocks at Lv.5</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action" id="btn-defend" disabled>
-                            <span class="key-cap">3</span>
-                            <span id="ico-cmd-defend" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span class="cmd-title">Raise Guard</span>
-                                <span class="cmd-sub">-60% DMG · +5 MP</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action" id="btn-move-pos" disabled>
-                            <span class="key-cap">7</span>
-                            <span id="ico-cmd-swap" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span id="lbl-move-pos" class="cmd-title">Reposition</span>
-                                <span id="sub-move-pos" class="cmd-sub">Shift Rank · +4 MP</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action btn-potion" id="btn-item">
-                            <span class="key-cap">4</span>
-                            <span id="ico-cmd-item" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span class="cmd-title">Satchel</span>
-                                <span class="cmd-sub">Draughts &amp; Oils [B]</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action btn-revive" id="btn-revive">
-                            <span class="key-cap">5</span>
-                            <span id="ico-cmd-revive" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span class="cmd-title">Phoenix Pinion</span>
-                                <span class="cmd-sub">Revive Fallen (50%)</span>
-                            </span>
-                        </button>
-
-                        <button type="button" class="btn-action btn-flee" id="btn-flee" disabled>
-                            <span class="key-cap">0</span>
-                            <span id="ico-cmd-flee" class="cmd-ico"></span>
-                            <span class="cmd-copy">
-                                <span class="cmd-title">Retreat</span>
-                                <span class="cmd-sub">Forfeit 20% Gold</span>
-                            </span>
-                        </button>
-                    </div>
-                </section>
-            </aside>
-        </main>
     </div>
 
     <!-- DIALOG 1: APOTHECARY SATCHEL -->

@@ -246,11 +246,17 @@ let screenShakeMag = 0;
 let screenShakeIntensity = 1;
 let impactRings = [];
 
-// Full-bleed Cover Camera (eliminates left/right/top/bottom pillarbox & letterbox bars)
+// Fullscreen Cover Camera with HUD Safe-Zone Margin (keeps edge rooms clear of floating HUD)
 const cameraView = { x: 0, y: 0, w: WORLD_WIDTH, h: WORLD_HEIGHT };
 let camSmoothX = null;
 let camSmoothY = null;
 let camFloorRef = -1;
+
+// Extra world-space margin so corner tiles can pan out from beneath floating HUD widgets
+const CAM_MARGIN_LEFT = 148;
+const CAM_MARGIN_RIGHT = 112;
+const CAM_MARGIN_TOP = 56;
+const CAM_MARGIN_BOTTOM = 78;
 
 function syncCanvasViewport() {
     const container = document.getElementById('canvas-container');
@@ -262,11 +268,11 @@ function syncCanvasViewport() {
     const worldAspect = WORLD_WIDTH / WORLD_HEIGHT;
 
     if (boxAspect >= worldAspect) {
-        cameraView.w = WORLD_WIDTH;
-        cameraView.h = WORLD_WIDTH / boxAspect;
+        cameraView.w = WORLD_WIDTH * 0.94;
+        cameraView.h = cameraView.w / boxAspect;
     } else {
-        cameraView.h = WORLD_HEIGHT;
-        cameraView.w = WORLD_HEIGHT * boxAspect;
+        cameraView.h = WORLD_HEIGHT * 0.94;
+        cameraView.w = cameraView.h * boxAspect;
     }
 
     const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
@@ -295,10 +301,13 @@ function updateCameraFollow() {
         focusY = ldr.y * TILE_SIZE + TILE_SIZE * 0.5;
     }
 
-    const maxCamX = Math.max(0, WORLD_WIDTH - cameraView.w);
-    const maxCamY = Math.max(0, WORLD_HEIGHT - cameraView.h);
-    const targetX = Math.max(0, Math.min(maxCamX, focusX - cameraView.w * 0.5));
-    const targetY = Math.max(0, Math.min(maxCamY, focusY - cameraView.h * 0.5));
+    const minCamX = -CAM_MARGIN_LEFT;
+    const maxCamX = Math.max(minCamX, WORLD_WIDTH + CAM_MARGIN_RIGHT - cameraView.w);
+    const minCamY = -CAM_MARGIN_TOP;
+    const maxCamY = Math.max(minCamY, WORLD_HEIGHT + CAM_MARGIN_BOTTOM - cameraView.h);
+
+    const targetX = Math.max(minCamX, Math.min(maxCamX, focusX - cameraView.w * 0.5));
+    const targetY = Math.max(minCamY, Math.min(maxCamY, focusY - cameraView.h * 0.5));
 
     const curFl = (typeof currentFloor !== 'undefined') ? currentFloor : 1;
     if (camSmoothX === null || camSmoothY === null || camFloorRef !== curFl) {
@@ -312,8 +321,8 @@ function updateCameraFollow() {
         if (Math.abs(targetY - camSmoothY) < 0.2) camSmoothY = targetY;
     }
 
-    cameraView.x = Math.max(0, Math.min(maxCamX, camSmoothX));
-    cameraView.y = Math.max(0, Math.min(maxCamY, camSmoothY));
+    cameraView.x = Math.max(minCamX, Math.min(maxCamX, camSmoothX));
+    cameraView.y = Math.max(minCamY, Math.min(maxCamY, camSmoothY));
 }
 
 if (typeof ResizeObserver !== 'undefined') {
@@ -1709,24 +1718,24 @@ function updateTurnQueueUI() {
                 : (activeActor.skill2Cost || 15);
 
             const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(activeActor) : { isFront: true };
-            const moveDirText = form.isFront ? "Step to Rearguard" : "Advance to Vanguard";
+            const moveDirText = form.isFront ? "To Rear" : "To Front";
             const odVal = Math.min(100, activeActor.overdrive || 0);
 
             document.getElementById('lbl-attack').innerText = 'Strike';
-            if (subAttack) subAttack.innerText = `${activeActor.dmgType} · +25% OD`;
+            if (subAttack) subAttack.innerText = `${activeActor.dmgType} +25%OD`;
 
             document.getElementById('lbl-skill').innerText = activeActor.skillName;
-            if (subSkill) subSkill.innerText = `Costs ${actualCost} MP`;
+            if (subSkill) subSkill.innerText = `${actualCost} MP`;
 
             if (skill2Lbl) skill2Lbl.innerText = activeActor.skill2Name;
-            if (subSkill2) subSkill2.innerText = activeActor.level >= 5 ? `Costs ${actualCost2} MP` : 'Locked (Requires Lv.5)';
+            if (subSkill2) subSkill2.innerText = activeActor.level >= 5 ? `${actualCost2} MP` : 'Req Lv.5';
             if (skill2Btn) skill2Btn.disabled = (activeActor.level < 5);
 
-            if (movePosLbl) movePosLbl.innerText = 'Reposition';
-            if (subMovePos) subMovePos.innerText = `${moveDirText} · +4 MP`;
+            if (movePosLbl) movePosLbl.innerText = 'Shift';
+            if (subMovePos) subMovePos.innerText = `${moveDirText} +4MP`;
 
             document.getElementById('lbl-ult').innerText = activeActor.ultName;
-            if (subUlt) subUlt.innerText = odVal >= 100 ? 'READY — UNLEASH OVERDRIVE' : `Overdrive Charge: ${odVal}%`;
+            if (subUlt) subUlt.innerText = odVal >= 100 ? 'UNLEASH READY' : `Charge ${odVal}%`;
             if (ultBtn) {
                 ultBtn.disabled = (odVal < 100);
                 ultBtn.style.setProperty('--od-pct', `${odVal}%`);
@@ -2299,8 +2308,9 @@ function drawGame() {
 
     ctx.save();
     ctx.setTransform(scaleX, 0, 0, scaleY, -cameraView.x * scaleX, -cameraView.y * scaleY);
-    ctx.fillStyle = '#070607';
-    ctx.fillRect(cameraView.x - 24, cameraView.y - 24, cameraView.w + 48, cameraView.h + 48);
+    // Match exact Fog of War darkness (#060504) so outer cavern void is 100% seamless with the dungeon
+    ctx.fillStyle = '#060504';
+    ctx.fillRect(cameraView.x - 48, cameraView.y - 48, cameraView.w + 96, cameraView.h + 96);
 
     if (screenShakeMag > 0.15) {
         const shakeX = (Math.random() - 0.5) * 2 * screenShakeMag;
