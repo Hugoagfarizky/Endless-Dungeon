@@ -3,201 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Endless Dungeon — Dark Fantasy Tactical RPG</title>
+    <title>Endless Dungeon — Dark Fantasy RPG</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Almendra + Jacquard 12 + Crimson Pro untuk estetika Gothic Pixel Filigree -->
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-wrapper">
-        <!-- DIEGETIC TOP IRON STRIP (DARKEST DUNGEON / DIABLO IV INSPIRED) -->
-        <header id="game-header">
-            <div class="header-plaque">
-                <div class="brand-sigil" id="brand-sigil-icon" aria-hidden="true"></div>
-                <div class="brand-meta">
-                    <div class="brand-row">
-                        <h1>ENDLESS DUNGEON</h1>
-                        <span class="plaque-divider" aria-hidden="true"></span>
-                        <span id="game-mode" class="mode-tag mode-explore">EXPLORE</span>
-                    </div>
-                    <div class="expedition-sub">
-                        <span>FLOOR <b id="current-floor">1</b></span>
-                        <span class="dot-sep">·</span>
-                        <span id="biome-badge" class="biome-name">Abandoned Crypt</span>
-                        <span class="dot-sep">·</span>
-                        <span>ASC <b id="ascension-badge">Lv.0</b></span>
-                        <span class="dot-sep">·</span>
-                        <span>PREST <b id="prestige-badge">Lv.0</b></span>
-                    </div>
+        <!-- TOP BANNER: FADED DOUBLE HORIZONTAL RULES + SYMMETRICAL FILIGREE CREST -->
+        <header id="game-header" class="mist-banner-header">
+            <div id="header-crest-top" class="header-crest header-crest-top" aria-hidden="true"></div>
+
+            <!-- LEFT: FLOOR, BIOME & EXPEDITION STATE -->
+            <div class="header-left-wing">
+                <div class="title-lockup">
+                    <span id="brand-sigil-icon" class="sigil-inline" aria-hidden="true"></span>
+                    <h1>ENDLESS DUNGEON</h1>
+                    <span id="game-mode" class="mode-tag mode-explore">EXPLORE</span>
+                </div>
+                <div class="expedition-sub">
+                    <span>Floor <b id="current-floor">1</b></span>
+                    <span class="dot-sep">·</span>
+                    <span id="biome-badge" class="biome-name">Abandoned Crypt</span>
+                    <span class="dot-sep">·</span>
+                    <span>Asc <b id="ascension-badge">Lv.0</b></span>
+                    <span class="dot-sep">·</span>
+                    <span>Prest <b id="prestige-badge">Lv.0</b></span>
                 </div>
             </div>
 
-            <!-- CENTERPIECE: WROUGHT-IRON TORCH GAUGE & TREASURY -->
-            <div class="torch-treasury-cluster">
-                <div class="torch-gauge-wrap" title="Cahaya obor menentukan jangkauan pandang Fog of War">
-                    <div class="torch-gauge-top">
-                        <span class="torch-title"><span id="ico-torch"></span> TORCH <em id="torch-state-label">RADIANT</em></span>
-                        <span id="torch-count" class="torch-pct">100%</span>
-                    </div>
-                    <div class="torch-trough">
-                        <span id="torch-bar-fill" class="torch-fill" style="width:100%;"></span>
-                        <span class="torch-tick" style="left:15%;" aria-hidden="true"></span>
-                        <span class="torch-tick" style="left:50%;" aria-hidden="true"></span>
+            <!-- CENTER: CURRENCY & TORCH PLAQUES ([ 90210 $ ] REFERENCE STYLE) -->
+            <div class="header-center-plaques" aria-label="Sumber Daya Ekspedisi">
+                <div class="currency-plaque torch-plaque" title="Cahaya Obor mempengaruhi jangkauan Fog of War">
+                    <span id="ico-torch" class="plaque-ico"></span>
+                    <div class="torch-plaque-body">
+                        <div class="torch-plaque-row">
+                            <em id="torch-state-label">RADIANT</em>
+                            <b id="torch-count">100%</b>
+                        </div>
+                        <div class="pointed-bar-track bar-track-torch">
+                            <span id="torch-bar-fill" class="pointed-bar-fill fill-amber" style="width:100%;"></span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="treasury-ledger" aria-label="Sumber Daya Ordo">
-                    <div class="ledger-item" title="Koin Emas (Sovereigns)">
-                        <span id="ico-coin" class="ledger-ico gold-ico"></span>
-                        <span id="gold-count" class="ledger-val gold-val">0</span>
-                    </div>
-                    <div class="ledger-item" title="Bijih Besi Damaskus (Forge Ore)">
-                        <span id="ico-ingot" class="ledger-ico ore-ico"></span>
-                        <span id="ore-count" class="ledger-val ore-val">0</span>
-                    </div>
+                <div class="currency-plaque" title="Koin Emas (Gold)">
+                    <span id="ico-coin" class="plaque-ico"></span>
+                    <span id="gold-count" class="currency-num">0</span>
+                    <span class="currency-sym">G</span>
+                </div>
+
+                <div class="currency-plaque" title="Bijih Besi Tempa (Damascus Ore)">
+                    <span id="ico-ingot" class="plaque-ico"></span>
+                    <span id="ore-count" class="currency-num">0</span>
+                    <span class="currency-sym">ORE</span>
                 </div>
             </div>
 
-            <!-- RIGHT: COMPACT SINGLE-TAB-STOP TOOLBAR -->
+            <!-- RIGHT: SQUARE [icon] FILIGREE TILES (16x16 / 32x32 REFERENCE STYLE) -->
             <div id="hud-toolbar" class="hud-toolbar" role="toolbar" focusgroup="toolbar wrap" aria-label="Kontrol Utama Dungeon">
-                <div class="toolbar-group" role="group" aria-label="Inventaris dan Catatan">
-                    <button type="button" id="btn-backpack-menu" class="hud-btn" onclick="toggleBackpackModal()" title="Satchel Perbekalan [B]">
+                <div class="toolbar-group" role="group" aria-label="Menu Utama">
+                    <button type="button" id="btn-backpack-menu" class="icon-slot-btn" onclick="toggleBackpackModal()" title="Satchel Perbekalan [B]">
                         <span id="ico-satchel"></span>
-                        <span>Satchel</span>
-                        <span id="item-bag-count" class="hud-count">0</span>
-                        <kbd>B</kbd>
+                        <span class="slot-lbl">Bag</span>
+                        <span id="item-bag-count" class="slot-badge">0</span>
                     </button>
-                    <button type="button" id="btn-equip-menu" class="hud-btn" onclick="toggleEquipModal()" title="Royal Armory & Forge [E]">
+                    <button type="button" id="btn-equip-menu" class="icon-slot-btn" onclick="toggleEquipModal()" title="Royal Armory & Forge [E]">
                         <span id="ico-armory"></span>
-                        <span>Armory</span>
-                        <span id="bag-count" class="hud-count">0</span>
-                        <kbd>E</kbd>
+                        <span class="slot-lbl">Armory</span>
+                        <span id="bag-count" class="slot-badge">0</span>
                     </button>
-                    <button type="button" id="btn-codex-menu" class="hud-btn" onclick="toggleBestiaryModal()" title="Royal Codex & Bestiary [C]">
+                    <button type="button" id="btn-codex-menu" class="icon-slot-btn" onclick="toggleBestiaryModal()" title="Royal Codex & Bestiary [C]">
                         <span id="ico-codex"></span>
-                        <span>Codex</span>
-                        <kbd>C</kbd>
+                        <span class="slot-lbl">Codex</span>
                     </button>
-                    <button type="button" id="btn-ascend" class="hud-btn hud-btn-ascend hidden" onclick="triggerAscension()" title="Mulai Siklus Ascension Baru">
-                        <span>Ascend</span>
+                    <button type="button" id="btn-ascend" class="icon-slot-btn slot-highlight hidden" onclick="triggerAscension()" title="Rite of Ascension">
+                        <span class="slot-lbl">Ascend</span>
                     </button>
-                    <button type="button" id="btn-prestige" class="hud-btn hud-btn-prestige hidden" onclick="confirmPrestige()" title="Aktifkan Prestige Permanen">
-                        <span>Prestige</span>
+                    <button type="button" id="btn-prestige" class="icon-slot-btn slot-highlight hidden" onclick="confirmPrestige()" title="Prestige">
+                        <span class="slot-lbl">Prest</span>
                     </button>
                 </div>
 
                 <span class="toolbar-sep" role="separator" aria-orientation="vertical"></span>
 
-                <div class="toolbar-group" role="group" aria-label="Tampilan dan Sistem">
-                    <button type="button" id="btn-autobattle-menu" class="hud-btn hud-toggle" aria-pressed="false" onclick="toggleAutoBattle()" title="Toggle Auto-Battle [G]">
+                <div class="toolbar-group" role="group" aria-label="Taktis dan Sistem">
+                    <button type="button" id="btn-autobattle-menu" class="icon-slot-btn" aria-pressed="false" onclick="toggleAutoBattle()" title="Auto-Battle [G]">
                         <span id="ico-auto"></span>
-                        <span>Auto</span>
-                        <kbd>G</kbd>
+                        <span class="slot-lbl">Auto</span>
                     </button>
-                    <button type="button" id="btn-speed-menu" class="hud-btn" onclick="toggleGameSpeed()" title="Kecepatan Pertempuran [V]">
+                    <button type="button" id="btn-speed-menu" class="icon-slot-btn" onclick="toggleGameSpeed()" title="Kecepatan Pertempuran [V]">
                         <span id="ico-speed"></span>
-                        <span id="lbl-speed-val">x1</span>
-                        <kbd>V</kbd>
+                        <span id="lbl-speed-val" class="slot-lbl">x1</span>
                     </button>
-                    <button type="button" id="btn-minimap" class="hud-btn hud-toggle" aria-pressed="true" onclick="toggleMiniMap()" title="Toggle Radar Peta [M]">
+                    <button type="button" id="btn-minimap" class="icon-slot-btn" aria-pressed="true" onclick="toggleMiniMap()" title="Radar Peta [M]">
                         <span id="ico-map"></span>
-                        <span>Map</span>
-                        <kbd>M</kbd>
+                        <span class="slot-lbl">Map</span>
                     </button>
-                    <button type="button" id="btn-expedition-menu" class="hud-btn" popovertarget="expedition-popover" aria-label="Menu Sistem dan Ekspedisi" title="Pengaturan Ekspedisi, Save, Seed & Audio">
+                    <button type="button" id="btn-expedition-menu" class="icon-slot-btn" popovertarget="expedition-popover" aria-label="Menu Sistem dan Ekspedisi" title="Save, Seed, Audio & Reset">
                         <span id="ico-cog"></span>
-                        <span>System</span>
+                        <span class="slot-lbl">Menu</span>
                     </button>
                 </div>
             </div>
+
+            <div id="header-crest-bottom" class="header-crest header-crest-bottom" aria-hidden="true"></div>
         </header>
 
-        <!-- ON-DEMAND SYSTEM & EXPEDITION POPOVER (NOISE REDUCTION) -->
-        <div id="expedition-popover" class="expedition-popover" popover aria-label="Pengaturan Ekspedisi">
-            <div class="popover-title">EXPEDITION & SANCTUM</div>
+        <!-- SYSTEM POPOVER (ORNATE FILIGREE SCALABLE FRAME) -->
+        <div id="expedition-popover" class="expedition-popover filigree-frame" popover aria-label="Pengaturan Ekspedisi">
+            <div class="popover-title">Expedition Sanctum</div>
             <div class="popover-seed-line">
-                <span>Active Seed</span>
+                <span>Seed</span>
                 <b id="run-seed-badge">Random</b>
             </div>
             <div class="popover-grid">
-                <button type="button" id="btn-save-menu" class="pop-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); toggleSaveSlotModal();">
+                <button type="button" id="btn-save-menu" class="slot-rect-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); toggleSaveSlotModal();">
                     <span id="ico-save"></span>
-                    <span>Save / Load</span>
-                    <kbd>P</kbd>
+                    <span>Archives [P]</span>
                 </button>
-                <button type="button" id="btn-seed-menu" class="pop-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); promptSetSeed();">
+                <button type="button" id="btn-seed-menu" class="slot-rect-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); promptSetSeed();">
                     <span id="ico-seed"></span>
-                    <span>Set Seed</span>
-                    <kbd>R</kbd>
+                    <span>Seed [R]</span>
                 </button>
-                <button type="button" id="btn-daily-menu" class="pop-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); startDailyChallenge();">
+                <button type="button" id="btn-daily-menu" class="slot-rect-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); startDailyChallenge();">
                     <span id="ico-calendar"></span>
                     <span>Daily Trial</span>
                 </button>
-                <button type="button" class="pop-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); togglePauseModal();">
+                <button type="button" class="slot-rect-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); togglePauseModal();">
                     <span id="ico-pause-cog"></span>
-                    <span>Pause Menu</span>
-                    <kbd>Esc</kbd>
+                    <span>Pause [Esc]</span>
                 </button>
             </div>
             <div class="popover-audio-row">
-                <button type="button" id="btn-mute" class="pop-btn" aria-pressed="true" onclick="toggleMute()">Audio</button>
+                <button type="button" id="btn-mute" class="slot-rect-btn" aria-pressed="true" onclick="toggleMute()">Audio</button>
                 <input id="volume-slider" type="range" min="0" max="100" value="80" aria-label="Volume Master" oninput="setMasterVolume(this.value/100)">
             </div>
-            <button type="button" class="pop-btn pop-btn-danger" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); confirmResetRun();">
+            <button type="button" class="slot-rect-btn slot-danger-btn" onclick="document.getElementById('expedition-popover')?.hidePopover?.(); confirmResetRun();">
                 <span id="ico-reset"></span>
-                <span>Abandon & Reset Run</span>
+                <span>Abandon Expedition</span>
             </button>
         </div>
 
-        <!-- MAIN WORKSPACE: DUNGEON VIEWPORT (LEFT) + TACTICAL SIDEBAR (RIGHT) -->
+        <!-- MAIN WORKSPACE -->
         <main id="main-content">
             <div id="left-column">
-                <div id="turn-queue-bar">
-                    <span class="queue-label" id="round-counter-label">INITIATIVE</span>
+                <!-- "MAP FOUND" STYLE FADED DOUBLE-LINE MIST BANNER -->
+                <div id="turn-queue-bar" class="mist-strip">
+                    <span class="queue-label" id="round-counter-label">EXPLORATION</span>
                     <div id="turn-queue-list" role="region" aria-label="Urutan Giliran Pertempuran" tabindex="0">
                         <span class="queue-empty">Menyusuri lorong batu bawah tanah...</span>
                     </div>
-                    <div id="bounty-badge" class="decree-plaque">
+                    <div id="bounty-badge" class="decree-whisper">
                         Decree: —
                     </div>
                 </div>
 
-                <div id="canvas-container" class="iron-bezel">
+                <!-- ORNATE 9-SLICE FILIGREE DUNGEON VIEWPORT -->
+                <div id="canvas-container" class="filigree-frame">
                     <canvas id="gameCanvas" width="2304" height="1344" aria-label="Peta Taktis Endless Dungeon"></canvas>
                     <canvas id="minimapCanvas" width="204" height="148"></canvas>
-                    <div id="hover-tooltip" class="hover-tooltip" role="status" aria-live="polite"></div>
+                    <div id="hover-tooltip" class="hover-tooltip filigree-frame" role="status" aria-live="polite"></div>
                 </div>
 
-                <section id="log-container" class="iron-panel" aria-label="Kronik Petualangan">
-                    <div class="panel-header-bar">
-                        <h3>CHRONICLE</h3>
-                        <span class="log-hint">WASD / Panah / Klik Peta untuk melangkah</span>
+                <!-- "POTION CRAFTING TIPS" STYLE FADED LORE / CHRONICLE PANEL + SPEAR FINIAL -->
+                <section id="log-container" class="mist-lore-box" aria-label="Kronik Petualangan">
+                    <div class="mist-lore-inner">
+                        <div class="mist-lore-title">Dungeon Chronicle</div>
+                        <div id="log-box"></div>
+                        <div class="mist-lore-caret" aria-hidden="true">▼</div>
                     </div>
-                    <div id="log-box"></div>
+                    <div id="chronicle-spear-ornament" class="spear-margin-ornament" aria-hidden="true"></div>
                 </section>
             </div>
 
+            <!-- RIGHT SIDEBAR: SCALABLE ORNATE FILIGREE PANELS -->
             <aside id="right-sidebar">
-                <section id="party-status" class="iron-panel">
-                    <div class="panel-header-bar">
-                        <h3>THE ORDER <small>Click = Armory</small></h3>
-                        <span id="synergy-pill" class="synergy-readout" title="Bonus Sinergi Komposisi Party"></span>
+                <section id="party-status" class="filigree-frame sidebar-plaque">
+                    <div class="plaque-heading-row">
+                        <h3>The Order <small>Click = Armory</small></h3>
+                        <span id="synergy-pill" class="synergy-readout"></span>
                     </div>
                     <div id="party-list"></div>
                 </section>
 
-                <section id="action-panel" class="iron-panel">
-                    <div class="panel-header-bar command-header">
-                        <h3>COMMAND <span class="cmd-actor" id="active-actor-name">—</span></h3>
+                <section id="action-panel" class="filigree-frame sidebar-plaque">
+                    <div class="plaque-heading-row">
+                        <h3>Command · <span class="cmd-actor" id="active-actor-name">—</span></h3>
                         <div class="stance-switches">
-                            <button type="button" id="btn-tactic-menu" class="stance-chip" onclick="cycleFormationTactic()" title="Ubah Taktik Formasi [T]">BALANCED [T]</button>
-                            <button type="button" id="btn-strategy-menu" class="stance-chip" onclick="cycleAutoBattleStrategy()" title="Ubah Doktrin AI Auto-Battle [K]">AI: BAL [K]</button>
+                            <button type="button" id="btn-tactic-menu" class="stance-chip" onclick="cycleFormationTactic()" title="Taktik Formasi [T]">BAL [T]</button>
+                            <button type="button" id="btn-strategy-menu" class="stance-chip" onclick="cycleAutoBattleStrategy()" title="Doktrin AI [K]">AI:BAL [K]</button>
                         </div>
                     </div>
 
-                    <!-- FEATURED OVERDRIVE ULTIMATE PLAQUE -->
+                    <!-- OVERDRIVE ULTIMATE BAR -->
                     <button type="button" class="btn-ult-plaque" id="btn-ult" disabled style="--od-pct: 0%;">
                         <span class="ult-charge-fill" aria-hidden="true"></span>
                         <span class="key-cap">6</span>
@@ -208,7 +209,7 @@
                         </span>
                     </button>
 
-                    <!-- 2x4 CHISELED TACTICAL COMMAND DECK -->
+                    <!-- 2x4 FILIGREE SLOT COMMAND GRID -->
                     <div class="action-grid">
                         <button type="button" class="btn-action" id="btn-attack" disabled>
                             <span class="key-cap">1</span>
@@ -287,45 +288,45 @@
         </main>
     </div>
 
-    <!-- DIALOG 1: SATCHEL CONSUMABLES -->
-    <dialog id="backpack-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="backpack-modal-title">
+    <!-- DIALOG 1: APOTHECARY SATCHEL -->
+    <dialog id="backpack-modal" class="game-dialog filigree-frame modal-small" closedby="any" aria-labelledby="backpack-modal-title">
         <div class="modal-header">
-            <h1 id="backpack-modal-title">APOTHECARY SATCHEL</h1>
+            <h1 id="backpack-modal-title">Apothecary Satchel</h1>
             <button type="button" class="btn-close-modal" onclick="toggleBackpackModal()" autofocus>Close [B]</button>
         </div>
         <div class="backpack-info">
-            Gunakan ramuan penyembuh, minyak obor, atau eliksir perang untuk memulihkan kondisi Ordo:
+            Gunakan ramuan penyembuh, minyak obor, atau eliksir kuno untuk memulihkan kondisi Ordo:
         </div>
         <div id="backpack-items-list" class="bag-list"></div>
     </dialog>
 
-    <!-- DIALOG 2: ROYAL ARMORY & BLACKSMITH FORGE -->
-    <dialog id="equip-modal" class="game-dialog modal-large" closedby="any" aria-labelledby="equip-modal-title">
+    <!-- DIALOG 2: ROYAL ARMORY & FORGE -->
+    <dialog id="equip-modal" class="game-dialog filigree-frame modal-large" closedby="any" aria-labelledby="equip-modal-title">
         <div class="modal-header">
-            <h1 id="equip-modal-title">ROYAL ARMORY &amp; FORGE <span class="modal-res-inline">Ore: <b id="modal-ore-count">0</b> · Gold: <b id="modal-gold-count">0</b></span></h1>
+            <h1 id="equip-modal-title">Royal Armory &amp; Forge <span class="modal-res-inline">Ore: <b id="modal-ore-count">0</b> · Gold: <b id="modal-gold-count">0</b></span></h1>
             <button type="button" class="btn-close-modal" onclick="toggleEquipModal()" autofocus>Close [E]</button>
         </div>
 
         <div id="hero-tabs" class="hero-tabs"></div>
 
         <div class="modal-body">
-            <div class="equipped-section">
+            <div class="equipped-section filigree-subbox">
                 <h3 id="modal-hero-title">Panoply &amp; Attributes</h3>
                 <div id="modal-hero-stats" class="hero-stat-summary"></div>
                 <div id="modal-hero-perks" class="perk-box"></div>
-                <div id="modal-hero-runes" class="perk-box perk-box-arcane"></div>
+                <div id="modal-hero-runes" class="perk-box"></div>
                 <div id="equipped-slots-list" class="slots-list"></div>
             </div>
 
-            <div class="bag-section">
+            <div class="bag-section filigree-subbox">
                 <div class="section-inline-head">
                     <h3>Reliquary Coffer</h3>
-                    <button type="button" class="btn-small-unequip" onclick="dismantleAllCommon()">Smelt All Common</button>
+                    <button type="button" class="btn-small-unequip" onclick="dismantleAllCommon()">Smelt Common</button>
                 </div>
                 <div class="bag-filter-bar">
                     <label class="bag-filter-label" for="bag-sort-select">Sort</label>
                     <select id="bag-sort-select" class="bag-filter-select" onchange="renderEquipModal()">
-                        <option value="rarity">Rarity (High → Low)</option>
+                        <option value="rarity">Rarity</option>
                         <option value="slot">Slot</option>
                         <option value="name">Name</option>
                     </select>
@@ -345,33 +346,33 @@
     </dialog>
 
     <!-- DIALOG 3: WANDERING MERCHANT -->
-    <dialog id="merchant-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="merchant-modal-title">
+    <dialog id="merchant-modal" class="game-dialog filigree-frame modal-small" closedby="any" aria-labelledby="merchant-modal-title">
         <div class="modal-header">
-            <h1 id="merchant-modal-title">WANDERING CARAVAN</h1>
+            <h1 id="merchant-modal-title">Wandering Caravan</h1>
             <button type="button" class="btn-close-modal" onclick="closeMerchantModal()" autofocus>Leave</button>
         </div>
         <div class="backpack-info">
-            Sovereigns in Purse: <b id="merchant-gold" class="gold-val">0</b> — Tukarkan emas dengan perbekalan, bijih Damaskus, atau zirah tempaan:
+            Purse: <b id="merchant-gold" class="gold-val">0</b> G — Tukarkan koin emas dengan perbekalan, bijih Damaskus, atau zirah tempaan:
         </div>
         <div id="merchant-items-list" class="bag-list"></div>
     </dialog>
 
     <!-- DIALOG 4: ANCIENT SHRINE -->
-    <dialog id="shrine-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="shrine-modal-title">
+    <dialog id="shrine-modal" class="game-dialog filigree-frame modal-small" closedby="any" aria-labelledby="shrine-modal-title">
         <div class="modal-header">
-            <h1 id="shrine-modal-title">SHRINE OF THE OLD GODS</h1>
+            <h1 id="shrine-modal-title">Shrine of the Old Gods</h1>
             <button type="button" class="btn-close-modal" onclick="closeShrineModal()" autofocus>Step Away</button>
         </div>
         <div class="backpack-info">
-            Monolit batu kuno bergetar dengan energi katedral. Ucapkan satu sumpah persembahan:
+            Monolit batu kuno bergetar dengan kekuatan gaib. Pilih satu sumpah persembahan:
         </div>
         <div id="shrine-options-list" class="bag-list"></div>
     </dialog>
 
     <!-- DIALOG 5: KNIGHT'S CAMPFIRE -->
-    <dialog id="campfire-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="campfire-modal-title">
+    <dialog id="campfire-modal" class="game-dialog filigree-frame modal-small" closedby="any" aria-labelledby="campfire-modal-title">
         <div class="modal-header">
-            <h1 id="campfire-modal-title">SANCTUARY HEARTH</h1>
+            <h1 id="campfire-modal-title">Sanctuary Hearth</h1>
             <button type="button" class="btn-close-modal" onclick="closeCampfireModal()" autofocus>Break Camp</button>
         </div>
         <div class="backpack-info">
@@ -381,20 +382,20 @@
     </dialog>
 
     <!-- DIALOG 6: ROYAL CODEX -->
-    <dialog id="bestiary-modal" class="game-dialog modal-large" closedby="any" aria-labelledby="bestiary-modal-title">
+    <dialog id="bestiary-modal" class="game-dialog filigree-frame modal-large" closedby="any" aria-labelledby="bestiary-modal-title">
         <div class="modal-header">
-            <h1 id="bestiary-modal-title">ROYAL CODEX &amp; BESTIARY</h1>
+            <h1 id="bestiary-modal-title">Royal Codex &amp; Bestiary</h1>
             <button type="button" class="btn-close-modal" onclick="toggleBestiaryModal()" autofocus>Close [C]</button>
         </div>
         <div class="backpack-info">
-            Catatan abadi Ordo lintas ekspedisi. Tumpas suatu spesies hingga batas Mastery untuk membuka <b>+10% Permanent Damage</b> terhadap spesies tersebut.
+            Catatan abadi Ordo lintas ekspedisi. Tumpas suatu spesies hingga batas Mastery untuk memperoleh <b>+10% Permanent Damage</b>.
         </div>
         <div class="modal-body">
-            <div class="equipped-section" style="flex: 0.92;">
+            <div class="equipped-section filigree-subbox" style="flex: 0.92;">
                 <h3>Annals &amp; Honors</h3>
                 <div id="hall-of-fame-stats" class="slots-list"></div>
             </div>
-            <div class="bag-section" style="flex: 1.08;">
+            <div class="bag-section filigree-subbox" style="flex: 1.08;">
                 <h3>Bestiary Anatomica</h3>
                 <div id="bestiary-list" class="bag-list"></div>
             </div>
@@ -402,9 +403,9 @@
     </dialog>
 
     <!-- DIALOG 7: SAVE SLOTS -->
-    <dialog id="save-slot-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="save-modal-title">
+    <dialog id="save-slot-modal" class="game-dialog filigree-frame modal-small" closedby="any" aria-labelledby="save-modal-title">
         <div class="modal-header">
-            <h1 id="save-modal-title">EXPEDITION ARCHIVES</h1>
+            <h1 id="save-modal-title">Expedition Archives</h1>
             <button type="button" class="btn-close-modal" onclick="toggleSaveSlotModal()" autofocus>Close [P]</button>
         </div>
         <div id="save-slot-list" class="bag-list"></div>
@@ -419,9 +420,9 @@
     </dialog>
 
     <!-- DIALOG 8: PAUSE MENU -->
-    <dialog id="pause-modal" class="game-dialog modal-compact" closedby="any" aria-labelledby="pause-modal-title">
+    <dialog id="pause-modal" class="game-dialog filigree-frame modal-compact" closedby="any" aria-labelledby="pause-modal-title">
         <div class="modal-header">
-            <h1 id="pause-modal-title">EXPEDITION PAUSED</h1>
+            <h1 id="pause-modal-title">Expedition Paused</h1>
             <button type="button" class="btn-close-modal" onclick="togglePauseModal()" autofocus>Resume</button>
         </div>
         <div class="bag-list">
@@ -434,9 +435,9 @@
     </dialog>
 
     <!-- DIALOG 9: SEED RUN CONFIGURATOR -->
-    <dialog id="seed-modal" class="game-dialog modal-compact" closedby="any" aria-labelledby="seed-modal-title">
+    <dialog id="seed-modal" class="game-dialog filigree-frame modal-compact" closedby="any" aria-labelledby="seed-modal-title">
         <div class="modal-header">
-            <h1 id="seed-modal-title">CARTOGRAPHY SEED</h1>
+            <h1 id="seed-modal-title">Cartography Seed</h1>
             <button type="button" class="btn-close-modal" onclick="closeDialogById('seed-modal')">Close</button>
         </div>
         <div class="backpack-info">
@@ -453,9 +454,9 @@
     </dialog>
 
     <!-- DIALOG 10: ASCENSION MODIFIER SELECTION -->
-    <dialog id="ascension-modal" class="game-dialog modal-small" closedby="any" aria-labelledby="ascension-modal-title">
+    <dialog id="ascension-modal" class="game-dialog filigree-frame modal-small" closedby="any" aria-labelledby="ascension-modal-title">
         <div class="modal-header">
-            <h1 id="ascension-modal-title">RITE OF ASCENSION</h1>
+            <h1 id="ascension-modal-title">Rite of Ascension</h1>
             <button type="button" class="btn-close-modal" onclick="closeDialogById('ascension-modal')" autofocus>Cancel</button>
         </div>
         <div class="backpack-info">
@@ -487,9 +488,9 @@
     </dialog>
 
     <!-- DIALOG 11: REUSABLE GOTHIC CONFIRMATION DIALOG -->
-    <dialog id="confirm-modal" class="game-dialog modal-compact" closedby="any" aria-labelledby="confirm-modal-title">
+    <dialog id="confirm-modal" class="game-dialog filigree-frame modal-compact" closedby="any" aria-labelledby="confirm-modal-title">
         <div class="modal-header">
-            <h1 id="confirm-modal-title">CONFIRM DECREE</h1>
+            <h1 id="confirm-modal-title">Confirm Decree</h1>
             <button type="button" class="btn-close-modal" onclick="closeDialogById('confirm-modal')" autofocus>Cancel</button>
         </div>
         <div id="confirm-modal-body" class="backpack-info" style="line-height:1.55;"></div>
@@ -499,20 +500,22 @@
         </div>
     </dialog>
 
-    <!-- GOTHIC SOULS-LIKE FLOOR & DEATH OVERLAY -->
+    <!-- "MAP FOUND" / "DARK FANTASY" FADED MIST TRANSITION BANNER -->
     <div id="floor-transition-overlay" class="floor-transition-overlay hidden" aria-live="assertive">
         <div class="transition-content">
-            <div class="transition-rule"></div>
+            <div id="trans-crest-top" class="trans-crest" aria-hidden="true"></div>
+            <div class="mist-double-line"></div>
             <div id="trans-subtitle" class="trans-subtitle">DESCENDING INTO THE DEPTHS</div>
             <h2 id="trans-floor-title" class="trans-floor-title">FLOOR 2</h2>
-            <h3 id="trans-biome-name" class="trans-biome-name">ABANDONED CRYPT</h3>
+            <h3 id="trans-biome-name" class="trans-biome-name">Abandoned Crypt</h3>
             <p id="trans-lore-text" class="trans-lore-text">"Lorong makam kuno yang lembap, tempat tulang-belulang prajurit masa silam bangkit menjaga ruang bawah tanah."</p>
             <div id="trans-boss-warning" class="trans-boss-warning hidden">DREAD PRESENCE DETECTED AHEAD</div>
-            <div class="transition-rule"></div>
+            <div class="mist-double-line"></div>
+            <div id="trans-crest-bottom" class="trans-crest" aria-hidden="true"></div>
         </div>
     </div>
 
-    <!-- Modul JS (icons.js dimuat pertama untuk sistem vektor SVG) -->
+    <!-- Modul JS -->
     <script src="js/icons.js"></script>
     <script src="js/sound.js"></script>
     <script src="js/grid.js"></script>

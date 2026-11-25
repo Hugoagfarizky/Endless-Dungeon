@@ -14,28 +14,28 @@ let showMiniMap = true;
 let isCanvasVisible = true;
 
 // =========================================================
-// MOUNT STATIC SVG ICONS & MODERN PLATFORM FALLBACKS
+// MOUNT STATIC SVG ICONS, FILIGREE CRESTS & SPEAR ORNAMENTS
 // =========================================================
 function mountStaticDungeonIcons() {
     if (typeof icon !== 'function') return;
     const mapIds = {
-        'brand-sigil-icon': ['crest', 17],
-        'ico-torch': ['torch', 13],
+        'brand-sigil-icon': ['crest', 16],
+        'ico-torch': ['torch', 14],
         'ico-coin': ['coin', 14],
         'ico-ingot': ['ingot', 14],
-        'ico-satchel': ['satchel', 14],
-        'ico-armory': ['armory', 14],
-        'ico-codex': ['codex', 14],
-        'ico-auto': ['auto', 13],
-        'ico-speed': ['speed', 13],
-        'ico-map': ['map', 13],
-        'ico-cog': ['cog', 13],
+        'ico-satchel': ['satchel', 15],
+        'ico-armory': ['armory', 15],
+        'ico-codex': ['codex', 15],
+        'ico-auto': ['auto', 14],
+        'ico-speed': ['speed', 14],
+        'ico-map': ['map', 14],
+        'ico-cog': ['cog', 14],
         'ico-save': ['save', 13],
         'ico-seed': ['seed', 13],
         'ico-calendar': ['calendar', 13],
         'ico-pause-cog': ['cog', 13],
         'ico-reset': ['reset', 13],
-        'ico-cmd-ult': ['overdrive', 17],
+        'ico-cmd-ult': ['overdrive', 16],
         'ico-cmd-attack': ['sword', 15],
         'ico-cmd-skill': ['arcane', 15],
         'ico-cmd-skill2': ['mastery', 15],
@@ -49,6 +49,22 @@ function mountStaticDungeonIcons() {
         const el = document.getElementById(id);
         if (el) el.innerHTML = icon(name, sz);
     });
+
+    if (typeof filigreeBannerCrestSvg === 'function') {
+        const hTop = document.getElementById('header-crest-top');
+        const hBot = document.getElementById('header-crest-bottom');
+        const tTop = document.getElementById('trans-crest-top');
+        const tBot = document.getElementById('trans-crest-bottom');
+        if (hTop) hTop.innerHTML = filigreeBannerCrestSvg(false);
+        if (hBot) hBot.innerHTML = filigreeBannerCrestSvg(true);
+        if (tTop) tTop.innerHTML = filigreeBannerCrestSvg(false);
+        if (tBot) tBot.innerHTML = filigreeBannerCrestSvg(true);
+    }
+
+    if (typeof gothicSpearOrnamentSvg === 'function') {
+        const spearEl = document.getElementById('chronicle-spear-ornament');
+        if (spearEl) spearEl.innerHTML = gothicSpearOrnamentSvg();
+    }
 }
 mountStaticDungeonIcons();
 
@@ -152,7 +168,7 @@ function openConfirmModal(titleText, htmlMessage, confirmLabel, onConfirm) {
     const titleEl = document.getElementById('confirm-modal-title');
     const bodyEl = document.getElementById('confirm-modal-body');
     const okBtn = document.getElementById('confirm-modal-ok');
-    if (titleEl) titleEl.innerText = cleanTitle.toUpperCase();
+    if (titleEl) titleEl.innerText = cleanTitle;
     if (bodyEl) bodyEl.innerHTML = htmlMessage;
     if (okBtn) okBtn.innerText = confirmLabel || 'Confirm';
     pendingConfirmCallback = onConfirm;
@@ -175,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function confirmResetRun() {
     openConfirmModal(
         'Abandon Current Expedition',
-        'Seluruh progres lantai, level party, dan isi tas pada ekspedisi ini akan diulang dari <b>Lantai 1</b>.<br><small style="color:#75b88c;">Data Hall of Fame, Prestige, dan Bestiary Mastery di Royal Codex tetap tersimpan permanen.</small>',
+        'Seluruh progres lantai, level party, dan isi tas pada ekspedisi ini akan diulang dari <b>Lantai 1</b>.<br><small style="color:#78ab8c;">Data Hall of Fame, Prestige, dan Bestiary Mastery di Royal Codex tetap tersimpan permanen.</small>',
         'Abandon & Restart',
         () => resetGameRun()
     );
@@ -299,14 +315,14 @@ function triggerAttackVFX(fromX, fromY, toX, toY, style = 'slash', color = '#fff
             x: tx, y: ty,
             vx: Math.cos(ang) * spdVal,
             vy: Math.sin(ang) * spdVal - 0.8,
-            color: i % 2 === 0 ? '#fff6d6' : color,
+            color: i % 2 === 0 ? '#e8d5ba' : color,
             alpha: 1.0,
             size: 1.5 + Math.random() * 2.0
         });
     }
 }
 
-function triggerDeathShatter(tileX, tileY, baseColor = '#cf4646') {
+function triggerDeathShatter(tileX, tileY, baseColor = '#a8383b') {
     const cx = tileX * TILE_SIZE + TILE_SIZE / 2;
     const cy = tileY * TILE_SIZE + TILE_SIZE / 2 - 8;
     for (let i = 0; i < 22; i++) {
@@ -318,13 +334,13 @@ function triggerDeathShatter(tileX, tileY, baseColor = '#cf4646') {
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed - 1.5,
             size: 2.5 + rng() * 3.5,
-            color: i % 3 === 0 ? '#dfd0b0' : baseColor,
+            color: i % 3 === 0 ? '#dfd0bc' : baseColor,
             alpha: 1.0
         });
     }
 }
 
-function triggerUltimateCutIn(actorName, ultTitle, color = '#c9a45c') {
+function triggerUltimateCutIn(actorName, ultTitle, color = '#c7ae91') {
     const cleanActor = String(actorName).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
     const cleanUlt = String(ultTitle).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
     ultimateCutIn = {
@@ -349,7 +365,7 @@ function triggerHitFlash(unit, color = "#ffffff") {
     impactRings.push({
         x: unit.x, y: unit.y,
         radius: 5, maxRadius: 30,
-        color: color === "#ffffff" ? "#d9534f" : color,
+        color: color === "#ffffff" ? "#c95b60" : color,
         alpha: 1.0
     });
 }
@@ -378,7 +394,7 @@ function createBiomeParticle(biomeId, randomY = false) {
         p.size = 1.2 + Math.random() * 1.6;
         p.vx = (Math.random() - 0.5) * 0.22;
         p.vy = -0.10 - Math.random() * 0.20;
-        p.color = Math.random() < 0.78 ? '#dfd0b0' : '#75b88c';
+        p.color = Math.random() < 0.78 ? '#dfd0bc' : '#78ab8c';
         p.alpha = 0.12 + Math.random() * 0.26;
     } else if (biomeId === 'ice') {
         p.y = randomY ? Math.random() * WORLD_HEIGHT : -10;
@@ -392,14 +408,14 @@ function createBiomeParticle(biomeId, randomY = false) {
         p.size = 1.4 + Math.random() * 2.2;
         p.vx = (Math.random() - 0.5) * 0.45;
         p.vy = -0.65 - Math.random() * 1.05;
-        p.color = Math.random() < 0.5 ? '#d95b26' : '#f0be65';
+        p.color = Math.random() < 0.5 ? '#d95b26' : '#e2c18a';
         p.alpha = 0.32 + Math.random() * 0.46;
     } else {
         p.y = randomY ? Math.random() * WORLD_HEIGHT : WORLD_HEIGHT + 10;
         p.size = 1.4 + Math.random() * 2.2;
         p.vx = (Math.random() - 0.5) * 0.38;
         p.vy = -0.35 - Math.random() * 0.65;
-        p.color = Math.random() < 0.65 ? '#ad7fd1' : '#7fa6c9';
+        p.color = Math.random() < 0.65 ? '#ad85cc' : '#79a6cf';
         p.alpha = 0.22 + Math.random() * 0.44;
     }
     return p;
@@ -555,7 +571,6 @@ function masterRenderLoop(now) {
 }
 requestAnimationFrame(masterRenderLoop);
 
-// Literary Parchment Log (strips OS emojis automatically while keeping SVG icons)
 function addLog(msg) {
     const logBox = document.getElementById('log-box');
     if (!logBox) return;
@@ -597,39 +612,39 @@ function renderBestiaryModal() {
     const achRows = (typeof ACHIEVEMENTS_CATALOG !== 'undefined' ? ACHIEVEMENTS_CATALOG : []).map(a => {
         const done = unlockedAch.includes(a.id);
         return `
-            <div class="slot-row" style="padding:6px 9px; border-color:${done ? '#665130' : '#262019'}; opacity:${done ? '1' : '0.48'};">
+            <div class="slot-row" style="opacity:${done ? '1' : '0.45'};">
                 <div>
-                    <b style="color:${done ? '#dfd0b0' : '#8a7f6d'};">${done ? icon('trophy', 13) : icon('lock', 12)} ${a.name}</b>
-                    <div style="font-size:11.5px; color:#8f8473;">${a.desc}</div>
+                    <b style="color:${done ? '#e2ceb4' : '#8c7d6e'};">${done ? icon('trophy', 13) : icon('lock', 12)} ${a.name}</b>
+                    <div style="font-size:12px; color:#8c7d6e;">${a.desc}</div>
                 </div>
-                <span class="item-qty-badge" style="color:${done ? '#75b88c' : '#6e6558'};">${done ? 'EARNED' : 'Locked'}</span>
+                <span class="item-qty-badge" style="color:${done ? '#92c4a4' : '#6e5a49'};">${done ? 'Earned' : 'Locked'}</span>
             </div>
         `;
     }).join('');
 
     const historyList = (hallOfFame.runHistory || []).slice(0, 5).map((r, i) => `
-        <div class="slot-row" style="padding:5px 9px; font-size:11.5px;">
+        <div class="slot-row" style="font-size:12.5px;">
             <span>#${i + 1} · <b>Floor ${r.floor}</b> (Asc.${r.ascension || 0} · Prest.${r.prestige || 0})</span>
-            <span class="gold-val">${icon('coin', 12)} ${r.gold || 0}</span>
+            <span class="gold-val">${r.gold || 0} G</span>
         </div>
-    `).join('') || `<div style="font-size:12px; color:#7d7363; font-style:italic; padding:4px;">Belum ada ekspedisi yang tercatat.</div>`;
+    `).join('') || `<div style="font-size:13px; color:#8c7d6e; font-style:italic; padding:4px;">Belum ada ekspedisi yang tercatat.</div>`;
 
     hofEl.innerHTML = `
         <div class="slot-row">
             <span><b>Deepest Descent</b></span>
-            <b style="color:#dfd0b0; font-family:var(--font-display);">Floor ${hallOfFame.highestFloor}</b>
+            <b class="gold-val">Floor ${hallOfFame.highestFloor}</b>
         </div>
         <div class="slot-row">
             <span><b>Ascension &amp; Prestige</b></span>
-            <b style="color:#8ab8d9;">Asc Lv.${hallOfFame.highestAscension} · Prest Lv.${hallOfFame.prestigeLevel || 0}</b>
+            <b style="color:#8eb5d9;">Asc Lv.${hallOfFame.highestAscension} · Prest Lv.${hallOfFame.prestigeLevel || 0}</b>
         </div>
         <div class="slot-row">
             <span><b>Adversaries Vanquished</b></span>
-            <b style="color:#75b88c;">${hallOfFame.totalKills} Foes (${hallOfFame.bossKills} Bosses)</b>
+            <b style="color:#92c4a4;">${hallOfFame.totalKills} Foes (${hallOfFame.bossKills} Bosses)</b>
         </div>
         <div class="slot-row">
-            <span><b>Sovereigns Amassed</b></span>
-            <b class="gold-val">${hallOfFame.totalGoldEarned} Gold</b>
+            <span><b>Gold Amassed</b></span>
+            <b class="gold-val">${hallOfFame.totalGoldEarned} G</b>
         </div>
         <div class="slot-row">
             <span><b>Coffers &amp; Decrees</b></span>
@@ -637,11 +652,11 @@ function renderBestiaryModal() {
         </div>
         <div class="slot-row">
             <span><b>Bestiary Mastery</b></span>
-            <b style="color:#c9a45c;">${masteredCount} / ${Object.keys(BESTIARY_CATALOG).length} Species</b>
+            <b style="color:#c7ae91;">${masteredCount} / ${Object.keys(BESTIARY_CATALOG).length} Species</b>
         </div>
         <div class="slot-row">
             <span><b>Expedition Ledger</b></span>
-            <span style="color:#968b78;">Run #${hallOfFame.totalRuns || 1} (${hallOfFame.totalWipes || 0} Fallen)</span>
+            <span style="color:#8c7d6e;">Run #${hallOfFame.totalRuns || 1} (${hallOfFame.totalWipes || 0} Fallen)</span>
         </div>
         <h3 style="margin-top:8px;">Honors (${unlockedAch.length}/${(typeof ACHIEVEMENTS_CATALOG !== 'undefined' ? ACHIEVEMENTS_CATALOG.length : 0)})</h3>
         ${achRows}
@@ -659,8 +674,8 @@ function renderBestiaryModal() {
             return `
             <div class="bag-item-row" style="opacity:0.45;">
                 <div>
-                    <div>${icon('lock', 13)} <b>Unknown Specimen</b> <small style="color:#7d7363">[${monster.role}]</small></div>
-                    <div class="item-buff-text" style="color:#7d7363;">Tumpas makhluk ini minimal 1x di dalam dungeon untuk membuka catatan anatominya.</div>
+                    <div>${icon('lock', 13)} <b>Unknown Specimen</b> <small style="color:#8c7d6e">[${monster.role}]</small></div>
+                    <div class="item-buff-text" style="color:#8c7d6e;">Tumpas makhluk ini minimal 1x di dalam dungeon untuk membuka catatan anatominya.</div>
                 </div>
                 <span class="item-qty-badge">0 / ${monster.targetKills}</span>
             </div>
@@ -668,20 +683,20 @@ function renderBestiaryModal() {
         }
 
         return `
-        <div class="bag-item-row" style="border-color:${isMastered ? '#665130' : '#2e271f'};">
+        <div class="bag-item-row">
             <div style="flex:1;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span>
-                        ${monster.icon} <b style="color:${isMastered ? '#dfd0b0' : '#ded5c4'}">${monster.name}</b>
-                        <small style="color:#8f8473">[${monster.role}]</small>
+                        ${monster.icon} <b style="color:${isMastered ? '#e2ceb4' : '#dfd0bc'}">${monster.name}</b>
+                        <small style="color:#8c7d6e">[${monster.role}]</small>
                     </span>
-                    <span class="item-qty-badge" style="color:${isMastered ? '#75b88c' : '#c9a45c'};">
-                        ${isMastered ? 'MASTERED (+10% DMG)' : `${kills} / ${monster.targetKills}`}
+                    <span class="item-qty-badge" style="color:${isMastered ? '#92c4a4' : '#c7ae91'};">
+                        ${isMastered ? 'MASTERED (+10%)' : `${kills} / ${monster.targetKills}`}
                     </span>
                 </div>
-                <div style="font-family:var(--font-prose); font-size:13px; color:#a89c88; margin-top:3px; font-style:italic;">"${monster.lore}"</div>
-                <div class="hp-bar-bg" style="block-size:5px; margin-top:5px;">
-                    <div class="hp-bar-fill" style="width:${progressPct}%; background:${isMastered ? '#c9a45c' : '#4982b3'};"></div>
+                <div style="font-family:var(--font-prose); font-size:13px; color:#9e8f7f; margin-top:3px; font-style:italic;">"${monster.lore}"</div>
+                <div class="pointed-bar-track" style="inline-size:100%; margin-top:5px;">
+                    <div class="pointed-bar-fill ${isMastered ? 'fill-amber' : 'fill-cobalt'}" style="width:${progressPct}%;"></div>
                 </div>
             </div>
         </div>
@@ -690,7 +705,7 @@ function renderBestiaryModal() {
 }
 
 // =========================================================
-// SOULS-LIKE FLOOR & DEATH TRANSITION OVERLAY
+// "MAP FOUND" STYLE FLOOR & DEATH TRANSITION OVERLAY
 // =========================================================
 const BIOME_LORE = {
     crypt: "Lorong makam kuno yang lembap, tempat tulang-belulang prajurit masa silam bangkit menjaga ruang bawah tanah.",
@@ -712,8 +727,8 @@ function showDeathTransition(titleText = "THE ORDER HAS FALLEN", subtitleText = 
     if (subEl)   subEl.innerText = subtitleText;
     if (titleEl) titleEl.innerText = titleText;
     if (biomeEl) {
-        biomeEl.innerText = 'ENDLESS DUNGEON';
-        biomeEl.style.color = '#b83236';
+        biomeEl.innerText = 'Endless Dungeon';
+        biomeEl.style.color = '#b83a3e';
     }
     if (loreEl) loreEl.innerText = '"Kegelapan menelan seluruh Ordo. Catatan kehormatan tetap terukir di Royal Codex."';
     if (warnEl) warnEl.classList.add('hidden');
@@ -754,17 +769,17 @@ function showFloorTransition(floorNum, customSubtitle = "DESCENDING INTO THE DEP
     if (subEl)   subEl.innerText = customSubtitle;
     if (titleEl) titleEl.innerText = `FLOOR ${floorNum}`;
     if (biomeEl) {
-        biomeEl.innerText = biome.name.toUpperCase();
-        biomeEl.style.color = '#c9a45c';
+        biomeEl.innerText = biome.name;
+        biomeEl.style.color = '#c7ae91';
     }
     if (loreEl) loreEl.innerText = `"${BIOME_LORE[biome.id] || BIOME_LORE.crypt}"`;
 
     if (warnEl) {
         if (floorNum % 10 === 0) {
-            warnEl.innerText = `DREAD LORD AWAITS: ${roster.grand.name.toUpperCase()}`;
+            warnEl.innerText = `Dread Lord Awaits: ${roster.grand.name}`;
             warnEl.classList.remove('hidden');
         } else if (floorNum % 5 === 0) {
-            warnEl.innerText = `WARDEN OF THE THRESHOLD: ${roster.mini.name.toUpperCase()}`;
+            warnEl.innerText = `Warden of the Threshold: ${roster.mini.name}`;
             warnEl.classList.remove('hidden');
         } else {
             warnEl.classList.add('hidden');
@@ -806,8 +821,8 @@ function formatStatDiffHtml(candidateItem, hero) {
     if (!currentEq) {
         const gains = statMeta
             .filter(s => (candidateItem.stats[s.key] || 0) > 0)
-            .map(s => `<span style="color:#75b88c; font-weight:600;">+${candidateItem.stats[s.key]} ${s.label}</span>`);
-        return `<span style="color:#8f8473;">Empty Slot:</span> ${gains.join(' · ')}`;
+            .map(s => `<span style="color:#92c4a4; font-weight:600;">+${candidateItem.stats[s.key]} ${s.label}</span>`);
+        return `<span style="color:#8c7d6e;">Empty Slot:</span> ${gains.join(' · ')}`;
     }
 
     const diffs = [];
@@ -817,18 +832,18 @@ function formatStatDiffHtml(candidateItem, hero) {
         const diff = newVal - oldVal;
 
         if (diff > 0) {
-            diffs.push(`<span style="color:#75b88c; font-weight:600;">+${diff} ${s.label}</span>`);
+            diffs.push(`<span style="color:#92c4a4; font-weight:600;">+${diff} ${s.label}</span>`);
         } else if (diff < 0) {
             diffs.push(`<span style="color:#cf5b64; font-weight:600;">${diff} ${s.label}</span>`);
         } else if (newVal > 0 && diff === 0) {
-            diffs.push(`<span style="color:#7d7363;">=${s.label}</span>`);
+            diffs.push(`<span style="color:#8c7d6e;">=${s.label}</span>`);
         }
     });
 
     if (diffs.length === 0) {
-        return `<span style="color:#7d7363;">Identical to equipped</span>`;
+        return `<span style="color:#8c7d6e;">Identical to equipped</span>`;
     }
-    return `<span style="color:#968b78;">vs ${hero.name}:</span> ${diffs.join(' · ')}`;
+    return `<span style="color:#9e8f7f;">vs ${hero.name}:</span> ${diffs.join(' · ')}`;
 }
 
 function formatSetAndCurseMetaHtml(item, hero = null) {
@@ -836,13 +851,13 @@ function formatSetAndCurseMetaHtml(item, hero = null) {
     if (item.setId && typeof EQUIPMENT_SETS !== 'undefined' && EQUIPMENT_SETS[item.setId]) {
         const s = EQUIPMENT_SETS[item.setId];
         const count = hero ? (getHeroActiveSets(hero)[item.setId] || 0) : 0;
-        html += `<div style="font-size:11px; color:${s.color}; margin-top:2px;">
+        html += `<div style="font-size:12px; color:${s.color}; margin-top:2px;">
             ${s.icon} <b>${s.name}</b> ${hero ? `(${count}/4)` : ''} · <small>2pc: ${s.bonus2Desc}</small>
         </div>`;
     }
     if (item.curseId) {
         html += `
-            <div style="font-size:11px; color:#db822b; margin-top:2px; font-weight:600;">${item.boonDesc}</div>
+            <div style="font-size:12px; color:#d69a56; margin-top:2px; font-weight:600;">${item.boonDesc}</div>
             <div class="curse-drawback-text">${item.curseDesc}</div>
         `;
     }
@@ -876,17 +891,17 @@ function chooseCampfireAction(actionType) {
                     p.statuses = { poison: 0, burn: 0, stun: 0 };
                 }
             });
-            if (ldr) addOverheadIcon(ldr.x, ldr.y, "RESTORED", "#75b88c");
+            if (ldr) addOverheadIcon(ldr.x, ldr.y, "RESTORED", "#92c4a4");
             addLog(`PERKEMAHAN: Seluruh Ksatria pulih +45% HP/MP & Obor menyala 100%.`);
         } else {
-            if (ldr) addOverheadIcon(ldr.x, ldr.y, "FAMINE", "#db822b");
+            if (ldr) addOverheadIcon(ldr.x, ldr.y, "FAMINE", "#c78d44");
             addLog(`PERKEMAHAN: Kutukan Famine mencegah pemulihan raga, namun Obor menyala 100%.`);
         }
     }
     else if (actionType === 'sharpen') {
         sharpenedBuff = true;
         party.forEach(p => { if (p.hp > 0) p.overdrive = Math.min(100, (p.overdrive || 0) + 50); });
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+25% DMG", "#dfd0b0");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+25% DMG", "#e2ceb4");
         addLog(`BATU ASAH: Bilah senjata diberkati (+25% DMG & +50% Overdrive).`);
     }
     else if (actionType === 'scout') {
@@ -894,7 +909,7 @@ function chooseCampfireAction(actionType) {
             for (let x = 0; x < COLS; x++) revealed[y][x] = true;
         }
         traps.forEach(t => t.detected = true);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "SCOUTED", "#8ab8d9");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "MAP FOUND", "#e2ceb4");
         addLog(`PENGINTAIAN: Seluruh lorong, musuh, dan jebakan di lantai ini terpetakan.`);
     }
     else if (actionType === 'upgrade_torch') {
@@ -908,7 +923,7 @@ function chooseCampfireAction(actionType) {
         inventory.gold -= costGold;
         torchUpgradeLevel = (torchUpgradeLevel || 0) + 1;
         torchLight = 100;
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, 'TORCH FORGED', '#dfd0b0');
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, 'TORCH FORGED', '#e2ceb4');
         addLog(`OBOR ABADI LV.${torchUpgradeLevel}: Konsumsi obor per langkah berkurang & obor terisi penuh.`);
     }
 
@@ -980,7 +995,7 @@ function spawnAltarGuardians() {
         party.forEach(p => {
             if (p.hp > 0) { p.hp = Math.min(p.maxHp, p.hp + 30); p.mp = Math.min(p.maxMp, p.mp + 25); p.statuses = { poison: 0, burn: 0, stun: 0 }; }
         });
-        if (ldr) { updateFogOfWar(ldr.x, ldr.y); addOverheadIcon(ldr.x, ldr.y, "BLESSED", "#dfd0b0"); }
+        if (ldr) { updateFogOfWar(ldr.x, ldr.y); addOverheadIcon(ldr.x, ldr.y, "BLESSED", "#e2ceb4"); }
         addLog("Altar terlalu sempit untuk memanggil penjaga. Berkah Katedral diberikan sebagai gantinya.");
         return;
     }
@@ -1002,7 +1017,7 @@ function spawnAltarGuardians() {
         revealed[pos.y][pos.x] = true;
         enemies.push(g);
         guardians.push(g);
-        addOverheadIcon(pos.x, pos.y, "GUARDIAN", "#ad7fd1");
+        addOverheadIcon(pos.x, pos.y, "GUARDIAN", "#ad85cc");
     }
     addLog("TANTANGAN ALTAR: Dua Altar Guardian (Elite) bangkit menjaga monolit!");
     startCombat(guardians[0]);
@@ -1038,7 +1053,7 @@ function chooseShrineBlessing(optionType) {
         }
         inventory.gold -= wisdomCost;
         gainPartyXP(75 + currentFloor * 15, ldr);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+ANCIENT EXP", "#8ab8d9");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+ANCIENT EXP", "#8eb5d9");
         addLog(`ALTAR KEBIJAKSANAAN: Mempersembahkan ${wisdomCost} Gold untuk pengetahuan kuno.`);
     }
     else if (optionType === 'radiance') {
@@ -1052,7 +1067,7 @@ function chooseShrineBlessing(optionType) {
         });
         if (ldr) {
             updateFogOfWar(ldr.x, ldr.y);
-            addOverheadIcon(ldr.x, ldr.y, "SANCTIFIED", "#dfd0b0");
+            addOverheadIcon(ldr.x, ldr.y, "SANCTIFIED", "#e2ceb4");
         }
         addLog(`BERKAH KATEDRAL: Obor 100%, seluruh Ksatria pulih +30 HP, +25 MP & bebas kutukan.`);
     }
@@ -1070,7 +1085,7 @@ function chooseShrineBlessing(optionType) {
         shrine.used = true;
         party.forEach(p => { if (p.hp > 0) p.statPoints = (p.statPoints || 0) + 1; });
         addLog('SHRINE OF MEMORY: Seluruh Ksatria hidup menerima +1 Stat Point kuno.');
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, '+1 STAT PT', '#8ab8d9');
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, '+1 STAT PT', '#8eb5d9');
         SFX.shrine();
         closeShrineModal();
         updateUI();
@@ -1099,7 +1114,7 @@ function renderShrineModal() {
         </div>
         <div class="bag-item-row">
             <div>
-                <b class="rarity-Legendary">${icon('coin', 13)} Tribute of Kings (${wisdomCost} Gold)</b>
+                <b class="rarity-Legendary">${icon('coin', 13)} Tribute of Kings (${wisdomCost} G)</b>
                 <div class="item-buff-text">Seluruh Ksatria menerima limpahan EXP kuno secara instan.</div>
             </div>
             <button type="button" class="btn-small-equip" ${inventory.gold < wisdomCost ? 'disabled' : ''} onclick="chooseShrineBlessing('wisdom')">Offer Gold</button>
@@ -1194,15 +1209,15 @@ function buyMerchantItem(shopIdx) {
 
     if (item.type === 'consumable') {
         addConsumableToBackpack(item.id, 1);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+SUPPLY", "#75b88c");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+SUPPLY", "#92c4a4");
     } else if (item.type === 'ore') {
         inventory.ore += 2;
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+2 ORE", "#8ab8d9");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+2 ORE", "#8eb5d9");
         addLog(`CARAVAN: Membeli +2x Damascus Iron Ore seharga ${item.cost} Gold.`);
     } else if (item.type === 'specific_gear' && item.gearData) {
         const g = item.gearData;
         inventory.bag.push(g);
-        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+ARMOR", "#c9a45c");
+        if (ldr) addOverheadIcon(ldr.x, ldr.y, "+ARMOR", "#e2ceb4");
         addLog(`CARAVAN: Membeli zirah [${g.name}] ke Armory [E].`);
     }
 
@@ -1237,13 +1252,13 @@ function renderMerchantModal() {
         const isSoldOut = (item.stock <= 0);
         const canAfford = (inventory.gold >= item.cost && !isSoldOut);
         const titleClass = item.rarity ? `class="rarity-${item.rarity}"` : '';
-        const slotTag = item.slotLabel ? `<small style="color:#8f8473">[${item.slotLabel}]</small>` : '';
+        const slotTag = item.slotLabel ? `<small style="color:#8c7d6e">[${item.slotLabel}]</small>` : '';
         const stockBadge = isSoldOut
             ? `<span class="item-qty-badge" style="color:#cf5b64;">SOLD</span>`
             : `<span class="item-qty-badge">${item.stock}/${item.maxStock}</span>`;
 
         const extraMeta = (item.type === 'specific_gear' && item.gearData)
-            ? `${formatSetAndCurseMetaHtml(item.gearData, previewHero)}<div style="font-size:11px; margin-top:2px;">${formatStatDiffHtml(item.gearData, previewHero)}</div>`
+            ? `${formatSetAndCurseMetaHtml(item.gearData, previewHero)}<div style="font-size:12px; margin-top:2px;">${formatStatDiffHtml(item.gearData, previewHero)}</div>`
             : '';
 
         return `
@@ -1252,7 +1267,7 @@ function renderMerchantModal() {
                 <div><b ${titleClass}>${item.name}</b> ${slotTag} ${stockBadge}</div>
                 <div class="item-buff-text">${item.desc}</div>
                 ${extraMeta}
-                <div style="font-size:11px; color:#c9a45c; margin-top:2px;">Price: <b>${item.cost} Gold</b></div>
+                <div style="font-family:var(--font-gothic); font-size:12.5px; color:#e2ceb4; margin-top:2px;">${item.cost} G</div>
             </div>
             <button type="button" class="btn-small-use" ${!canAfford ? 'disabled' : ''} onclick="buyMerchantItem(${idx})">
                 ${isSoldOut ? 'Sold' : 'Acquire'}
@@ -1266,7 +1281,7 @@ function renderMerchantModal() {
         <div class="bag-item-row" style="margin-top:6px;">
             <div>
                 <b>${icon('reset', 13)} Restock Caravan Wares</b>
-                <div class="item-buff-text">${merchant.rerolled ? 'Sudah digunakan pada pedagang lantai ini.' : `Perbarui seluruh stok lantai ini (sekali per pedagang). Biaya: ${rerollCost} Gold.`}</div>
+                <div class="item-buff-text">${merchant.rerolled ? 'Sudah digunakan pada pedagang lantai ini.' : `Perbarui seluruh stok lantai ini (sekali per pedagang). Biaya: ${rerollCost} G.`}</div>
             </div>
             <button type="button" class="btn-small-equip" ${(merchant.rerolled || inventory.gold < rerollCost) ? 'disabled' : ''} onclick="rerollMerchantStock()">
                 ${merchant.rerolled ? 'Used' : `Restock (${rerollCost}G)`}
@@ -1275,7 +1290,7 @@ function renderMerchantModal() {
     `;
 
     const sellRows = inventory.bag.length === 0
-        ? `<div class="bag-item-row"><div class="item-buff-text" style="color:#7d7363;">Reliquary Coffer kosong — tidak ada zirah cadangan untuk dijual.</div></div>`
+        ? `<div class="bag-item-row"><div class="item-buff-text" style="color:#8c7d6e;">Reliquary Coffer kosong — tidak ada zirah cadangan untuk dijual.</div></div>`
         : inventory.bag.map((item, idx) => {
             const ico = (EQUIP_SLOTS[item.slot] && EQUIP_SLOTS[item.slot].icon) ? EQUIP_SLOTS[item.slot].icon : icon('chest', 13);
             const slotLabel = (EQUIP_SLOTS[item.slot] && EQUIP_SLOTS[item.slot].label) ? EQUIP_SLOTS[item.slot].label : item.slot;
@@ -1283,7 +1298,7 @@ function renderMerchantModal() {
             return `
             <div class="bag-item-row">
                 <div>
-                    <b class="rarity-${item.rarity || 'Common'}">${ico} ${item.name}</b> <small style="color:#8f8473">[${slotLabel}${up}]</small>
+                    <b class="rarity-${item.rarity || 'Common'}">${ico} ${item.name}</b> <small style="color:#8c7d6e">[${slotLabel}${up}]</small>
                     <div class="item-buff-text">${formatItemBuffs(item.stats)}</div>
                 </div>
                 <button type="button" class="btn-small-unequip" onclick="sellBagItem(${idx})">Sell +${getItemSellValue(item)}G</button>
@@ -1311,7 +1326,7 @@ function renderBackpackModal() {
     const keys = Object.keys(CONSUMABLE_CATALOG).filter(k => (inventory.consumables[k] || 0) > 0);
 
     if (keys.length === 0) {
-        listEl.innerHTML = `<div style="color:#7d7363; font-family:var(--font-prose); font-style:italic; font-size:15px; padding:22px; text-align:center;">Satchel kosong. Tumpas penghuni ruang bawah tanah atau temui Wandering Caravan.</div>`;
+        listEl.innerHTML = `<div style="color:#8c7d6e; font-style:italic; font-size:14.5px; padding:22px; text-align:center;">Satchel kosong. Tumpas penghuni ruang bawah tanah atau temui Wandering Caravan.</div>`;
         return;
     }
 
@@ -1379,14 +1394,14 @@ function renderEquipModal() {
 
     const pts = hero.statPoints;
     const btnHtml = (stat, label) => pts > 0
-        ? `<button type="button" class="btn-small-use" style="padding:1px 5px; font-size:9.5px; margin-left:4px;" onclick="allocateStatPoint(${selectedHeroIndex}, '${stat}')">+${label}</button>`
+        ? `<button type="button" class="btn-small-use" style="padding:1px 5px; font-size:10.5px; margin-left:4px;" onclick="allocateStatPoint(${selectedHeroIndex}, '${stat}')">+${label}</button>`
         : '';
 
     const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hero) : { roman: 'I', roleLabel: 'VANGUARD' };
 
     document.getElementById('modal-hero-title').innerHTML = `
         ${hero.name} (${hero.role}) · Rank ${form.roman} ${form.roleLabel} <small>EXP ${hero.xp}/${hero.maxXp}</small>
-        ${pts > 0 ? `<span style="color:#75b88c; margin-left:6px;">[+${pts} Attr Pt]</span>` : ''}
+        ${pts > 0 ? `<span style="color:#92c4a4; margin-left:6px;">[+${pts} Attr Pt]</span>` : ''}
     `;
 
     document.getElementById('modal-hero-stats').innerHTML = `
@@ -1402,8 +1417,8 @@ function renderEquipModal() {
     const activeSetBadges = Object.keys(setCounts).map(sKey => {
         const s = EQUIPMENT_SETS[sKey];
         const cnt = setCounts[sKey];
-        const b2 = cnt >= 2 ? `<b style="color:#75b88c">[2pc: ${s.bonus2Desc}]</b>` : `<small style="color:#7d7363">(Requires 2pc)</small>`;
-        const b4 = cnt >= 4 ? ` <b style="color:#c9a45c">[4pc: ${s.bonus4Desc}]</b>` : '';
+        const b2 = cnt >= 2 ? `<b style="color:#92c4a4">[2pc: ${s.bonus2Desc}]</b>` : `<small style="color:#8c7d6e">(Requires 2pc)</small>`;
+        const b4 = cnt >= 4 ? ` <b style="color:#e2ceb4">[4pc: ${s.bonus4Desc}]</b>` : '';
         return `<div style="margin-top:2px;"><span style="color:${s.color}">${s.icon} <b>${s.name} (${cnt}/4):</b></span> ${b2}${b4}</div>`;
     }).join('');
 
@@ -1429,14 +1444,14 @@ function renderEquipModal() {
     const activeMastery = (hero.mastery || []).map(k => MASTERY_CATALOG[k].name).join(', ') || 'None';
 
     perkEl.innerHTML = `
-        <div><b>Knightly Vows:</b> <span style="color:#dfd0b0">${activePerkNames}</span>
-        ${hero.perkPoints > 0 ? `<b style="color:#75b88c; margin-left:6px;">(${hero.perkPoints} Vow Pt Available)</b>` : `<small style="color:#7d7363">(Odd Levels)</small>`}</div>
+        <div><b>Knightly Vows:</b> <span style="color:#e2ceb4">${activePerkNames}</span>
+        ${hero.perkPoints > 0 ? `<b style="color:#92c4a4; margin-left:6px;">(${hero.perkPoints} Vow Pt)</b>` : `<small style="color:#8c7d6e">(Odd Levels)</small>`}</div>
         <div class="perk-btn-row">${perkBtns}</div>
-        <div style="margin-top:6px; border-top:1px solid #262019; padding-top:5px;">
-            <b>Combat Mastery:</b> <span style="color:#dfd0b0">${activeMastery}</span>
+        <div style="margin-top:6px; border-top:1px solid #2e2620; padding-top:5px;">
+            <b>Combat Mastery:</b> <span style="color:#e2ceb4">${activeMastery}</span>
             <div class="perk-btn-row">${masteryBtns}</div>
         </div>
-        ${activeSetBadges ? `<div style="border-top:1px solid #262019; margin-top:5px; padding-top:4px;">${activeSetBadges}</div>` : ''}
+        ${activeSetBadges ? `<div style="border-top:1px solid #2e2620; margin-top:5px; padding-top:4px;">${activeSetBadges}</div>` : ''}
     `;
 
     const runeEl = document.getElementById('modal-hero-runes');
@@ -1444,14 +1459,14 @@ function renderEquipModal() {
         const runes = hero.runes || [];
         const charm = hero.charm;
         let html = charm
-            ? `<div>${icon('relic', 12)} <b>Charm:</b> <span style="color:#dfd0b0;">${charm.name}</span> <small style="color:#8f8473">(${charm.desc})</small></div>`
-            : `<div>${icon('relic', 12)} <b>Charm:</b> <small style="color:#7d7363">Empty (Dropped by Bosses)</small></div>`;
+            ? `<div>${icon('relic', 12)} <b>Charm:</b> <span style="color:#e2ceb4;">${charm.name}</span> <small style="color:#8c7d6e">(${charm.desc})</small></div>`
+            : `<div>${icon('relic', 12)} <b>Charm:</b> <small style="color:#8c7d6e">Empty (Dropped by Bosses)</small></div>`;
         if (runes.length === 0) {
-            html += `<div style="margin-top:2px;">${icon('arcane', 12)} <b>Runes:</b> <small style="color:#7d7363">None inscribed (Dropped by Elites &amp; Bosses)</small></div>`;
+            html += `<div style="margin-top:2px;">${icon('arcane', 12)} <b>Runes:</b> <small style="color:#8c7d6e">None inscribed (Dropped by Elites &amp; Bosses)</small></div>`;
         } else {
             const list = runes.map(k => {
                 const r = (typeof RUNE_CATALOG !== 'undefined') ? RUNE_CATALOG[k] : null;
-                return r ? `<span style="color:#c9b3e6; margin-right:8px;" title="${r.desc}">${r.name}</span>` : k;
+                return r ? `<span style="color:#c8addb; margin-right:8px;" title="${r.desc}">${r.name}</span>` : k;
             }).join('');
             html += `<div style="margin-top:2px;">${icon('arcane', 12)} <b>Runes (${runes.length}):</b> ${list}</div>`;
         }
@@ -1470,11 +1485,11 @@ function renderEquipModal() {
             const canForge = (inventory.ore >= costOre && inventory.gold >= costGold);
 
             return `
-            <div class="slot-row" style="${eqItem.curseId ? 'border-color:#78282e;' : ''}">
+            <div class="slot-row">
                 <div>
                     <div>
                         ${slotMeta.icon} <b>${slotMeta.label}:</b>
-                        <span class="rarity-${eqItem.rarity}">${eqItem.name} ${upgLv > 0 ? `<b style="color:#8ab8d9">+${upgLv}</b>` : ''}</span>
+                        <span class="rarity-${eqItem.rarity}">${eqItem.name} ${upgLv > 0 ? `<b style="color:#8eb5d9">+${upgLv}</b>` : ''}</span>
                     </div>
                     <div class="item-buff-text">${formatItemBuffs(eqItem.stats)}</div>
                     ${formatSetAndCurseMetaHtml(eqItem, hero)}
@@ -1491,16 +1506,16 @@ function renderEquipModal() {
             `;
         }
         return `
-        <div class="slot-row" style="opacity:0.5;">
-            <div>${slotMeta.icon} <b>${slotMeta.label}:</b> <i>Unadorned</i></div>
-            <span style="color:#5c5346;">—</span>
+        <div class="slot-row" style="opacity:0.48;">
+            <div>${slotMeta.icon} <b>${slotMeta.label}:</b> <i>Empty Slot</i></div>
+            <span style="color:#6e5a49;">—</span>
         </div>
         `;
     }).join('');
 
     const bagEl = document.getElementById('bag-items-list');
     if (inventory.bag.length === 0) {
-        bagEl.innerHTML = '<div style="color:#7d7363; font-family:var(--font-prose); font-style:italic; font-size:14px; padding:14px;">Reliquary Coffer kosong.</div>';
+        bagEl.innerHTML = '<div style="color:#8c7d6e; font-style:italic; font-size:14px; padding:14px;">Reliquary Coffer kosong.</div>';
         return;
     }
 
@@ -1533,7 +1548,7 @@ function renderEquipModal() {
     }
 
     if (indexed.length === 0) {
-        bagEl.innerHTML = '<div style="color:#7d7363; font-style:italic; padding:12px;">Tidak ada zirah yang sesuai filter.</div>';
+        bagEl.innerHTML = '<div style="color:#8c7d6e; font-style:italic; padding:12px;">Tidak ada zirah yang sesuai filter.</div>';
         return;
     }
 
@@ -1544,12 +1559,12 @@ function renderEquipModal() {
         const upgLv = item.upgradeLevel || 0;
         const diffHtml = formatStatDiffHtml(item, hero);
         return `
-        <div class="bag-item-row" style="${item.curseId ? 'border-color:#78282e;' : ''}">
+        <div class="bag-item-row">
             <div>
-                <div>${slotMeta.icon} <span class="rarity-${item.rarity}">${item.name}${upgLv > 0 ? ' +' + upgLv : ''}</span> <small style="color:#8f8473">[${slotMeta.label}]</small></div>
+                <div>${slotMeta.icon} <span class="rarity-${item.rarity}">${item.name}${upgLv > 0 ? ' +' + upgLv : ''}</span> <small style="color:#8c7d6e">[${slotMeta.label}]</small></div>
                 <div class="item-buff-text">${formatItemBuffs(item.stats)}</div>
                 ${formatSetAndCurseMetaHtml(item, hero)}
-                <div style="font-size:11px; margin-top:4px; padding:3px 6px; background:#0a0807; border:1px solid #262019;">${diffHtml}</div>
+                <div style="font-size:12px; margin-top:4px; padding:3px 6px; background:#110f11; border:1px solid #2e2620;">${diffHtml}</div>
             </div>
             <div style="display:flex; gap:5px;">
                 <button type="button" class="btn-small-equip" onclick="equipItemToHero(${bagIdx}, ${selectedHeroIndex})">Equip</button>
@@ -1560,7 +1575,7 @@ function renderEquipModal() {
 }
 
 // =========================================================
-// INITIATIVE RIBBON, COMMAND DECK & THE ORDER SIDEBAR
+// INITIATIVE MIST STRIP, COMMAND DECK & HERO WIDGETS
 // =========================================================
 function updateTurnQueueUI() {
     const queueEl = document.getElementById('turn-queue-list');
@@ -1581,7 +1596,7 @@ function updateTurnQueueUI() {
         const clearHint = !isFloorCleared()
             ? `Vanquish ${enemies.length} remaining adversaries to unseal the stairwell${sharpenedBuff ? ' · Honed Blades (+25% DMG)' : ''}`
             : `Stairwell unsealed — descend to Floor ${currentFloor + 1}`;
-        queueEl.innerHTML = `<span class="queue-empty" style="color:${isFloorCleared() ? '#75b88c' : '#b8ad99'}">${clearHint}</span>`;
+        queueEl.innerHTML = `<span class="queue-empty" style="color:${isFloorCleared() ? '#92c4a4' : '#9e8f7f'}">${clearHint}</span>`;
         document.getElementById('active-actor-name').innerText = '—';
         document.getElementById('lbl-attack').innerText = 'Strike';
         if (subAttack) subAttack.innerText = 'Basic Attack';
@@ -1601,9 +1616,9 @@ function updateTurnQueueUI() {
 
     if (roundLbl && typeof combatRound !== 'undefined') {
         const isEnrage = combatRound >= 8;
-        const comboTxt = (typeof comboCounter !== 'undefined' && comboCounter > 1) ? ` · ${comboCounter}x CHAIN` : '';
+        const comboTxt = (typeof comboCounter !== 'undefined' && comboCounter > 1) ? ` · ${comboCounter}x` : '';
         roundLbl.innerHTML = isEnrage
-            ? `<span style="color:#cf4646">ROUND ${combatRound} · ENRAGED${comboTxt}</span>`
+            ? `<span style="color:#cf5b64">ROUND ${combatRound} · ENRAGED${comboTxt}</span>`
             : `ROUND ${combatRound}/7${comboTxt}`;
     }
 
@@ -1670,7 +1685,7 @@ function updateTurnQueueUI() {
 
         return `
             <div class="${classes}" ${clickAttr}>
-                <span style="color:${unit.color || '#c9a45c'}">${sigil}</span>
+                <span style="color:${unit.color || '#c7ae91'}">${sigil}</span>
                 <span>${unit.name} <small>${unit.hp}</small></span>
             </div>
             ${arrow}
@@ -1705,22 +1720,23 @@ function updateUI() {
     const stratBtn = document.getElementById('btn-strategy-menu');
     if (stratBtn) {
         const st = (typeof autoBattleStrategy !== 'undefined' ? autoBattleStrategy : 'balanced').slice(0, 3).toUpperCase();
-        stratBtn.innerText = `AI: ${st} [K]`;
+        stratBtn.innerText = `AI:${st} [K]`;
     }
     const tacticBtn = document.getElementById('btn-tactic-menu');
     if (tacticBtn) {
-        tacticBtn.innerText = `${(typeof formationTactic !== 'undefined' ? formationTactic : 'balanced').toUpperCase()} [T]`;
+        const tc = (typeof formationTactic !== 'undefined' ? formationTactic : 'balanced').slice(0, 3).toUpperCase();
+        tacticBtn.innerText = `${tc} [T]`;
     }
 
     document.getElementById('ascension-badge').innerText = `Lv.${ascensionLevel}`;
 
-    // Update Darkest-Dungeon Torch Gauge
+    // Torch Plaque
     document.getElementById('torch-count').innerText = `${torchLight}%`;
     const torchStateEl = document.getElementById('torch-state-label');
     if (torchStateEl) {
-        if (torchLight > 50) { torchStateEl.innerText = 'RADIANT'; torchStateEl.style.color = '#db822b'; }
-        else if (torchLight > 15) { torchStateEl.innerText = 'DIMMING'; torchStateEl.style.color = '#c9a45c'; }
-        else { torchStateEl.innerText = 'ABYSSAL'; torchStateEl.style.color = '#cf4646'; }
+        if (torchLight > 50) { torchStateEl.innerText = 'RADIANT'; torchStateEl.style.color = '#c7ae91'; }
+        else if (torchLight > 15) { torchStateEl.innerText = 'DIMMING'; torchStateEl.style.color = '#8e7660'; }
+        else { torchStateEl.innerText = 'ABYSSAL'; torchStateEl.style.color = '#cf5b64'; }
     }
     const torchBar = document.getElementById('torch-bar-fill');
     if (torchBar) torchBar.style.width = `${Math.max(0, Math.min(100, torchLight))}%`;
@@ -1743,11 +1759,11 @@ function updateUI() {
     const bountyEl = document.getElementById('bounty-badge');
     if (bountyEl && typeof floorBounty !== 'undefined' && floorBounty) {
         if (floorBounty.completed) {
-            bountyEl.innerHTML = `${icon('scroll', 12)} <span style="color:#75b88c; font-weight:600;">Decree Fulfilled</span>`;
+            bountyEl.innerHTML = `${icon('scroll', 12)} <span style="color:#92c4a4;">Decree Fulfilled</span>`;
         } else if (floorBounty.failed) {
             bountyEl.innerHTML = `${icon('scroll', 12)} <span style="color:#cf5b64;">Decree Failed</span>`;
         } else {
-            bountyEl.innerHTML = `${icon('scroll', 12)} <span>${floorBounty.desc} (${floorBounty.progress}/${floorBounty.target}) · <b style="color:#c9a45c">+${floorBounty.rewardGold}G</b></span>`;
+            bountyEl.innerHTML = `${icon('scroll', 12)} <span>${floorBounty.desc} (${floorBounty.progress}/${floorBounty.target}) · <b style="color:#e2ceb4">+${floorBounty.rewardGold}G</b></span>`;
         }
     }
 
@@ -1765,16 +1781,18 @@ function updateUI() {
     const activeActor = getCurrentActor();
     const currentLeader = getLeader();
 
+    // Exact Reference HUD Widget per Hero:
+    // 32x32/48x48 Ornate Portrait + Mini Square 8x8 Slot Boxes + 3 Staggered Pointed Bars (Red, Blue, Green)
     const list = document.getElementById('party-list');
     list.innerHTML = party.map((p, idx) => {
         const hpPercent = Math.max(0, Math.floor((p.hp / p.maxHp) * 100));
         const mpPercent = Math.max(0, Math.floor((p.mp / p.maxMp) * 100));
         const odPercent = Math.min(100, p.overdrive || 0);
-        const vitClass = hpPercent <= 30 ? 'fill-vitality-low' : 'fill-vitality';
+        const odFillClass = odPercent >= 100 ? 'fill-amber' : 'fill-verdigris';
         const isLeader = (p === currentLeader);
         const isMyTurn = (gameMode === 'COMBAT' && activeActor === p);
         const totalPts = (p.statPoints || 0) + (p.perkPoints || 0);
-        const pointBadge = totalPts > 0 ? `<span class="unspent-pt">+${totalPts}pt</span>` : '';
+        const pointBadge = totalPts > 0 ? `<span class="unspent-pt">+${totalPts}</span>` : '';
         const avatarUrl = (typeof getHeroPortraitDataURL === 'function') ? getHeroPortraitDataURL(p.role) : '';
 
         const form = (typeof getHeroFormationInfo === 'function')
@@ -1782,14 +1800,14 @@ function updateUI() {
             : { roman: ['I', 'II', 'III', 'IV'][idx] || String(idx + 1), isFront: idx < 2 };
 
         const swapUpBtn = (gameMode === 'EXPLORE' && idx > 0)
-            ? `<button type="button" class="btn-rank-step" title="Advance Rank" aria-label="Advance ${p.name} Rank" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx - 1})">▲</button>` : '';
+            ? `<button type="button" class="btn-rank-step" title="Advance Rank" aria-label="Advance ${p.name}" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx - 1})">▲</button>` : '';
         const swapDownBtn = (gameMode === 'EXPLORE' && idx < party.length - 1)
-            ? `<button type="button" class="btn-rank-step" title="Step Back Rank" aria-label="Move ${p.name} Back" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx + 1})">▼</button>` : '';
+            ? `<button type="button" class="btn-rank-step" title="Step Back" aria-label="Move ${p.name} Back" onclick="event.stopPropagation(); swapPartyFormation(${idx}, ${idx + 1})">▼</button>` : '';
 
-        const eqIcons = Object.keys(EQUIP_SLOTS).map(slotKey => {
+        const miniBoxes = Object.keys(EQUIP_SLOTS).map(slotKey => {
             const item = p.equipment[slotKey];
-            const cls = item ? (item.curseId ? 'eq-slot-pip cursed' : 'eq-slot-pip') : 'eq-slot-pip empty';
-            const ico = item && item.curseId ? icon('skull', 11) : EQUIP_SLOTS[slotKey].icon;
+            const cls = item ? (item.curseId ? 'micro-slot-box cursed' : 'micro-slot-box') : 'micro-slot-box empty';
+            const ico = item && item.curseId ? icon('skull', 9) : EQUIP_SLOTS[slotKey].icon;
             return `<span class="${cls}" title="${item ? item.name : `${EQUIP_SLOTS[slotKey].label}: Empty`}">${ico}</span>`;
         }).join('');
 
@@ -1801,53 +1819,41 @@ function updateUI() {
         }
         if (getHeroCursedRelicId(p)) statusHtml += `<span class="tag-curse">CURSED</span>`;
 
-        const runeCount = (p.runes && p.runes.length > 0)
-            ? `<span style="color:#ad7fd1; font-size:9.5px; margin-left:4px;">${icon('arcane', 10)}${p.runes.length}</span>`
-            : '';
-
         return `
         <div class="member-card ${isMyTurn ? 'active-turn-card' : ''}" onclick="toggleEquipModal(${idx})" style="opacity:${p.hp > 0 ? '1' : '0.38'}">
             <div class="hero-portrait-frame">
                 ${avatarUrl ? `<img src="${avatarUrl}" alt="${p.role}">` : ''}
-                <span class="rank-numeral" title="${form.isFront ? 'Vanguard (+15% Melee DMG)' : 'Rearguard (-25% DMG Taken)'}">${form.roman}</span>
+                <span class="rank-numeral" title="${form.isFront ? 'Vanguard' : 'Rearguard'}">${form.roman}</span>
             </div>
             <div class="member-details">
-                <div class="member-header">
-                    <span class="hero-name-group">
-                        ${isLeader ? `<span style="color:#c9a45c" title="Expedition Leader">${icon('crown', 11)}</span>` : ''}
+                <div class="member-top-strip">
+                    <span class="hero-id-line">
+                        ${isLeader ? `<span style="color:#c7ae91" title="Leader">${icon('crown', 11)}</span>` : ''}
                         <span class="hero-name-title">${p.name}</span>
                         <span class="hero-lv-tag">Lv.${p.level}</span>
                         ${pointBadge}
                     </span>
-                    <span class="vital-readout">
+                    <div class="mini-slot-boxes">${miniBoxes}</div>
+                </div>
+
+                <div class="staggered-bars">
+                    <div class="pointed-bar-track bar-track-hp" title="HP ${p.hp}/${p.maxHp}">
+                        <span class="pointed-bar-fill fill-crimson" style="width:${hpPercent}%;"></span>
+                    </div>
+                    <div class="pointed-bar-track bar-track-mp" title="MP ${p.mp}/${p.maxMp}">
+                        <span class="pointed-bar-fill fill-cobalt" style="width:${mpPercent}%;"></span>
+                    </div>
+                    <div class="pointed-bar-track bar-track-od" title="Overdrive ${odPercent}%">
+                        <span class="pointed-bar-fill ${odFillClass}" style="width:${odPercent}%;"></span>
+                    </div>
+                </div>
+
+                <div class="member-bottom-meta">
+                    <span>HP <b>${p.hp}</b> · MP <b>${p.mp}</b> · OD <b>${odPercent}%</b></span>
+                    <span class="status-tags">
                         <span class="rank-swap-controls">${swapUpBtn}${swapDownBtn}</span>
-                        <span>${p.hp}/${p.maxHp}</span>
+                        ${statusHtml || (isMyTurn ? '<span style="color:#e2ceb4">ACTING</span>' : (p.hp <= 0 ? '<span class="tag-curse">FALLEN</span>' : ''))}
                     </span>
-                </div>
-                <div class="bar-stack">
-                    <div class="hp-bar-bg">
-                        <div class="hp-bar-fill ${vitClass}" style="width:${hpPercent}%;"></div>
-                    </div>
-                    <div class="hp-bar-bg" style="block-size:3.5px; border:none;">
-                        <div class="hp-bar-fill fill-spirit" style="width:${mpPercent}%;"></div>
-                    </div>
-                    <div class="hp-bar-bg" style="block-size:2.5px; border:none;">
-                        <div class="hp-bar-fill fill-overdrive" style="width:${odPercent}%;"></div>
-                    </div>
-                </div>
-                <div class="member-substats">
-                    <span class="stat-cluster">
-                        <span>ATK <b>${p.dmgType === 'Magic' ? p.matk : p.patk}</b></span>
-                        <span>DEF <b>${p.def}</b></span>
-                        <span>SPD <b>${p.spd}</b></span>
-                        <span>MP <b style="color:#6ca0d4">${p.mp}</b></span>
-                        <span>OD <b style="color:#db822b">${odPercent}%</b></span>
-                    </span>
-                    <span style="color:${isMyTurn ? '#dfd0b0' : '#7d7363'}; font-weight:${isMyTurn ? '600' : '400'};">${isMyTurn ? 'ACTING' : (p.hp > 0 ? '' : 'FALLEN')}</span>
-                </div>
-                <div class="mini-equip-icons">
-                    <div class="equip-silhouette-row">${eqIcons}${runeCount}</div>
-                    <div class="status-tags">${statusHtml}</div>
                 </div>
             </div>
         </div>
@@ -1978,7 +1984,7 @@ function drawHoverCursor() {
     if (!revealed[hy] || !revealed[hy][hx]) return;
 
     ctx.save();
-    ctx.strokeStyle = 'rgba(201, 164, 92, 0.72)';
+    ctx.strokeStyle = 'rgba(199, 174, 145, 0.72)';
     ctx.lineWidth = 1.4;
     ctx.strokeRect(hx * TILE_SIZE + 2, hy * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);
     ctx.restore();
@@ -1990,7 +1996,7 @@ function drawScreenSpaceOverlays() {
         WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH * 0.62
     );
     edgeVig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.50)');
+    edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.52)');
     ctx.fillStyle = edgeVig;
     ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
@@ -2004,25 +2010,31 @@ function drawScreenSpaceOverlays() {
                 WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH * 0.65
             );
             redGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            redGrad.addColorStop(1, `rgba(140, 12, 18, ${pulse})`);
+            redGrad.addColorStop(1, `rgba(135, 14, 20, ${pulse})`);
             ctx.fillStyle = redGrad;
             ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
         }
     }
 
+    // "MAP FOUND" Style Faded Mist Ultimate Cut-In Banner
     if (ultimateCutIn) {
         ctx.save();
         ctx.globalAlpha = ultimateCutIn.alpha;
         const cy = WORLD_HEIGHT / 2 - 38;
 
         const bGrad = ctx.createLinearGradient(0, cy, WORLD_WIDTH, cy);
-        bGrad.addColorStop(0, 'rgba(8, 6, 5, 0.70)');
-        bGrad.addColorStop(0.5, 'rgba(20, 14, 10, 0.96)');
-        bGrad.addColorStop(1, 'rgba(8, 6, 5, 0.70)');
+        bGrad.addColorStop(0, 'rgba(18, 16, 18, 0.15)');
+        bGrad.addColorStop(0.25, 'rgba(22, 19, 21, 0.95)');
+        bGrad.addColorStop(0.75, 'rgba(22, 19, 21, 0.95)');
+        bGrad.addColorStop(1, 'rgba(18, 16, 18, 0.15)');
         ctx.fillStyle = bGrad;
         ctx.fillRect(0, cy, WORLD_WIDTH, 76);
 
-        ctx.strokeStyle = '#c9a45c';
+        const lineGrad = ctx.createLinearGradient(0, 0, WORLD_WIDTH, 0);
+        lineGrad.addColorStop(0, 'rgba(142, 118, 96, 0)');
+        lineGrad.addColorStop(0.5, '#c7ae91');
+        lineGrad.addColorStop(1, 'rgba(142, 118, 96, 0)');
+        ctx.strokeStyle = lineGrad;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, cy); ctx.lineTo(WORLD_WIDTH, cy);
@@ -2030,14 +2042,14 @@ function drawScreenSpaceOverlays() {
         ctx.stroke();
 
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#c9a45c';
-        ctx.font = '600 11px Cinzel, serif';
-        ctx.fillText(`◆  OVERDRIVE UNLEASHED · ${ultimateCutIn.actorName}  ◆`, WORLD_WIDTH / 2, cy + 25);
+        ctx.fillStyle = '#9e8f7f';
+        ctx.font = '700 12px Almendra, Cinzel, serif';
+        ctx.fillText(`OVERDRIVE UNLEASHED · ${ultimateCutIn.actorName}`, WORLD_WIDTH / 2, cy + 25);
 
-        ctx.fillStyle = '#ede3d2';
-        ctx.shadowColor = ultimateCutIn.color;
-        ctx.shadowBlur = 12;
-        ctx.font = '700 26px Cinzel, serif';
+        ctx.fillStyle = '#e2ceb4';
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 8;
+        ctx.font = '700 28px Almendra, Cinzel, serif';
         ctx.fillText(ultimateCutIn.ultTitle, WORLD_WIDTH / 2, cy + 56);
         ctx.textAlign = 'left';
         ctx.restore();
@@ -2062,15 +2074,15 @@ function drawMiniMapRadar() {
     const biome = getCurrentBiome();
 
     minimapCtx.save();
-    minimapCtx.fillStyle = 'rgba(10, 8, 7, 0.92)';
+    minimapCtx.fillStyle = 'rgba(18, 16, 18, 0.94)';
     minimapCtx.fillRect(0, 0, boxW, boxH);
 
-    minimapCtx.fillStyle = '#c9a45c';
-    minimapCtx.font = '600 9px Cinzel, serif';
-    minimapCtx.fillText(`F${currentFloor} · ${biome.name.toUpperCase()}`, pad, 13.5);
+    minimapCtx.fillStyle = '#c7ae91';
+    minimapCtx.font = '700 10px Almendra, Cinzel, serif';
+    minimapCtx.fillText(`F${currentFloor} · ${biome.name}`, pad, 13.5);
 
     minimapCtx.textAlign = 'right';
-    minimapCtx.fillStyle = isFloorCleared() ? '#75b88c' : '#cf5b64';
+    minimapCtx.fillStyle = isFloorCleared() ? '#78ab8c' : '#c95b60';
     minimapCtx.fillText(isFloorCleared() ? 'CLEAR' : `${enemies.length} FOES`, boxW - pad, 13.5);
     minimapCtx.textAlign = 'left';
 
@@ -2080,18 +2092,18 @@ function drawMiniMapRadar() {
             const py = gridOriginY + y * cell;
 
             if (!revealed[y] || !revealed[y][x]) {
-                minimapCtx.fillStyle = '#060504';
+                minimapCtx.fillStyle = '#0c0b0c';
                 minimapCtx.fillRect(px, py, cell, cell);
                 continue;
             }
             if (map[y][x] === 1) {
-                minimapCtx.fillStyle = '#3b332a';
+                minimapCtx.fillStyle = '#38302b';
                 minimapCtx.fillRect(px, py, cell, cell);
             } else if (map[y][x] === 2) {
-                minimapCtx.fillStyle = '#c9a45c';
+                minimapCtx.fillStyle = '#c7ae91';
                 minimapCtx.fillRect(px, py, cell, cell);
             } else {
-                minimapCtx.fillStyle = '#1c1814';
+                minimapCtx.fillStyle = '#1d1a1d';
                 minimapCtx.fillRect(px, py, cell - 0.5, cell - 0.5);
             }
         }
@@ -2099,42 +2111,42 @@ function drawMiniMapRadar() {
 
     traps.forEach(t => {
         if (revealed[t.y] && revealed[t.y][t.x] && (t.detected || t.triggered)) {
-            minimapCtx.fillStyle = '#b83236';
+            minimapCtx.fillStyle = '#a8383b';
             minimapCtx.fillRect(gridOriginX + t.x * cell + 2, gridOriginY + t.y * cell + 2, cell - 4, cell - 4);
         }
     });
 
     chests.forEach(c => {
         if (!c.opened && revealed[c.y] && revealed[c.y][c.x]) {
-            minimapCtx.fillStyle = '#d4a64a';
+            minimapCtx.fillStyle = '#d8c2a6';
             minimapCtx.fillRect(gridOriginX + c.x * cell + 1.5, gridOriginY + c.y * cell + 1.5, cell - 3, cell - 3);
         }
     });
 
     lootDrops.forEach(d => {
         if (revealed[d.y] && revealed[d.y][d.x]) {
-            minimapCtx.fillStyle = '#ad7fd1';
+            minimapCtx.fillStyle = '#ad85cc';
             minimapCtx.fillRect(gridOriginX + d.x * cell + 1.5, gridOriginY + d.y * cell + 1.5, cell - 3, cell - 3);
         }
     });
 
     if (merchant && revealed[merchant.y] && revealed[merchant.y][merchant.x]) {
-        minimapCtx.fillStyle = '#75b88c';
+        minimapCtx.fillStyle = '#78ab8c';
         minimapCtx.fillRect(gridOriginX + merchant.x * cell + 1, gridOriginY + merchant.y * cell + 1, cell - 2, cell - 2);
     }
     if (shrine && !shrine.used && revealed[shrine.y] && revealed[shrine.y][shrine.x]) {
-        minimapCtx.fillStyle = '#7bb3db';
+        minimapCtx.fillStyle = '#79a6cf';
         minimapCtx.fillRect(gridOriginX + shrine.x * cell + 1, gridOriginY + shrine.y * cell + 1, cell - 2, cell - 2);
     }
     if (campfire && !campfire.used && revealed[campfire.y] && revealed[campfire.y][campfire.x]) {
-        minimapCtx.fillStyle = '#db822b';
+        minimapCtx.fillStyle = '#c78d44';
         minimapCtx.fillRect(gridOriginX + campfire.x * cell + 1, gridOriginY + campfire.y * cell + 1, cell - 2, cell - 2);
     }
 
     if ((revealed[stairs.y] && revealed[stairs.y][stairs.x]) || isFloorCleared()) {
-        minimapCtx.fillStyle = isFloorCleared() ? '#75b88c' : '#7d7363';
+        minimapCtx.fillStyle = isFloorCleared() ? '#78ab8c' : '#6e5a49';
         minimapCtx.fillRect(gridOriginX + stairs.x * cell, gridOriginY + stairs.y * cell, cell, cell);
-        minimapCtx.strokeStyle = '#ded5c4';
+        minimapCtx.strokeStyle = '#dfd0bc';
         minimapCtx.lineWidth = 0.8;
         minimapCtx.strokeRect(gridOriginX + stairs.x * cell, gridOriginY + stairs.y * cell, cell, cell);
     }
@@ -2143,12 +2155,12 @@ function drawMiniMapRadar() {
         if (revealed[e.y] && revealed[e.y][e.x]) {
             const ex = gridOriginX + e.x * cell;
             const ey = gridOriginY + e.y * cell;
-            minimapCtx.fillStyle = e.isBoss ? '#dfd0b0' : '#cf4646';
+            minimapCtx.fillStyle = e.isBoss ? '#e2ceb4' : '#a8383b';
             if (e.isBoss) minimapCtx.fillRect(ex - 0.5, ey - 0.5, cell + 1, cell + 1);
             else minimapCtx.fillRect(ex + 1, ey + 1, cell - 2, cell - 2);
 
             if (gameMode === 'COMBAT' && e === activeEnemy) {
-                minimapCtx.strokeStyle = '#8ab8d9';
+                minimapCtx.strokeStyle = '#79a6cf';
                 minimapCtx.lineWidth = 1;
                 minimapCtx.strokeRect(ex - 1, ey - 1, cell + 2, cell + 2);
             }
@@ -2157,7 +2169,7 @@ function drawMiniMapRadar() {
 
     party.forEach(p => {
         if (p.hp > 0) {
-            minimapCtx.fillStyle = '#6ca0d4';
+            minimapCtx.fillStyle = '#4376a8';
             minimapCtx.fillRect(gridOriginX + p.x * cell + 1, gridOriginY + p.y * cell + 1, cell - 2, cell - 2);
         }
     });
@@ -2166,7 +2178,7 @@ function drawMiniMapRadar() {
     if (ldr) {
         const lx = gridOriginX + ldr.x * cell;
         const ly = gridOriginY + ldr.y * cell;
-        minimapCtx.fillStyle = '#dfd0b0';
+        minimapCtx.fillStyle = '#e2ceb4';
         minimapCtx.fillRect(lx, ly, cell, cell);
         minimapCtx.strokeStyle = '#000000';
         minimapCtx.lineWidth = 1;
@@ -2174,12 +2186,12 @@ function drawMiniMapRadar() {
     }
 
     const legY = gridOriginY + mapH + 13;
-    minimapCtx.font = '8.5px Inter, sans-serif';
-    minimapCtx.fillStyle = '#dfd0b0'; minimapCtx.fillText('■ Order', pad, legY);
-    minimapCtx.fillStyle = '#cf4646'; minimapCtx.fillText('■ Foe', pad + 42, legY);
-    minimapCtx.fillStyle = '#d4a64a'; minimapCtx.fillText('■ Chest', pad + 75, legY);
-    minimapCtx.fillStyle = '#7bb3db'; minimapCtx.fillText('■ Site', pad + 116, legY);
-    minimapCtx.fillStyle = '#75b88c'; minimapCtx.fillText('■ Stairs', pad + 148, legY);
+    minimapCtx.font = '9px Crimson Pro, serif';
+    minimapCtx.fillStyle = '#e2ceb4'; minimapCtx.fillText('■ Order', pad, legY);
+    minimapCtx.fillStyle = '#a8383b'; minimapCtx.fillText('■ Foe', pad + 42, legY);
+    minimapCtx.fillStyle = '#d8c2a6'; minimapCtx.fillText('■ Chest', pad + 75, legY);
+    minimapCtx.fillStyle = '#79a6cf'; minimapCtx.fillText('■ Site', pad + 116, legY);
+    minimapCtx.fillStyle = '#78ab8c'; minimapCtx.fillText('■ Stairs', pad + 148, legY);
 
     minimapCtx.restore();
 }
@@ -2205,7 +2217,7 @@ function drawGame() {
     for (let y = 0; y < ROWS; y++) {
         for (let x = 0; x < COLS; x++) {
             if (!revealed[y] || !revealed[y][x]) {
-                ctx.fillStyle = '#040302';
+                ctx.fillStyle = '#070607';
                 ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                 continue;
             }
@@ -2238,7 +2250,7 @@ function drawGame() {
                 if (!c.opened) {
                     dynamicLights.push({
                         x: c.x * TILE_SIZE + 24, y: c.y * TILE_SIZE + 24,
-                        r: 52, color: 'rgba(201, 164, 92, 0.12)', cutout: 0.28
+                        r: 52, color: 'rgba(199, 174, 145, 0.12)', cutout: 0.28
                     });
                 }
             }
@@ -2258,8 +2270,8 @@ function drawGame() {
             });
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#dfd0b0';
-            ctx.font = '600 9px Cinzel, serif';
+            ctx.fillStyle = '#e2ceb4';
+            ctx.font = '700 10px Almendra, Cinzel, serif';
             ctx.fillText("CARAVAN", merchant.x * TILE_SIZE + 24, merchant.y * TILE_SIZE - 10);
             ctx.restore();
         }
@@ -2274,8 +2286,8 @@ function drawGame() {
             }
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.fillStyle = shrine.used ? '#7d7363' : '#9ec8ed';
-            ctx.font = '600 9px Cinzel, serif';
+            ctx.fillStyle = shrine.used ? '#8c7d6e' : '#9ec8ed';
+            ctx.font = '700 10px Almendra, Cinzel, serif';
             ctx.fillText(shrine.used ? "DEPLETED" : "SHRINE", shrine.x * TILE_SIZE + 24, shrine.y * TILE_SIZE - 12);
             ctx.restore();
         }
@@ -2291,8 +2303,8 @@ function drawGame() {
             }
             ctx.save();
             ctx.textAlign = 'center';
-            ctx.fillStyle = campfire.used ? '#7d7363' : '#e6a255';
-            ctx.font = '600 9px Cinzel, serif';
+            ctx.fillStyle = campfire.used ? '#8c7d6e' : '#e2ceb4';
+            ctx.font = '700 10px Almendra, Cinzel, serif';
             ctx.fillText(campfire.used ? "ASHES" : "HEARTH", campfire.x * TILE_SIZE + 24, campfire.y * TILE_SIZE - 6);
             ctx.restore();
         }
@@ -2308,7 +2320,7 @@ function drawGame() {
 
             if (e.isBoss || e.affix) {
                 ctx.save();
-                ctx.strokeStyle = e.color || '#c9a45c';
+                ctx.strokeStyle = e.color || '#c7ae91';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, e.isBoss ? 21 : 17, e.isBoss ? 8 : 6.5, 0, 0, Math.PI * 2);
@@ -2321,7 +2333,7 @@ function drawGame() {
 
             if (gameMode === 'COMBAT' && e === activeEnemy) {
                 ctx.save();
-                ctx.strokeStyle = '#8ab8d9';
+                ctx.strokeStyle = '#79a6cf';
                 ctx.lineWidth = 2.0;
                 ctx.setLineDash([5, 3]);
                 ctx.beginPath();
@@ -2332,7 +2344,7 @@ function drawGame() {
 
             if (gameMode === 'COMBAT' && activeActor === e) {
                 ctx.save();
-                ctx.strokeStyle = '#cf4646';
+                ctx.strokeStyle = '#a8383b';
                 ctx.lineWidth = 2.4;
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, 19, 7, 0, 0, Math.PI * 2);
@@ -2348,20 +2360,20 @@ function drawGame() {
                 const barY = e.y * TILE_SIZE - (e.isBoss ? 22 : 12) + (e.animOffsetY || 0) + bobY;
                 const hpPercent = Math.max(0, e.hp / e.maxHp);
 
-                ctx.fillStyle = 'rgba(6, 5, 4, 0.92)';
+                ctx.fillStyle = 'rgba(14, 12, 14, 0.92)';
                 ctx.fillRect(barX - 1, barY - 1, barW + 2, 6);
-                ctx.strokeStyle = 'rgba(150, 125, 80, 0.55)';
+                ctx.strokeStyle = 'rgba(142, 118, 96, 0.65)';
                 ctx.lineWidth = 0.8;
                 ctx.strokeRect(barX - 1, barY - 1, barW + 2, 6);
 
-                ctx.fillStyle = e.isBoss ? '#c9a45c' : '#b83236';
+                ctx.fillStyle = e.isBoss ? '#c7ae91' : '#a8383b';
                 ctx.fillRect(barX, barY, Math.max(0, barW * hpPercent), 4);
             }
 
             if (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(e)) {
                 ctx.save();
-                ctx.fillStyle = '#c9a45c';
-                ctx.font = 'bold 9px Cinzel, serif';
+                ctx.fillStyle = '#e2ceb4';
+                ctx.font = 'bold 9px Almendra, Cinzel, serif';
                 ctx.fillText('◆', cx + 14, e.y * TILE_SIZE + 6);
                 ctx.restore();
             }
@@ -2379,7 +2391,7 @@ function drawGame() {
 
             if (gameMode === 'COMBAT' && activeActor === p) {
                 ctx.save();
-                ctx.strokeStyle = '#c9a45c';
+                ctx.strokeStyle = '#e2ceb4';
                 ctx.lineWidth = 2.2;
                 ctx.beginPath();
                 ctx.ellipse(cx, baseY, 20, 7.5, 0, 0, Math.PI * 2);
@@ -2391,7 +2403,7 @@ function drawGame() {
 
             if (p === currentLeader) {
                 ctx.save();
-                ctx.fillStyle = '#c9a45c';
+                ctx.fillStyle = '#e2ceb4';
                 ctx.beginPath();
                 ctx.moveTo(cx, baseY - 49 + bobY);
                 ctx.lineTo(cx - 4, baseY - 54 + bobY);
@@ -2431,8 +2443,8 @@ function drawGame() {
             const sc = pop.scale || 1.0;
             ctx.scale(sc, sc);
 
-            const popSize = pop.size || 15;
-            ctx.font = `700 ${popSize}px Cinzel, serif`;
+            const popSize = pop.size || 16;
+            ctx.font = `700 ${popSize}px Almendra, Cinzel, serif`;
             ctx.textAlign = 'center';
             ctx.lineWidth = 3.5;
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.94)';
@@ -2513,7 +2525,7 @@ function renderSaveSlotModal() {
                 info = `Floor ${s.currentFloor || '?'} · Asc ${s.ascensionLevel || 0}${partyInfo}`;
             } catch (e) { info = 'Corrupted Seal'; }
         }
-        const active = (typeof activeSaveSlot !== 'undefined' && activeSaveSlot === i) ? ' <span style="color:#75b88c;">(Active)</span>' : '';
+        const active = (typeof activeSaveSlot !== 'undefined' && activeSaveSlot === i) ? ' <span style="color:#92c4a4;">(Active)</span>' : '';
         html += `
         <div class="bag-item-row">
             <div><b>Archive Slot ${i}${active}</b><div class="item-buff-text">${info}</div></div>
@@ -2604,49 +2616,49 @@ function updateHoverTooltipHtml(clientX, clientY) {
         return;
     }
 
-    let title = null, sub = null, badgeColor = '#dfd0b0';
+    let title = null, sub = null, badgeColor = '#e2ceb4';
     const en = enemies.find(e => e.x === hx && e.y === hy && e.hp > 0);
     const ch = chests.find(c => c.x === hx && c.y === hy && !c.opened);
     const tr = traps.find(tp => tp.x === hx && tp.y === hy && (tp.detected || tp.triggered));
     const hr = party.find(p => p.x === hx && p.y === hy && p.hp > 0);
 
     if (en) {
-        const mastered = (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(en)) ? ' · Mastered (+10% DMG)' : '';
+        const mastered = (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(en)) ? ' · Mastered (+10%)' : '';
         title = `${en.name}${mastered}`;
         sub = `HP ${en.hp}/${en.maxHp} · ATK ${en.atk} · DEF ${en.def} · SPD ${en.spd}${en.bossSkillName ? ` · Art: ${en.bossSkillName}` : ''}`;
-        badgeColor = en.isBoss ? '#dfd0b0' : '#cf5b64';
+        badgeColor = en.isBoss ? '#e2ceb4' : '#cf5b64';
     } else if (merchant && merchant.x === hx && merchant.y === hy) {
         title = 'Wandering Caravan';
         sub = 'Hampiri untuk membeli perbekalan, bijih Damaskus, dan zirah tempaan.';
-        badgeColor = '#c9a45c';
+        badgeColor = '#e2ceb4';
     } else if (shrine && shrine.x === hx && shrine.y === hy) {
         title = 'Shrine of the Old Gods';
         sub = shrine.used ? 'Energi monolit ini telah habis.' : 'Hampiri untuk mengucap sumpah persembahan atau tantangan Elite.';
-        badgeColor = '#8ab8d9';
+        badgeColor = '#8eb5d9';
     } else if (campfire && campfire.x === hx && campfire.y === hy) {
         title = 'Sanctuary Hearth';
         sub = campfire.used ? 'Bara api unggun telah padam.' : 'Hampiri untuk beristirahat (+45% HP/MP), mengasah bilah, atau menempa obor.';
-        badgeColor = '#db822b';
+        badgeColor = '#c78d44';
     } else if (ch) {
         title = 'Ironbound Coffer';
-        sub = 'Berisi Zirah, Sovereigns, atau Damascus Ore. Waspadai peluang Cursed Mimic.';
-        badgeColor = '#c9a45c';
+        sub = 'Berisi Zirah, Gold, atau Damascus Ore. Waspadai peluang Cursed Mimic.';
+        badgeColor = '#e2ceb4';
     } else if (map[hy][hx] === 2) {
         title = 'Fractured Masonry';
         sub = 'Tabrak dinding retak ini untuk menjebol ruang simpanan rahasia (Secret Vault).';
-        badgeColor = '#dfd0b0';
+        badgeColor = '#e2ceb4';
     } else if (hx === stairs.x && hy === stairs.y) {
         title = isFloorCleared() ? 'Descending Stairwell (Unsealed)' : 'Iron Portcullis (Sealed)';
         sub = isFloorCleared()
             ? `Melangkah ke sini untuk turun menuju Lantai ${currentFloor + 1}.`
             : `Tumpas sisa ${enemies.length} musuh di lantai ini untuk membuka segel gerbang.`;
-        badgeColor = isFloorCleared() ? '#75b88c' : '#cf5b64';
+        badgeColor = isFloorCleared() ? '#92c4a4' : '#cf5b64';
     } else if (tr) {
         title = `Floor Mechanism (${tr.type.toUpperCase()})`;
         sub = tr.triggered ? 'Mekanisme jebakan sudah tidak aktif.' : 'Jebakan terdeteksi. Ksatria dengan SPD ≥ 15 dapat menjinakkannya otomatis.';
         badgeColor = '#cf5b64';
     } else if (hr) {
-        const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hr) : { roman: 'I', roleLabel: 'VANGUARD' };
+        const form = (typeof getHeroFormationInfo === 'function') ? getHeroFormationInfo(hr) : { roman: 'I' };
         title = `${hr.name} · Lv.${hr.level} ${hr.role} (Rank ${form.roman})`;
         let extra = '';
         if (typeof getHeroActiveSets === 'function') {
@@ -2655,7 +2667,7 @@ function updateHoverTooltipHtml(clientX, clientY) {
             if (setNames) extra += ` · ${setNames}`;
         }
         sub = `HP ${hr.hp}/${hr.maxHp} · MP ${hr.mp}/${hr.maxMp} · Overdrive ${hr.overdrive || 0}%${extra}`;
-        badgeColor = '#dfd0b0';
+        badgeColor = '#e2ceb4';
     }
 
     if (!title) {
@@ -2670,7 +2682,7 @@ function updateHoverTooltipHtml(clientX, clientY) {
     const crect = container.getBoundingClientRect();
     let x = clientX - crect.left + 14;
     let y = clientY - crect.top + 14;
-    if (x + 390 > crect.width) x = clientX - crect.left - 390;
+    if (x + 370 > crect.width) x = clientX - crect.left - 370;
     if (y + 84 > crect.height) y = clientY - crect.top - 84;
     if (x < 6) x = 6;
     if (y < 6) y = 6;

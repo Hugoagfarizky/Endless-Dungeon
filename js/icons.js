@@ -1,12 +1,12 @@
 // ============================================================================
-// BESPOKE DARK-FANTASY SVG ICONOGRAPHY SYSTEM
-// Replaces all OS emojis with crisp chiseled vector sigils using currentColor.
+// DARK FANTASY ULTIMATE UI PACK — SVG ICON & PIXEL-GOTHIC FILIGREE SYSTEM
+// Crisp vector icons + symmetrical pixel-gothic crests & spear ornaments.
 // ============================================================================
 
 const DUNGEON_SVG_PATHS = {
-    crest: '<path d="M12 2L14.8 8.2L21 9.5L16 14L17.5 21L12 17.4L6.5 21L8 14L3 9.5L9.2 8.2L12 2Z"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/>',
+    crest: '<path d="M12 2L14.8 8.2L21 9.5L16 14L17.5 21L12 17.4L6.5 21L8 14L3 9.5L9.2 8.2L12 2Z"/><circle cx="12" cy="12" r="2" fill="currentColor"/>',
     torch: '<path d="M12 2C14.5 5 16.5 7.2 16.5 10C16.5 12.5 14.5 14.2 12 14.2C9.5 14.2 7.5 12.5 7.5 10C7.5 7.8 9 6 10.2 4.5C10.2 6.5 11.5 7.2 12 5.5C12.3 4.3 12 3 12 2Z"/><path d="M9 14.5H15L13.6 22H10.4L9 14.5Z"/><path d="M7.5 14.5H16.5"/>',
-    coin: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.2"/><path d="M12 6.8V17.2M6.8 12H17.2"/>',
+    coin: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><path d="M12 7V17M9.5 9.5H14.5M9.5 14.5H14.5"/>',
     ingot: '<path d="M4 17L7 9H17L20 17H4Z"/><path d="M7 9L9.5 17M17 9L14.5 17"/><path d="M9 5L12 3L15 5"/>',
     satchel: '<path d="M9 3H15M10 3V6.5L5.5 14.5C4.6 16.1 5.7 18.2 7.6 18.2H16.4C18.3 18.2 19.4 16.1 18.5 14.5L14 6.5V3"/><path d="M7 13.5H17"/>',
     armory: '<path d="M12 3L4.5 6.2V11.8C4.5 16.5 7.7 20.6 12 22C16.3 20.6 19.5 16.5 19.5 11.8V6.2L12 3Z"/><path d="M12 6.5V18M8.5 10.5H15.5"/>',
@@ -54,5 +54,45 @@ const DUNGEON_SVG_PATHS = {
 function icon(name, size = 14, extraClass = '') {
     const body = DUNGEON_SVG_PATHS[name] || DUNGEON_SVG_PATHS.crest;
     const cls = extraClass ? `svg-ico ${extraClass}` : 'svg-ico';
-    return `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+    return `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+}
+
+// Symmetrical Pixel-Gothic Filigree Banner Crest (matches DARK FANTASY Ultimate UI Pack top/bottom crest)
+function filigreeBannerCrestSvg(flipped = false) {
+    const tf = flipped ? 'transform="scale(1,-1) translate(0,-12)"' : '';
+    return `<svg class="filigree-crest-svg" width="92" height="12" viewBox="0 0 92 12" shape-rendering="crispEdges" aria-hidden="true">
+        <g ${tf}>
+            <rect x="44" y="0" width="4" height="2" fill="#d8c2a6"/>
+            <rect x="40" y="2" width="12" height="2" fill="#c7ae91"/>
+            <rect x="34" y="4" width="6" height="2" fill="#9c836a"/>
+            <rect x="44" y="4" width="4" height="2" fill="#e6d4b8"/>
+            <rect x="52" y="4" width="6" height="2" fill="#9c836a"/>
+            <rect x="26" y="6" width="10" height="2" fill="#8e7660"/>
+            <rect x="38" y="6" width="16" height="2" fill="#c7ae91"/>
+            <rect x="56" y="6" width="10" height="2" fill="#8e7660"/>
+            <rect x="16" y="8" width="12" height="2" fill="#6e5a49"/>
+            <rect x="32" y="8" width="6" height="2" fill="#9c836a"/>
+            <rect x="42" y="8" width="8" height="2" fill="#d8c2a6"/>
+            <rect x="54" y="8" width="6" height="2" fill="#9c836a"/>
+            <rect x="64" y="8" width="12" height="2" fill="#6e5a49"/>
+            <rect x="6" y="10" width="80" height="2" fill="#8e7660"/>
+        </g>
+    </svg>`;
+}
+
+// Vertical Gothic Spearhead Finial Ornament (matches Potion Crafting Tips right-side spear track)
+function gothicSpearOrnamentSvg() {
+    return `<svg class="gothic-spear-svg" width="14" height="96" viewBox="0 0 14 96" fill="none" aria-hidden="true">
+        <!-- Top fleur-de-lis spearhead -->
+        <path d="M7 1L10.5 8L7 12L3.5 8L7 1Z" fill="#c7ae91"/>
+        <path d="M2 10C4 9 5.5 11 7 13C8.5 11 10 9 12 10" stroke="#9c836a" stroke-width="1.2"/>
+        <!-- Vertical shaft -->
+        <line x1="7" y1="12" x2="7" y2="84" stroke="#6e5a49" stroke-width="1.2"/>
+        <!-- Center diamond clasp -->
+        <polygon points="7 42 10.5 48 7 54 3.5 48" fill="#161416" stroke="#c7ae91" stroke-width="1.2"/>
+        <circle cx="7" cy="48" r="1.4" fill="#d8c2a6"/>
+        <!-- Bottom fleur-de-lis finial -->
+        <path d="M2 86C4 87 5.5 85 7 83C8.5 85 10 87 12 86" stroke="#9c836a" stroke-width="1.2"/>
+        <path d="M7 95L10.5 88L7 84L3.5 88L7 95Z" fill="#9c836a"/>
+    </svg>`;
 }
