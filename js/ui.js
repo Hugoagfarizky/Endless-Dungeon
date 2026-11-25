@@ -62,8 +62,17 @@ function mountStaticDungeonIcons() {
     }
 
     if (typeof gothicSpearOrnamentSvg === 'function') {
+        const spearLeft = document.getElementById('chronicle-spear-left');
         const spearEl = document.getElementById('chronicle-spear-ornament');
+        if (spearLeft) spearLeft.innerHTML = gothicSpearOrnamentSvg();
         if (spearEl) spearEl.innerHTML = gothicSpearOrnamentSvg();
+    }
+
+    if (typeof stoneCornerKeystoneSvg === 'function') {
+        ['tl', 'tr', 'bl', 'br'].forEach(c => {
+            const el = document.getElementById(`stone-arch-${c}`);
+            if (el) el.innerHTML = stoneCornerKeystoneSvg(c);
+        });
     }
 }
 mountStaticDungeonIcons();

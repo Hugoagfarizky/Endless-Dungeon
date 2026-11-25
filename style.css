@@ -1,7 +1,7 @@
 /* ============================================================================
-   DARK FANTASY ULTIMATE UI PACK V2.0 — PIXEL-GOTHIC FILIGREE DESIGN SYSTEM
-   Matte soot-obsidian (#131113), champagne-sand filigree (#c7ae91 / #8e7660),
-   9-slice lacy corner spandrels, pointed staggered status bars, & mist banners.
+   DARK FANTASY ULTIMATE UI PACK V2.0 — CARVED DUNGEON STONE & FILIGREE EDITION
+   Hewn basalt ashlar masonry, mineral rock grain, weathered stone friezes,
+   chiseled 9-slice stone+bronze filigree frames, & pointed gothic status bars.
    ============================================================================ */
 
 * {
@@ -12,20 +12,25 @@
     color-scheme: dark;
     --in-oklab: ;
 
-    /* Exact Reference Sheet Palette */
-    --void-black: #121012;
-    --slot-charcoal: #171517;
-    --slot-raised: #1e1b1e;
-    --slot-hover: #252125;
+    /* Carved Basalt / Dungeon Slate + Champagne-Bronze Filigree Palette */
+    --void-black: #110f13;
+    --stone-deep: #151317;
+    --slot-charcoal: #1c191e;
+    --slot-raised: #262228;
+    --slot-hover: #302a31;
+    --stone-bevel-lit: #52494f;
+    --stone-bevel-mid: #383137;
+    --stone-mortar: #09080b;
 
-    --filigree-dim: #463b33;
+    --filigree-dim: #4d423a;
     --filigree-mid: #8e7660;
     --filigree-bright: #c7ae91;
-    --filigree-ivory: #e2ceb4;
+    --filigree-ivory: #e6d4bc;
 
-    --text-bone: #dfd0bc;
-    --text-sand: #b8a58e;
-    --text-taupe: #8c7d6e;
+    /* WCAG >= 4.5:1 Contrast-Verified Stone Inscription Ink */
+    --text-bone: #e6d9c7;
+    --text-sand: #c6b49e;
+    --text-taupe: #a39485;
 
     /* Exact Reference Sheet 3-Bar Colors */
     --bar-hp-dark: #7a2629;
@@ -36,19 +41,31 @@
     --bar-od-fill: #458a66;
     --bar-amber-fill: #c78d44;
 
-    --scrollbar-thumb: #8e7660;
-    --scrollbar-track: #141214;
+    --scrollbar-thumb: #6f5f52;
+    --scrollbar-track: #121014;
 
     --font-gothic: 'Almendra', 'Cinzel', Georgia, serif;
     --font-prose: 'Crimson Pro', Georgia, serif;
 
-    /* 9-Slice Pixel-Gothic Ornate Corner Filigree (48x48, slice 15) */
-    --filigree-9slice-ornate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='48' height='48' fill='none' stroke='%238e7660' stroke-width='2'/%3E%3Crect x='3' y='3' width='42' height='42' fill='none' stroke='%233d332c' stroke-width='2'/%3E%3Cg fill='%23c7ae91'%3E%3Crect x='0' y='0' width='11' height='2'/%3E%3Crect x='0' y='0' width='2' height='11'/%3E%3Crect x='2' y='2' width='6' height='2'/%3E%3Crect x='2' y='2' width='2' height='6'/%3E%3Crect x='5' y='5' width='3' height='2'/%3E%3Crect x='5' y='5' width='2' height='3'/%3E%3Crect x='9' y='2' width='2' height='2'/%3E%3Crect x='2' y='9' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(48,0) scale(-1,1)'%3E%3Crect x='0' y='0' width='11' height='2'/%3E%3Crect x='0' y='0' width='2' height='11'/%3E%3Crect x='2' y='2' width='6' height='2'/%3E%3Crect x='2' y='2' width='2' height='6'/%3E%3Crect x='5' y='5' width='3' height='2'/%3E%3Crect x='5' y='5' width='2' height='3'/%3E%3Crect x='9' y='2' width='2' height='2'/%3E%3Crect x='2' y='9' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(0,48) scale(1,-1)'%3E%3Crect x='0' y='0' width='11' height='2'/%3E%3Crect x='0' y='0' width='2' height='11'/%3E%3Crect x='2' y='2' width='6' height='2'/%3E%3Crect x='2' y='2' width='2' height='6'/%3E%3Crect x='5' y='5' width='3' height='2'/%3E%3Crect x='5' y='5' width='2' height='3'/%3E%3Crect x='9' y='2' width='2' height='2'/%3E%3Crect x='2' y='9' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(48,48) scale(-1,-1)'%3E%3Crect x='0' y='0' width='11' height='2'/%3E%3Crect x='0' y='0' width='2' height='11'/%3E%3Crect x='2' y='2' width='6' height='2'/%3E%3Crect x='2' y='2' width='2' height='6'/%3E%3Crect x='5' y='5' width='3' height='2'/%3E%3Crect x='5' y='5' width='2' height='3'/%3E%3Crect x='9' y='2' width='2' height='2'/%3E%3Crect x='2' y='9' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+    /* Seamless Running-Bond Dungeon Ashlar Stone Wall (128x64) */
+    --stone-ashlar-wall: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='64' viewBox='0 0 128 64' shape-rendering='crispEdges'%3E%3Crect width='128' height='64' fill='%230b090d'/%3E%3Crect x='1' y='1' width='62' height='30' fill='%23161418'/%3E%3Crect x='1' y='1' width='62' height='1' fill='%2329242a'/%3E%3Crect x='1' y='1' width='1' height='30' fill='%23231f24'/%3E%3Crect x='65' y='1' width='62' height='30' fill='%23141216'/%3E%3Crect x='65' y='1' width='62' height='1' fill='%23262127'/%3E%3Crect x='65' y='1' width='1' height='30' fill='%23201c21'/%3E%3Crect x='0' y='33' width='30' height='30' fill='%23151317'/%3E%3Crect x='0' y='33' width='30' height='1' fill='%23272228'/%3E%3Crect x='32' y='33' width='63' height='30' fill='%2318151a'/%3E%3Crect x='32' y='33' width='63' height='1' fill='%232c262d'/%3E%3Crect x='32' y='33' width='1' height='30' fill='%23241f25'/%3E%3Crect x='97' y='33' width='31' height='30' fill='%23151317'/%3E%3Crect x='97' y='33' width='31' height='1' fill='%23272228'/%3E%3Crect x='97' y='33' width='1' height='30' fill='%23201c21'/%3E%3Cpath d='M18 1v5l3 3M88 31v-6l-3-3M52 33v7l-2 4M112 63v-5l2-3' stroke='%230c0a0e' stroke-width='1' fill='none'/%3E%3Crect x='61' y='29' width='2' height='2' fill='%230c0a0e'/%3E%3Crect x='32' y='33' width='2' height='2' fill='%230c0a0e'/%3E%3C/svg%3E");
 
-    /* 9-Slice Delicate Slot Filigree (30x30, slice 9 — for 16x16 / 32x32 [icon] tiles) */
-    --filigree-9slice-slot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='30' height='30' fill='none' stroke='%236e5a49' stroke-width='2'/%3E%3Cg fill='%23b59b7e'%3E%3Crect x='0' y='0' width='6' height='2'/%3E%3Crect x='0' y='0' width='2' height='6'/%3E%3Crect x='2' y='2' width='2' height='2'/%3E%3Crect x='24' y='0' width='6' height='2'/%3E%3Crect x='28' y='0' width='2' height='6'/%3E%3Crect x='26' y='2' width='2' height='2'/%3E%3Crect x='0' y='28' width='6' height='2'/%3E%3Crect x='0' y='24' width='2' height='6'/%3E%3Crect x='2' y='26' width='2' height='2'/%3E%3Crect x='24' y='28' width='6' height='2'/%3E%3Crect x='28' y='24' width='2' height='6'/%3E%3Crect x='26' y='26' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+    /* Organic Mineral Rock Grain & Pores (feTurbulence Soft-Light Texture) */
+    --stone-mineral-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='0.26'/%3E%3C/svg%3E");
 
-    --filigree-9slice-slot-active: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='30' height='30' fill='none' stroke='%23c7ae91' stroke-width='2'/%3E%3Cg fill='%23e8d5ba'%3E%3Crect x='0' y='0' width='7' height='2'/%3E%3Crect x='0' y='0' width='2' height='7'/%3E%3Crect x='2' y='2' width='3' height='3'/%3E%3Crect x='23' y='0' width='7' height='2'/%3E%3Crect x='28' y='0' width='2' height='7'/%3E%3Crect x='25' y='2' width='3' height='3'/%3E%3Crect x='0' y='28' width='7' height='2'/%3E%3Crect x='0' y='23' width='2' height='7'/%3E%3Crect x='2' y='25' width='3' height='3'/%3E%3Crect x='23' y='28' width='7' height='2'/%3E%3Crect x='28' y='23' width='2' height='7'/%3E%3Crect x='25' y='25' width='3' height='3'/%3E%3C/g%3E%3C/svg%3E");
+    /* Subtle Carved Stone Slab Cracks & Joint Lines */
+    --stone-slab-cracks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='120' viewBox='0 0 180 120' fill='none'%3E%3Cpath d='M0 59.5H180' stroke='%230a080c' stroke-opacity='0.42'/%3E%3Cpath d='M0 60.5H180' stroke='%23ffffff' stroke-opacity='0.035'/%3E%3Cpath d='M36 0L39 11L35 19M142 60L138 72L141 81M88 120L91 108' stroke='%2309070b' stroke-opacity='0.5' stroke-width='1'/%3E%3C/svg%3E");
+
+    /* Weathered / Chipped Stone Edge Alpha Mask (for visually-texture-content) */
+    --stone-weathered-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='24' viewBox='0 0 160 24' shape-rendering='crispEdges'%3E%3Crect width='160' height='24' fill='%23ffffff'/%3E%3Cg fill='%23ffffff' fill-opacity='0.18'%3E%3Crect x='12' y='0' width='3' height='2'/%3E%3Crect x='47' y='0' width='4' height='1'/%3E%3Crect x='83' y='0' width='2' height='2'/%3E%3Crect x='126' y='0' width='5' height='1'/%3E%3Crect x='29' y='22' width='4' height='2'/%3E%3Crect x='71' y='23' width='5' height='1'/%3E%3Crect x='114' y='22' width='3' height='2'/%3E%3Crect x='149' y='23' width='3' height='1'/%3E%3C/g%3E%3C/svg%3E");
+
+    /* 9-Slice Carved Stone Coping + Pixel-Gothic Bronze Filigree (56x56, slice 16) */
+    --filigree-9slice-ornate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' shape-rendering='crispEdges'%3E%3C!-- Outer Cut-Stone Shadow --%3E%3Crect x='0' y='0' width='56' height='56' fill='none' stroke='%230c0a0e' stroke-width='2'/%3E%3C!-- Hewn Stone Coping Ring --%3E%3Crect x='2' y='2' width='52' height='52' fill='none' stroke='%232b262b' stroke-width='4'/%3E%3C!-- Top & Left Chiseled Stone Bevel Highlight --%3E%3Crect x='1' y='1' width='54' height='2' fill='%234c4349'/%3E%3Crect x='1' y='1' width='2' height='54' fill='%23433b41'/%3E%3C!-- Stone Mortar Notches & Chips along Coping --%3E%3Cg fill='%23110e13'%3E%3Crect x='22' y='1' width='2' height='4'/%3E%3Crect x='36' y='2' width='1' height='3'/%3E%3Crect x='20' y='51' width='2' height='4'/%3E%3Crect x='35' y='51' width='1' height='4'/%3E%3Crect x='1' y='23' width='4' height='2'/%3E%3Crect x='51' y='25' width='4' height='2'/%3E%3C/g%3E%3C!-- Inner Recessed Bronze Filigree Track --%3E%3Crect x='5' y='5' width='46' height='46' fill='none' stroke='%23786350' stroke-width='2'/%3E%3C!-- 4 Symmetrical Champagne-Bronze Gothic Corner Spandrels --%3E%3Cg fill='%23c7ae91'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(56,0) scale(-1,1)'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(0,56) scale(1,-1)'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(56,56) scale(-1,-1)'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+
+    /* 9-Slice Chiseled Rune-Stone Tablet + Bronze Corner Clasps (32x32, slice 10) */
+    --filigree-9slice-slot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' shape-rendering='crispEdges'%3E%3C!-- Cut-Stone Outer Rim --%3E%3Crect x='0' y='0' width='32' height='32' fill='none' stroke='%230c0a0e' stroke-width='2'/%3E%3C!-- Beveled Stone Rim --%3E%3Crect x='1' y='1' width='30' height='30' fill='none' stroke='%23332d33' stroke-width='2'/%3E%3Crect x='1' y='1' width='29' height='2' fill='%234c4349'/%3E%3Crect x='1' y='1' width='2' height='29' fill='%23443c42'/%3E%3C!-- Stone Edge Chips --%3E%3Crect x='15' y='1' width='2' height='2' fill='%23141116'/%3E%3Crect x='14' y='29' width='2' height='2' fill='%230c0a0e'/%3E%3C!-- Bronze Corner Clasps --%3E%3Cg fill='%23b89f82'%3E%3Crect x='1' y='1' width='7' height='2'/%3E%3Crect x='1' y='1' width='2' height='7'/%3E%3Crect x='3' y='3' width='2' height='2'/%3E%3Crect x='24' y='1' width='7' height='2'/%3E%3Crect x='29' y='1' width='2' height='7'/%3E%3Crect x='27' y='3' width='2' height='2'/%3E%3Crect x='1' y='29' width='7' height='2'/%3E%3Crect x='1' y='24' width='2' height='7'/%3E%3Crect x='3' y='27' width='2' height='2'/%3E%3Crect x='24' y='29' width='7' height='2'/%3E%3Crect x='29' y='24' width='2' height='7'/%3E%3Crect x='27' y='27' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+
+    --filigree-9slice-slot-active: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='32' height='32' fill='none' stroke='%230c0a0e' stroke-width='2'/%3E%3Crect x='1' y='1' width='30' height='30' fill='none' stroke='%238e7660' stroke-width='2'/%3E%3Crect x='1' y='1' width='29' height='2' fill='%23c7ae91'/%3E%3Crect x='1' y='1' width='2' height='29' fill='%23b59b7e'/%3E%3Cg fill='%23ead8be'%3E%3Crect x='1' y='1' width='8' height='2'/%3E%3Crect x='1' y='1' width='2' height='8'/%3E%3Crect x='3' y='3' width='3' height='3'/%3E%3Crect x='23' y='1' width='8' height='2'/%3E%3Crect x='29' y='1' width='2' height='8'/%3E%3Crect x='26' y='3' width='3' height='3'/%3E%3Crect x='1' y='29' width='8' height='2'/%3E%3Crect x='1' y='23' width='2' height='8'/%3E%3Crect x='3' y='26' width='3' height='3'/%3E%3Crect x='23' y='29' width='8' height='2'/%3E%3Crect x='29' y='23' width='2' height='8'/%3E%3Crect x='26' y='26' width='3' height='3'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @supports (background: linear-gradient(in oklab, white, black)) {
@@ -62,6 +79,11 @@ body {
     min-block-size: 100dvh;
     block-size: 100dvh;
     background-color: var(--void-black);
+    background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(74, 62, 54, 0.2) 0%, rgba(10, 8, 12, 0.72) 75%),
+        var(--stone-mineral-grain),
+        var(--stone-ashlar-wall);
+    background-blend-mode: normal, soft-light, normal;
     color: var(--text-bone);
     font-family: var(--font-prose);
     font-variant-numeric: tabular-nums;
@@ -74,7 +96,7 @@ body {
     inline-size: 100%;
     block-size: 100%;
     overflow: clip;
-    background-color: var(--void-black);
+    background: transparent;
     padding-block: 10px 8px;
     padding-inline: 14px;
     display: flex;
@@ -89,18 +111,35 @@ body {
 }
 
 /* =========================================================
-   REUSABLE 9-SLICE GOTHIC FILIGREE FRAMES
+   CARVED STONE SLABS & 9-SLICE GOTHIC FILIGREE FRAMES
    ========================================================= */
 .filigree-frame {
     background-color: var(--slot-charcoal);
-    border: 8px solid transparent;
-    border-image: var(--filigree-9slice-ornate) 15 stretch;
+    background-image:
+        var(--stone-slab-cracks),
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #231f24 0%, #19161b 55%, #141216 100%);
+    background-blend-mode: normal, soft-light, normal;
+    border: 9px solid transparent;
+    border-image: var(--filigree-9slice-ornate) 16 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.1),
+        inset 0 -3px 0 rgba(6, 5, 8, 0.85),
+        inset 0 0 26px rgba(7, 6, 9, 0.72),
+        0 8px 22px rgba(0, 0, 0, 0.78);
 }
 
 .filigree-subbox {
-    background-color: #141214;
+    background-color: var(--stone-deep);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #1e1b20, #141216);
+    background-blend-mode: soft-light, normal;
     border: 6px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.75),
+        0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 /* =========================================================
@@ -108,10 +147,11 @@ body {
    ========================================================= */
 @media (prefers-reduced-motion: no-preference) {
     :where(button, select, input) {
-        transition: background-color 130ms ease-out, color 130ms ease-out, scale 100ms ease-out;
+        transition: background-color 130ms ease-out, color 130ms ease-out, box-shadow 110ms ease-out, scale 100ms ease-out;
     }
     button:active:not(:disabled):not([aria-disabled="true"]) {
         scale: 0.97;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.92);
     }
 }
 
@@ -160,7 +200,7 @@ body {
 
 /* =========================================================
    TOP BANNER ("DARK FANTASY Ultimate UI PACK V2.0" HEADER)
-   Fading horizontal double-rules + top & bottom crests
+   Carved stone lintel + weathered stone double-frieze + keystone crests
    ========================================================= */
 .mist-banner-header {
     position: relative;
@@ -168,36 +208,47 @@ body {
     align-items: safe center;
     justify-content: space-between;
     gap: 14px;
-    min-block-size: 54px;
+    min-block-size: 56px;
     padding-block: 6px;
-    padding-inline: 16px;
-    background:
-        radial-gradient(ellipse at 50% 50%, rgba(56, 46, 38, 0.28) 0%, rgba(20, 18, 20, 0.92) 58%, transparent 100%);
+    padding-inline: 18px;
+    background-image:
+        var(--stone-mineral-grain),
+        radial-gradient(ellipse at 50% 50%, rgba(52, 44, 48, 0.72) 0%, rgba(24, 21, 25, 0.94) 62%, rgba(15, 13, 17, 0.25) 100%);
+    background-blend-mode: soft-light, normal;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
     flex-shrink: 0;
 }
 
-/* Fading horizontal double lines top & bottom (no vertical borders, exact reference!) */
+/* Weathered Chiseled Stone + Bronze Double-Rule Friezes (masked for chipped stone feel!) */
 .mist-banner-header::before,
 .mist-banner-header::after {
     content: "";
     position: absolute;
     inset-inline: 0;
-    block-size: 4px;
+    block-size: 5px;
     pointer-events: none;
+    -webkit-mask-image: var(--stone-weathered-mask);
+    -webkit-mask-repeat: repeat-x;
+    -webkit-mask-size: 160px 24px;
+    mask-image: var(--stone-weathered-mask);
+    mask-repeat: repeat-x;
+    mask-size: 160px 24px;
 }
 
 .mist-banner-header::before {
     inset-block-start: 0;
     background:
-        linear-gradient(90deg, transparent 0%, var(--filigree-mid) 18%, var(--filigree-bright) 50%, var(--filigree-mid) 82%, transparent 100%) top / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 8%, rgba(142, 118, 96, 0.42) 28%, rgba(199, 174, 145, 0.5) 50%, rgba(142, 118, 96, 0.42) 72%, transparent 92%) bottom / 100% 1px no-repeat;
+        linear-gradient(90deg, transparent 0%, #4b4248 12%, var(--filigree-bright) 50%, #4b4248 88%, transparent 100%) top / 100% 2px no-repeat,
+        linear-gradient(90deg, transparent 6%, rgba(14, 12, 16, 0.9) 25%, rgba(14, 12, 16, 0.9) 75%, transparent 94%) center / 100% 1px no-repeat,
+        linear-gradient(90deg, transparent 8%, rgba(142, 118, 96, 0.48) 28%, rgba(199, 174, 145, 0.58) 50%, rgba(142, 118, 96, 0.48) 72%, transparent 92%) bottom / 100% 1px no-repeat;
 }
 
 .mist-banner-header::after {
     inset-block-end: 0;
     background:
-        linear-gradient(90deg, transparent 8%, rgba(142, 118, 96, 0.42) 28%, rgba(199, 174, 145, 0.5) 50%, rgba(142, 118, 96, 0.42) 72%, transparent 92%) top / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 0%, var(--filigree-mid) 18%, var(--filigree-bright) 50%, var(--filigree-mid) 82%, transparent 100%) bottom / 100% 1px no-repeat;
+        linear-gradient(90deg, transparent 8%, rgba(142, 118, 96, 0.48) 28%, rgba(199, 174, 145, 0.58) 50%, rgba(142, 118, 96, 0.48) 72%, transparent 92%) top / 100% 1px no-repeat,
+        linear-gradient(90deg, transparent 6%, rgba(14, 12, 16, 0.9) 25%, rgba(14, 12, 16, 0.9) 75%, transparent 94%) center / 100% 1px no-repeat,
+        linear-gradient(90deg, transparent 0%, #4b4248 12%, var(--filigree-bright) 50%, #4b4248 88%, transparent 100%) bottom / 100% 2px no-repeat;
 }
 
 .header-crest {
@@ -207,8 +258,12 @@ body {
     pointer-events: none;
     line-height: 0;
 }
-.header-crest-top { inset-block-start: -9px; }
-.header-crest-bottom { inset-block-end: -9px; }
+.header-crest-top { inset-block-start: -11px; }
+.header-crest-bottom { inset-block-end: -11px; }
+
+.filigree-crest-svg {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
+}
 
 .header-left-wing {
     display: flex;
@@ -273,12 +328,20 @@ body {
 }
 
 .currency-plaque {
-    min-inline-size: 92px;
-    block-size: 32px;
+    min-inline-size: 94px;
+    block-size: 34px;
     padding-inline: 8px;
     background-color: var(--slot-charcoal);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #282329, #171418);
+    background-blend-mode: soft-light, normal;
     border: 5px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.12),
+        inset 0 -2px 0 rgba(7, 6, 9, 0.85),
+        0 3px 6px rgba(0, 0, 0, 0.65);
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
@@ -360,9 +423,17 @@ body {
     padding-block: 2px;
     padding-inline: 5px;
     background-color: var(--slot-charcoal);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #2a252b 0%, #19161b 100%);
+    background-blend-mode: soft-light, normal;
     color: var(--text-sand);
     border: 5px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.14),
+        inset 0 -2px 0 rgba(6, 5, 8, 0.88),
+        0 3px 6px rgba(0, 0, 0, 0.68);
     display: inline-flex;
     flex-direction: column;
     align-items: center;
@@ -375,6 +446,9 @@ body {
 @media (hover: hover) {
     .icon-slot-btn:hover {
         border-image-source: var(--filigree-9slice-slot-active);
+        background-image:
+            var(--stone-mineral-grain),
+            linear-gradient(to bottom var(--in-oklab), #352e34 0%, #211d22 100%);
         color: var(--filigree-ivory);
     }
 }
@@ -382,7 +456,9 @@ body {
 .icon-slot-btn[aria-pressed="true"],
 .slot-highlight {
     border-image-source: var(--filigree-9slice-slot-active);
-    background-color: #231e1c;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #332a27 0%, #201a19 100%);
     color: var(--filigree-ivory);
 }
 
@@ -390,6 +466,7 @@ body {
     font-size: 9.5px;
     line-height: 1;
     letter-spacing: 0.03em;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
 }
 
 .slot-badge {
@@ -400,20 +477,25 @@ body {
     padding-inline: 3px;
     font-size: 9px;
     line-height: 13px;
-    background: #141214;
+    background: #141216;
     color: var(--filigree-ivory);
     border: 1px solid var(--filigree-mid);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
     text-align: center;
 }
 
 /* =========================================================
-   POINTED / SPEAR-TIPPED GOTHIC STATUS BARS (EXACT REFERENCE!)
+   POINTED / SPEAR-TIPPED GOTHIC STATUS BARS (SUNKEN STONE GROOVE!)
    ========================================================= */
+.pointed-bar-wrap {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.85));
+}
+
 .pointed-bar-track {
     position: relative;
     block-size: 7px;
-    background: #100e10;
-    border: 1px solid #6e5a49;
+    background: linear-gradient(to bottom var(--in-oklab), #0b090d, #161318);
+    border: 1px solid #574a40;
     clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%);
     overflow: clip;
 }
@@ -557,12 +639,15 @@ body {
     min-block-size: 0;
 }
 
-/* "MAP FOUND" STYLE FADED INITIATIVE MIST STRIP */
+/* "MAP FOUND" STYLE FADED CARVED STONE INITIATIVE STRIP */
 .mist-strip {
     position: relative;
     block-size: 36px;
     padding-inline: 18px;
-    background: linear-gradient(90deg, transparent 0%, rgba(25, 22, 24, 0.92) 15%, rgba(25, 22, 24, 0.92) 85%, transparent 100%);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(90deg, transparent 0%, rgba(30, 26, 31, 0.95) 14%, rgba(24, 21, 25, 0.96) 86%, transparent 100%);
+    background-blend-mode: soft-light, normal;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -574,9 +659,15 @@ body {
     content: "";
     position: absolute;
     inset-inline: 0;
-    block-size: 1px;
-    background: linear-gradient(90deg, transparent 0%, var(--filigree-mid) 25%, var(--filigree-bright) 50%, var(--filigree-mid) 75%, transparent 100%);
+    block-size: 2px;
+    background: linear-gradient(90deg, transparent 0%, #4b4248 18%, var(--filigree-bright) 50%, #4b4248 82%, transparent 100%);
     pointer-events: none;
+    -webkit-mask-image: var(--stone-weathered-mask);
+    -webkit-mask-repeat: repeat-x;
+    -webkit-mask-size: 160px 24px;
+    mask-image: var(--stone-weathered-mask);
+    mask-repeat: repeat-x;
+    mask-size: 160px 24px;
 }
 .mist-strip::before { inset-block-start: 0; }
 .mist-strip::after  { inset-block-end: 0; }
@@ -587,6 +678,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--filigree-ivory);
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
     white-space: nowrap;
 }
 
@@ -624,8 +716,13 @@ body {
     align-items: center;
     gap: 5px;
     padding: 2px 8px;
-    background: var(--slot-charcoal);
-    border: 1px solid var(--filigree-dim);
+    background-color: var(--slot-charcoal);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #29242a, #171419);
+    background-blend-mode: soft-light, normal;
+    border: 1px solid #483e44;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.6);
     font-family: var(--font-gothic);
     font-size: 12px;
     color: var(--text-sand);
@@ -634,19 +731,21 @@ body {
 .turn-badge small { color: var(--text-taupe); font-family: var(--font-prose); }
 .turn-badge.active-turn {
     border-color: var(--filigree-ivory);
-    background: #241f1d;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #362d2a, #211b19);
     color: var(--filigree-ivory);
 }
-.turn-badge.enemy-turn { border-color: #6b2e31; }
+.turn-badge.enemy-turn { border-color: #7c3538; }
 .turn-badge.target-locked { border-color: #6c99c2; }
 .turn-arrow { color: var(--filigree-dim); font-size: 11px; }
 
-/* DUNGEON VIEWPORT */
+/* HEWN STONE ARCHWAY DUNGEON VIEWPORT */
 #canvas-container {
     position: relative;
     flex: 1;
     min-block-size: 0;
-    background-color: #070607;
+    background-color: #070608;
     padding: 0;
     overflow: clip;
     display: flex;
@@ -654,6 +753,34 @@ body {
     place-items: center;
     content-visibility: auto;
     contain-intrinsic-size: auto none auto 672px;
+}
+
+/* Inner Chiseled Stone Window Ledge Shadow */
+.stone-archway-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    box-shadow:
+        inset 0 6px 16px rgba(0, 0, 0, 0.88),
+        inset 0 -4px 12px rgba(0, 0, 0, 0.82),
+        inset 0 0 0 2px rgba(56, 48, 53, 0.52);
+}
+
+.stone-arch-corner {
+    position: absolute;
+    z-index: 6;
+    line-height: 0;
+    pointer-events: none;
+}
+.stone-arch-corner.corner-tl { inset-block-start: 0; inset-inline-start: 0; }
+.stone-arch-corner.corner-tr { inset-block-start: 0; inset-inline-end: 0; }
+.stone-arch-corner.corner-bl { inset-block-end: 0; inset-inline-start: 0; }
+.stone-arch-corner.corner-br { inset-block-end: 0; inset-inline-end: 0; }
+
+.stone-corner-svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
 }
 
 #gameCanvas {
@@ -666,15 +793,16 @@ body {
 
 #minimapCanvas {
     position: absolute;
-    inset-block-start: 6px;
-    inset-inline-end: 6px;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
     inline-size: 204px;
     block-size: 148px;
     pointer-events: none;
-    z-index: 5;
-    border: 5px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
-    background: rgba(16, 14, 16, 0.92);
+    z-index: 7;
+    border: 6px solid transparent;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    background: rgba(16, 14, 18, 0.93);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.85);
 }
 
 .hover-tooltip {
@@ -683,8 +811,8 @@ body {
     pointer-events: none;
     max-inline-size: 360px;
     padding: 6px 10px;
-    background-color: rgba(19, 17, 19, 0.97);
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.92);
+    background-color: rgba(22, 19, 23, 0.97);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.94);
     display: none;
 }
 .hover-tooltip .ht-title {
@@ -702,7 +830,7 @@ body {
 .hover-tooltip.visible { display: block; }
 
 /* =========================================================
-   "POTION CRAFTING TIPS" FADED CHRONICLE PANEL + SPEAR ORNAMENT
+   "POTION CRAFTING TIPS" CARVED CHRONICLE TABLET + RUNIC OBELISKS
    ========================================================= */
 .mist-lore-box {
     position: relative;
@@ -711,8 +839,13 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding-inline: 16px 6px;
-    background: linear-gradient(90deg, transparent 0%, rgba(23, 20, 22, 0.94) 14%, rgba(23, 20, 22, 0.94) 86%, transparent 100%);
+    padding-inline: 8px;
+    background-image:
+        var(--stone-slab-cracks),
+        var(--stone-mineral-grain),
+        linear-gradient(90deg, transparent 0%, rgba(28, 24, 29, 0.96) 10%, rgba(24, 21, 26, 0.97) 50%, rgba(28, 24, 29, 0.96) 90%, transparent 100%);
+    background-blend-mode: normal, soft-light, normal;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
 }
 
 .mist-lore-box::before,
@@ -720,20 +853,30 @@ body {
     content: "";
     position: absolute;
     inset-inline: 0;
-    block-size: 4px;
+    block-size: 5px;
     pointer-events: none;
+    -webkit-mask-image: var(--stone-weathered-mask);
+    -webkit-mask-repeat: repeat-x;
+    -webkit-mask-size: 160px 24px;
+    mask-image: var(--stone-weathered-mask);
+    mask-repeat: repeat-x;
+    mask-size: 160px 24px;
 }
 .mist-lore-box::before {
     inset-block-start: 0;
     background:
-        linear-gradient(90deg, transparent 4%, var(--filigree-mid) 25%, var(--filigree-bright) 50%, var(--filigree-mid) 75%, transparent 96%) top / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 14%, rgba(142, 118, 96, 0.35) 35%, rgba(199, 174, 145, 0.45) 50%, rgba(142, 118, 96, 0.35) 65%, transparent 86%) bottom / 100% 1px no-repeat;
+        linear-gradient(90deg, transparent 4%, #4b4248 18%, var(--filigree-bright) 50%, #4b4248 82%, transparent 96%) top / 100% 2px no-repeat,
+        linear-gradient(90deg, transparent 14%, rgba(142, 118, 96, 0.42) 35%, rgba(199, 174, 145, 0.52) 50%, rgba(142, 118, 96, 0.42) 65%, transparent 86%) bottom / 100% 1px no-repeat;
 }
 .mist-lore-box::after {
     inset-block-end: 0;
     background:
-        linear-gradient(90deg, transparent 14%, rgba(142, 118, 96, 0.35) 35%, rgba(199, 174, 145, 0.45) 50%, rgba(142, 118, 96, 0.35) 65%, transparent 86%) top / 100% 1px no-repeat,
-        linear-gradient(90deg, transparent 4%, var(--filigree-mid) 25%, var(--filigree-bright) 50%, var(--filigree-mid) 75%, transparent 96%) bottom / 100% 1px no-repeat;
+        linear-gradient(90deg, transparent 14%, rgba(142, 118, 96, 0.42) 35%, rgba(199, 174, 145, 0.52) 50%, rgba(142, 118, 96, 0.42) 65%, transparent 86%) top / 100% 1px no-repeat,
+        linear-gradient(90deg, transparent 4%, #4b4248 18%, var(--filigree-bright) 50%, #4b4248 82%, transparent 96%) bottom / 100% 2px no-repeat;
+}
+
+.gothic-spear-svg {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
 }
 
 .mist-lore-inner {
@@ -860,12 +1003,22 @@ h3 small {
 }
 
 /* TOP-LEFT REFERENCE HUD WIDGET FOR EACH KNIGHT:
-   32x32 Ornate Portrait + Small 8x8 Slot Boxes + 3 Staggered Pointed Bars! */
+   Carved Crypt Stone Tablet + 32x32 Ornate Portrait + Sunken Slot Wells + 3 Pointed Bars! */
 .member-card {
     position: relative;
-    padding: 4px 6px;
-    background: #141214;
-    border: 1px solid #2b2420;
+    padding: 5px 7px;
+    background-color: #171419;
+    background-image:
+        var(--stone-slab-cracks),
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #262228 0%, #19161b 60%, #141116 100%);
+    background-blend-mode: normal, soft-light, normal;
+    border: 1px solid #3c343a;
+    border-block-start-color: #52484f;
+    border-block-end-color: #0d0b0f;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 3px 6px rgba(0, 0, 0, 0.62);
     display: flex;
     gap: 8px;
     align-items: center;
@@ -875,24 +1028,34 @@ h3 small {
 @media (hover: hover) {
     .member-card:hover {
         border-color: var(--filigree-mid);
-        background: #1a171a;
+        background-image:
+            var(--stone-slab-cracks),
+            var(--stone-mineral-grain),
+            linear-gradient(to bottom var(--in-oklab), #2f2930 0%, #1e1a20 100%);
     }
 }
 
 .member-card.active-turn-card {
     border-color: var(--filigree-ivory);
-    background: #201c1c;
-    box-shadow: inset 2px 0 0 var(--filigree-ivory);
+    background-image:
+        var(--stone-slab-cracks),
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #332a27 0%, #201a19 100%);
+    box-shadow:
+        inset 2px 0 0 var(--filigree-ivory),
+        inset 0 1px 0 rgba(230, 212, 188, 0.16),
+        0 4px 10px rgba(0, 0, 0, 0.75);
 }
 
-/* Exact 32x32 / 48x48 Square Ornate Corner-Filigree Portrait Box */
+/* Exact 32x32 / 48x48 Square Ornate Stone+Filigree Portrait Box */
 .hero-portrait-frame {
     position: relative;
     inline-size: 48px;
     block-size: 48px;
-    background-color: #131113;
+    background-color: #121014;
     border: 6px solid transparent;
-    border-image: var(--filigree-9slice-ornate) 15 stretch;
+    border-image: var(--filigree-9slice-ornate) 16 stretch;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.72);
     flex-shrink: 0;
     overflow: clip;
 }
@@ -946,6 +1109,7 @@ h3 small {
     font-size: 13.5px;
     font-weight: 700;
     color: var(--filigree-ivory);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .hero-lv-tag {
@@ -957,10 +1121,10 @@ h3 small {
 .unspent-pt {
     font-size: 10.5px;
     font-weight: 600;
-    color: #78ab8c;
+    color: #88bd9c;
 }
 
-/* Small square [ ] [ ] [ ] boxes directly matching the reference HUD! */
+/* Sunken Chiseled Stone Wells for [ ] [ ] [ ] Equipment Micro-Slots */
 .mini-slot-boxes {
     display: inline-flex;
     align-items: center;
@@ -970,26 +1134,30 @@ h3 small {
 .micro-slot-box {
     inline-size: 15px;
     block-size: 15px;
-    background: #121012;
-    border: 1px solid #4a3e35;
+    background: #0f0d11;
+    border: 1px solid #483d36;
+    border-block-start-color: #09070a;
+    border-inline-start-color: #09070a;
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9);
     display: grid;
     place-items: center;
     color: var(--filigree-bright);
 }
 .micro-slot-box.empty {
-    color: #463b33;
-    opacity: 0.45;
+    color: #54473e;
+    opacity: 0.55;
 }
 .micro-slot-box.cursed {
     border-color: #9e3535;
     color: #cf5b64;
 }
 
-/* Rows 2-4: 3 Staggered Pointed Bars (Red, Blue, Green) */
+/* Rows 2-4: 3 Staggered Pointed Bars (Red, Blue, Green) with Polygon Drop-Shadow */
 .staggered-bars {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 
 .member-bottom-meta {
@@ -1058,10 +1226,18 @@ h3 small {
     min-block-size: 38px;
     margin-block-end: 5px;
     padding: 3px 8px;
-    background-color: #161315;
+    background-color: #19161b;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #29242a 0%, #171419 100%);
+    background-blend-mode: soft-light, normal;
     color: var(--text-bone);
     border: 5px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.14),
+        inset 0 -2px 0 rgba(6, 5, 8, 0.9),
+        0 3px 6px rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1075,7 +1251,7 @@ h3 small {
     inset-block: 0;
     inset-inline-start: 0;
     inline-size: var(--od-pct, 0%);
-    background: linear-gradient(to right var(--in-oklab), rgba(122, 38, 41, 0.36), rgba(199, 141, 68, 0.36));
+    background: linear-gradient(to right var(--in-oklab), rgba(122, 38, 41, 0.42), rgba(199, 141, 68, 0.42));
     pointer-events: none;
     transition: inline-size 220ms ease-out;
 }
@@ -1098,10 +1274,18 @@ h3 small {
     position: relative;
     min-block-size: 38px;
     padding: 2px 6px;
-    background-color: #151315;
+    background-color: #18151a;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #282329 0%, #161318 100%);
+    background-blend-mode: soft-light, normal;
     color: var(--text-bone);
     border: 5px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.13),
+        inset 0 -2px 0 rgba(6, 5, 8, 0.88),
+        0 3px 6px rgba(0, 0, 0, 0.68);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1113,23 +1297,28 @@ h3 small {
 @media (hover: hover) {
     .btn-action:hover:not(:disabled) {
         border-image-source: var(--filigree-9slice-slot-active);
+        background-image:
+            var(--stone-mineral-grain),
+            linear-gradient(to bottom var(--in-oklab), #332c33 0%, #1e1a20 100%);
     }
 }
 
 .btn-action:disabled {
-    opacity: 0.34;
+    opacity: 0.36;
     cursor: not-allowed;
 }
 
 .key-cap {
     position: relative;
     z-index: 1;
-    inline-size: 15px;
-    block-size: 15px;
+    inline-size: 16px;
+    block-size: 16px;
     display: grid;
     place-items: center;
-    background: #100e10;
-    border: 1px solid var(--filigree-dim);
+    background: #0e0c10;
+    border: 1px solid #483d36;
+    border-block-start-color: #08070a;
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9);
     font-family: var(--font-gothic);
     font-size: 10px;
     color: var(--filigree-bright);
@@ -1346,9 +1535,16 @@ dialog::backdrop {
 }
 
 .slot-row, .bag-item-row {
-    background: var(--slot-charcoal);
+    background-color: var(--slot-charcoal);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #262227 0%, #18151a 100%);
+    background-blend-mode: soft-light, normal;
     border: 4px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.08),
+        0 2px 5px rgba(0, 0, 0, 0.55);
     padding: 5px 9px;
     display: flex;
     justify-content: space-between;
@@ -1360,20 +1556,21 @@ dialog::backdrop {
 .item-buff-text {
     font-family: var(--font-prose);
     font-size: 13.5px;
-    color: #78ab8c;
+    color: #88bd9c;
     margin-block-start: 1px;
 }
 .curse-drawback-text {
     font-family: var(--font-prose);
     font-style: italic;
     font-size: 13px;
-    color: #c95b60;
+    color: #d4686d;
 }
 
 .item-qty-badge {
-    background: #121012;
+    background: #100e12;
     color: var(--filigree-bright);
     border: 1px solid var(--filigree-dim);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
     padding: 0 6px;
     font-family: var(--font-gothic);
     font-size: 11.5px;
@@ -1382,18 +1579,23 @@ dialog::backdrop {
 
 .btn-small-use, .btn-small-equip, .btn-small-unequip, .btn-small-danger {
     padding: 3px 9px;
-    background: #1a171a;
+    background-color: #1f1b20;
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #2c262d, #19161b);
+    background-blend-mode: soft-light, normal;
     border: 4px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.6);
     font-family: var(--font-gothic);
     font-size: 12px;
     cursor: pointer;
     white-space: nowrap;
 }
-.btn-small-use    { color: #92c4a4; }
-.btn-small-equip  { color: #8eb5d9; }
+.btn-small-use    { color: #98cba9; }
+.btn-small-equip  { color: #96bde0; }
 .btn-small-unequip{ color: var(--text-sand); }
-.btn-small-danger { color: #db7d81; }
+.btn-small-danger { color: #e08589; }
 
 @media (hover: hover) {
     :where(.btn-small-use, .btn-small-equip, .btn-small-unequip, .btn-small-danger):hover:not(:disabled) {
@@ -1408,10 +1610,18 @@ dialog::backdrop {
 .menu-slab-btn {
     inline-size: 100%;
     padding: 7px 12px;
-    background: var(--slot-charcoal);
+    background-color: var(--slot-charcoal);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #2b262c 0%, #19161b 100%);
+    background-blend-mode: soft-light, normal;
     color: var(--filigree-ivory);
     border: 5px solid transparent;
-    border-image: var(--filigree-9slice-slot) 9 stretch;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.12),
+        inset 0 -2px 0 rgba(6, 5, 8, 0.85),
+        0 3px 6px rgba(0, 0, 0, 0.65);
     font-family: var(--font-gothic);
     font-size: 14px;
     text-align: center;
@@ -1528,8 +1738,27 @@ dialog::backdrop {
     block-size: 5px;
     margin-block: 6px 14px;
     background:
-        linear-gradient(90deg, transparent 0%, var(--filigree-mid) 22%, var(--filigree-bright) 50%, var(--filigree-mid) 78%, transparent 100%) top / 100% 1px no-repeat,
+        linear-gradient(90deg, transparent 0%, #4b4248 18%, var(--filigree-bright) 50%, #4b4248 82%, transparent 100%) top / 100% 2px no-repeat,
         linear-gradient(90deg, transparent 10%, rgba(142, 118, 96, 0.45) 32%, rgba(199, 174, 145, 0.55) 50%, rgba(142, 118, 96, 0.45) 68%, transparent 90%) bottom / 100% 1px no-repeat;
+    -webkit-mask-image: var(--stone-weathered-mask);
+    -webkit-mask-repeat: repeat-x;
+    -webkit-mask-size: 160px 24px;
+    mask-image: var(--stone-weathered-mask);
+    mask-repeat: repeat-x;
+    mask-size: 160px 24px;
+}
+
+/* Fallback for browsers without mask-image or -webkit-mask-image support */
+@supports (not (mask-image: url(x))) and (not (-webkit-mask-image: url(x))) {
+    .mist-banner-header::before,
+    .mist-banner-header::after,
+    .mist-strip::before,
+    .mist-strip::after,
+    .mist-lore-box::before,
+    .mist-lore-box::after,
+    .mist-double-line {
+        opacity: 0.9;
+    }
 }
 
 .trans-subtitle {

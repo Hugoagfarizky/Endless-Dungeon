@@ -57,42 +57,110 @@ function icon(name, size = 14, extraClass = '') {
     return `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 }
 
-// Symmetrical Pixel-Gothic Filigree Banner Crest (matches DARK FANTASY Ultimate UI Pack top/bottom crest)
+// Carved Stone Keystone Arch + Symmetrical Pixel-Gothic Filigree Crest
 function filigreeBannerCrestSvg(flipped = false) {
-    const tf = flipped ? 'transform="scale(1,-1) translate(0,-12)"' : '';
-    return `<svg class="filigree-crest-svg" width="92" height="12" viewBox="0 0 92 12" shape-rendering="crispEdges" aria-hidden="true">
+    const tf = flipped ? 'transform="scale(1,-1) translate(0,-16)"' : '';
+    return `<svg class="filigree-crest-svg" width="116" height="16" viewBox="0 0 116 16" shape-rendering="crispEdges" aria-hidden="true">
         <g ${tf}>
-            <rect x="44" y="0" width="4" height="2" fill="#d8c2a6"/>
-            <rect x="40" y="2" width="12" height="2" fill="#c7ae91"/>
-            <rect x="34" y="4" width="6" height="2" fill="#9c836a"/>
-            <rect x="44" y="4" width="4" height="2" fill="#e6d4b8"/>
-            <rect x="52" y="4" width="6" height="2" fill="#9c836a"/>
-            <rect x="26" y="6" width="10" height="2" fill="#8e7660"/>
-            <rect x="38" y="6" width="16" height="2" fill="#c7ae91"/>
-            <rect x="56" y="6" width="10" height="2" fill="#8e7660"/>
-            <rect x="16" y="8" width="12" height="2" fill="#6e5a49"/>
-            <rect x="32" y="8" width="6" height="2" fill="#9c836a"/>
-            <rect x="42" y="8" width="8" height="2" fill="#d8c2a6"/>
-            <rect x="54" y="8" width="6" height="2" fill="#9c836a"/>
-            <rect x="64" y="8" width="12" height="2" fill="#6e5a49"/>
-            <rect x="6" y="10" width="80" height="2" fill="#8e7660"/>
+            <!-- Stepped Carved Basalt Keystone Base -->
+            <rect x="48" y="0" width="20" height="4" fill="#2e292d"/>
+            <rect x="48" y="0" width="20" height="1" fill="#595055"/>
+            <rect x="34" y="4" width="48" height="4" fill="#272327"/>
+            <rect x="34" y="4" width="48" height="1" fill="#4c4449"/>
+            <rect x="18" y="8" width="80" height="4" fill="#221e22"/>
+            <rect x="18" y="8" width="80" height="1" fill="#423b40"/>
+            <rect x="4" y="12" width="108" height="4" fill="#1b181c"/>
+            <rect x="4" y="12" width="108" height="1" fill="#383236"/>
+            <!-- Mortar joints & stone cracks -->
+            <rect x="57" y="1" width="1" height="3" fill="#121013"/>
+            <rect x="43" y="4" width="1" height="4" fill="#121013"/>
+            <rect x="72" y="4" width="1" height="4" fill="#121013"/>
+            <rect x="29" y="8" width="1" height="4" fill="#121013"/>
+            <rect x="86" y="8" width="1" height="4" fill="#121013"/>
+            <rect x="14" y="12" width="2" height="2" fill="#0f0d10"/>
+            <rect x="100" y="12" width="2" height="2" fill="#0f0d10"/>
+            <!-- Champagne-Bronze Gothic Filigree Inlay -->
+            <rect x="56" y="1" width="4" height="2" fill="#e6d4b8"/>
+            <rect x="52" y="3" width="12" height="2" fill="#c7ae91"/>
+            <rect x="46" y="5" width="6" height="2" fill="#9c836a"/>
+            <rect x="56" y="5" width="4" height="2" fill="#e6d4b8"/>
+            <rect x="64" y="5" width="6" height="2" fill="#9c836a"/>
+            <rect x="38" y="7" width="10" height="2" fill="#8e7660"/>
+            <rect x="50" y="7" width="16" height="2" fill="#c7ae91"/>
+            <rect x="68" y="7" width="10" height="2" fill="#8e7660"/>
+            <rect x="26" y="10" width="14" height="2" fill="#6e5a49"/>
+            <rect x="44" y="10" width="6" height="2" fill="#9c836a"/>
+            <rect x="54" y="10" width="8" height="2" fill="#d8c2a6"/>
+            <rect x="66" y="10" width="6" height="2" fill="#9c836a"/>
+            <rect x="76" y="10" width="14" height="2" fill="#6e5a49"/>
+            <rect x="10" y="13" width="96" height="2" fill="#8e7660"/>
         </g>
     </svg>`;
 }
 
-// Vertical Gothic Spearhead Finial Ornament (matches Potion Crafting Tips right-side spear track)
+// Carved Runic Stone Stele / Obelisk Column with Bronze Spear Finial
 function gothicSpearOrnamentSvg() {
-    return `<svg class="gothic-spear-svg" width="14" height="96" viewBox="0 0 14 96" fill="none" aria-hidden="true">
-        <!-- Top fleur-de-lis spearhead -->
-        <path d="M7 1L10.5 8L7 12L3.5 8L7 1Z" fill="#c7ae91"/>
-        <path d="M2 10C4 9 5.5 11 7 13C8.5 11 10 9 12 10" stroke="#9c836a" stroke-width="1.2"/>
-        <!-- Vertical shaft -->
-        <line x1="7" y1="12" x2="7" y2="84" stroke="#6e5a49" stroke-width="1.2"/>
-        <!-- Center diamond clasp -->
-        <polygon points="7 42 10.5 48 7 54 3.5 48" fill="#161416" stroke="#c7ae91" stroke-width="1.2"/>
-        <circle cx="7" cy="48" r="1.4" fill="#d8c2a6"/>
-        <!-- Bottom fleur-de-lis finial -->
-        <path d="M2 86C4 87 5.5 85 7 83C8.5 85 10 87 12 86" stroke="#9c836a" stroke-width="1.2"/>
-        <path d="M7 95L10.5 88L7 84L3.5 88L7 95Z" fill="#9c836a"/>
+    return `<svg class="gothic-spear-svg" width="18" height="96" viewBox="0 0 18 96" fill="none" aria-hidden="true">
+        <!-- Carved Stone Obelisk Backing -->
+        <rect x="5" y="13" width="8" height="70" fill="#221e23" stroke="#110f12" stroke-width="1"/>
+        <line x1="6" y1="14" x2="6" y2="82" stroke="#474045" stroke-width="1"/>
+        <!-- Stone Capital & Pedestal Base -->
+        <rect x="3" y="11" width="12" height="4" fill="#322c31" stroke="#121013" stroke-width="1"/>
+        <line x1="4" y1="12" x2="14" y2="12" stroke="#595056" stroke-width="1"/>
+        <rect x="3" y="81" width="12" height="4" fill="#322c31" stroke="#121013" stroke-width="1"/>
+        <line x1="4" y1="82" x2="14" y2="82" stroke="#595056" stroke-width="1"/>
+        <!-- Stone Mortar Joints & Chipped Notches -->
+        <line x1="5" y1="30" x2="13" y2="30" stroke="#110f12" stroke-width="1"/>
+        <line x1="6" y1="31" x2="12" y2="31" stroke="#3f393e" stroke-width="1"/>
+        <line x1="5" y1="66" x2="13" y2="66" stroke="#110f12" stroke-width="1"/>
+        <line x1="6" y1="67" x2="12" y2="67" stroke="#3f393e" stroke-width="1"/>
+        <path d="M5 22L7 24M13 56L10 58" stroke="#100e11" stroke-width="1"/>
+        <!-- Top Bronze Fleur-de-lis Spearhead -->
+        <path d="M9 1L12.5 8L9 12L5.5 8L9 1Z" fill="#c7ae91"/>
+        <path d="M3.5 10C5.5 9 7.2 11 9 13C10.8 11 12.5 9 14.5 10" stroke="#9c836a" stroke-width="1.2"/>
+        <!-- Center Carved Rune Diamond Clasp -->
+        <line x1="9" y1="15" x2="9" y2="81" stroke="#7d6754" stroke-width="1"/>
+        <polygon points="9 41 13.5 48 9 55 4.5 48" fill="#181519" stroke="#c7ae91" stroke-width="1.2"/>
+        <circle cx="9" cy="48" r="1.6" fill="#e2ceb4"/>
+        <!-- Bottom Bronze Finial -->
+        <path d="M3.5 86C5.5 87 7.2 85 9 83C10.8 85 12.5 87 14.5 86" stroke="#9c836a" stroke-width="1.2"/>
+        <path d="M9 95L12.5 88L9 84L5.5 88L9 95Z" fill="#9c836a"/>
+    </svg>`;
+}
+
+// Chiseled Dungeon Corner Stone Bracket / Boss for Viewport Archway
+function stoneCornerKeystoneSvg(corner = 'tl') {
+    const transforms = {
+        tl: '',
+        tr: 'transform="translate(28,0) scale(-1,1)"',
+        bl: 'transform="translate(0,28) scale(1,-1)"',
+        br: 'transform="translate(28,28) scale(-1,-1)"'
+    };
+    const tf = transforms[corner] || '';
+    return `<svg class="stone-corner-svg" width="28" height="28" viewBox="0 0 28 28" shape-rendering="crispEdges" aria-hidden="true">
+        <g ${tf}>
+            <!-- Stepped Ashlar Corner Stone Block -->
+            <path d="M0 0H26V8H14V14H8V26H0V0Z" fill="#2a2529"/>
+            <!-- Top & Left Chiseled Stone Bevel Highlight -->
+            <rect x="0" y="0" width="26" height="2" fill="#52494f"/>
+            <rect x="0" y="0" width="2" height="26" fill="#463e44"/>
+            <!-- Bottom & Right Cut-Stone Shadow -->
+            <rect x="14" y="7" width="12" height="2" fill="#110e12"/>
+            <rect x="8" y="13" width="6" height="2" fill="#110e12"/>
+            <rect x="0" y="25" width="8" height="2" fill="#110e12"/>
+            <rect x="25" y="0" width="2" height="8" fill="#110e12"/>
+            <rect x="7" y="14" width="2" height="12" fill="#110e12"/>
+            <!-- Hairline Rock Crack & Mortar Groove -->
+            <rect x="16" y="2" width="1" height="5" fill="#151216"/>
+            <rect x="2" y="16" width="5" height="1" fill="#151216"/>
+            <rect x="9" y="8" width="2" height="1" fill="#151216"/>
+            <rect x="8" y="9" width="1" height="2" fill="#151216"/>
+            <!-- Recessed Bronze Rivet & Gothic Corner Inlay -->
+            <rect x="3" y="3" width="6" height="6" fill="#181519"/>
+            <rect x="4" y="4" width="4" height="4" fill="#c7ae91"/>
+            <rect x="5" y="5" width="2" height="2" fill="#ead8be"/>
+            <rect x="11" y="3" width="9" height="2" fill="#8e7660"/>
+            <rect x="3" y="11" width="2" height="9" fill="#8e7660"/>
+        </g>
     </svg>`;
 }
