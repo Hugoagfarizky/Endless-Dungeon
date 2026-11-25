@@ -76,3 +76,11 @@ Endless Dungeon/
 │   └── main.js      # Kontrol input keyboard/mouse & inisialisasi permainan
 └── assets/          # Direktori aset tambahan
 ```
+
+---
+
+## 📜 Lisensi & Kontribusi
+
+- [Lisensi MIT](LICENSE): bebas dipakai, dimodifikasi, dan didistribusikan dengan mencantumkan atribusi.
+- [Panduan kontribusi](CONTRIBUTING.md): cara menjalankan, standar kode, dan alur pull request.
+- [Kebijakan keamanan](SECURITY.md): laporkan celah secara privat, jangan lewat issue publik.
