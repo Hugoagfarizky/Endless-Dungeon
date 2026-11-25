@@ -67,13 +67,6 @@ function mountStaticDungeonIcons() {
         if (spearLeft) spearLeft.innerHTML = gothicSpearOrnamentSvg();
         if (spearEl) spearEl.innerHTML = gothicSpearOrnamentSvg();
     }
-
-    if (typeof stoneCornerKeystoneSvg === 'function') {
-        ['tl', 'tr', 'bl', 'br'].forEach(c => {
-            const el = document.getElementById(`stone-arch-${c}`);
-            if (el) el.innerHTML = stoneCornerKeystoneSvg(c);
-        });
-    }
 }
 mountStaticDungeonIcons();
 
@@ -253,28 +246,100 @@ let screenShakeMag = 0;
 let screenShakeIntensity = 1;
 let impactRings = [];
 
+// Full-bleed Cover Camera (eliminates left/right/top/bottom pillarbox & letterbox bars)
+const cameraView = { x: 0, y: 0, w: WORLD_WIDTH, h: WORLD_HEIGHT };
+let camSmoothX = null;
+let camSmoothY = null;
+let camFloorRef = -1;
+
+function syncCanvasViewport() {
+    const container = document.getElementById('canvas-container');
+    if (!container || !canvas) return;
+    const rect = container.getBoundingClientRect();
+    const cw = (rect && rect.width > 40) ? rect.width : WORLD_WIDTH;
+    const ch = (rect && rect.height > 40) ? rect.height : WORLD_HEIGHT;
+    const boxAspect = cw / ch;
+    const worldAspect = WORLD_WIDTH / WORLD_HEIGHT;
+
+    if (boxAspect >= worldAspect) {
+        cameraView.w = WORLD_WIDTH;
+        cameraView.h = WORLD_WIDTH / boxAspect;
+    } else {
+        cameraView.h = WORLD_HEIGHT;
+        cameraView.w = WORLD_HEIGHT * boxAspect;
+    }
+
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+    const density = Math.max(RENDER_SCALE, Math.min(2.5, dpr * 1.5));
+    const targetW = Math.round(cw * density);
+    const targetH = Math.round(ch * density);
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+    }
+}
+
+function updateCameraFollow() {
+    let focusX = WORLD_WIDTH * 0.5;
+    let focusY = WORLD_HEIGHT * 0.5;
+    const ldr = (typeof getLeader === 'function') ? getLeader() : null;
+
+    if (typeof gameMode !== 'undefined' && gameMode === 'COMBAT' && ldr) {
+        const foe = (typeof activeEnemy !== 'undefined' && activeEnemy && activeEnemy.hp > 0) ? activeEnemy : ldr;
+        focusX = ((ldr.x + foe.x) * 0.5) * TILE_SIZE + TILE_SIZE * 0.5;
+        focusY = ((ldr.y + foe.y) * 0.5) * TILE_SIZE + TILE_SIZE * 0.5;
+    } else if (ldr) {
+        focusX = ldr.x * TILE_SIZE + TILE_SIZE * 0.5;
+        focusY = ldr.y * TILE_SIZE + TILE_SIZE * 0.5;
+    }
+
+    const maxCamX = Math.max(0, WORLD_WIDTH - cameraView.w);
+    const maxCamY = Math.max(0, WORLD_HEIGHT - cameraView.h);
+    const targetX = Math.max(0, Math.min(maxCamX, focusX - cameraView.w * 0.5));
+    const targetY = Math.max(0, Math.min(maxCamY, focusY - cameraView.h * 0.5));
+
+    const curFl = (typeof currentFloor !== 'undefined') ? currentFloor : 1;
+    if (camSmoothX === null || camSmoothY === null || camFloorRef !== curFl) {
+        camSmoothX = targetX;
+        camSmoothY = targetY;
+        camFloorRef = curFl;
+    } else {
+        camSmoothX += (targetX - camSmoothX) * 0.18;
+        camSmoothY += (targetY - camSmoothY) * 0.18;
+        if (Math.abs(targetX - camSmoothX) < 0.2) camSmoothX = targetX;
+        if (Math.abs(targetY - camSmoothY) < 0.2) camSmoothY = targetY;
+    }
+
+    cameraView.x = Math.max(0, Math.min(maxCamX, camSmoothX));
+    cameraView.y = Math.max(0, Math.min(maxCamY, camSmoothY));
+}
+
+if (typeof ResizeObserver !== 'undefined') {
+    const vpContainer = document.getElementById('canvas-container');
+    if (vpContainer) {
+        new ResizeObserver(() => {
+            syncCanvasViewport();
+            if (typeof drawGame === 'function') drawGame();
+        }).observe(vpContainer);
+    }
+}
+
 function canvasToTile(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const imgAspect = WORLD_WIDTH / WORLD_HEIGHT;
-    const boxAspect = rect.width / rect.height;
-    let renderW, renderH, offX, offY;
-    if (boxAspect > imgAspect) {
-        renderH = rect.height;
-        renderW = renderH * imgAspect;
-        offX = (rect.width - renderW) / 2;
-        offY = 0;
-    } else {
-        renderW = rect.width;
-        renderH = renderW / imgAspect;
-        offX = 0;
-        offY = (rect.height - renderH) / 2;
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+        return { x: -1, y: -1, inside: false };
     }
-    const mx = (clientX - rect.left - offX) * (WORLD_WIDTH / renderW);
-    const my = (clientY - rect.top - offY) * (WORLD_HEIGHT / renderH);
+    const relX = (clientX - rect.left) / rect.width;
+    const relY = (clientY - rect.top) / rect.height;
+    const insideViewport = relX >= 0 && relX <= 1 && relY >= 0 && relY <= 1;
+    const mx = cameraView.x + relX * cameraView.w;
+    const my = cameraView.y + relY * cameraView.h;
     return {
         x: Math.floor(mx / TILE_SIZE),
         y: Math.floor(my / TILE_SIZE),
-        inside: (mx >= 0 && mx < WORLD_WIDTH && my >= 0 && my < WORLD_HEIGHT)
+        inside: insideViewport && (mx >= 0 && mx < WORLD_WIDTH && my >= 0 && my < WORLD_HEIGHT)
     };
 }
 
@@ -2000,14 +2065,21 @@ function drawHoverCursor() {
 }
 
 function drawScreenSpaceOverlays() {
+    const vx = cameraView.x;
+    const vy = cameraView.y;
+    const vw = cameraView.w;
+    const vh = cameraView.h;
+    const vcx = vx + vw * 0.5;
+    const vcy = vy + vh * 0.5;
+
     const edgeVig = ctx.createRadialGradient(
-        WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_HEIGHT * 0.42,
-        WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH * 0.62
+        vcx, vcy, vh * 0.42,
+        vcx, vcy, vw * 0.62
     );
     edgeVig.addColorStop(0, 'rgba(0, 0, 0, 0)');
     edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.52)');
     ctx.fillStyle = edgeVig;
-    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    ctx.fillRect(vx, vy, vw, vh);
 
     const alive = party.filter(p => p.hp > 0);
     if (alive.length > 0) {
@@ -2015,13 +2087,13 @@ function drawScreenSpaceOverlays() {
         if (avgHpRatio < 0.32) {
             const pulse = 0.20 + Math.abs(Math.sin(torchFlickerPhase * 0.9)) * 0.22;
             const redGrad = ctx.createRadialGradient(
-                WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_HEIGHT * 0.25,
-                WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH * 0.65
+                vcx, vcy, vh * 0.25,
+                vcx, vcy, vw * 0.65
             );
             redGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
             redGrad.addColorStop(1, `rgba(135, 14, 20, ${pulse})`);
             ctx.fillStyle = redGrad;
-            ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+            ctx.fillRect(vx, vy, vw, vh);
         }
     }
 
@@ -2029,37 +2101,37 @@ function drawScreenSpaceOverlays() {
     if (ultimateCutIn) {
         ctx.save();
         ctx.globalAlpha = ultimateCutIn.alpha;
-        const cy = WORLD_HEIGHT / 2 - 38;
+        const cy = vcy - 38;
 
-        const bGrad = ctx.createLinearGradient(0, cy, WORLD_WIDTH, cy);
+        const bGrad = ctx.createLinearGradient(vx, cy, vx + vw, cy);
         bGrad.addColorStop(0, 'rgba(18, 16, 18, 0.15)');
         bGrad.addColorStop(0.25, 'rgba(22, 19, 21, 0.95)');
         bGrad.addColorStop(0.75, 'rgba(22, 19, 21, 0.95)');
         bGrad.addColorStop(1, 'rgba(18, 16, 18, 0.15)');
         ctx.fillStyle = bGrad;
-        ctx.fillRect(0, cy, WORLD_WIDTH, 76);
+        ctx.fillRect(vx, cy, vw, 76);
 
-        const lineGrad = ctx.createLinearGradient(0, 0, WORLD_WIDTH, 0);
+        const lineGrad = ctx.createLinearGradient(vx, 0, vx + vw, 0);
         lineGrad.addColorStop(0, 'rgba(142, 118, 96, 0)');
         lineGrad.addColorStop(0.5, '#c7ae91');
         lineGrad.addColorStop(1, 'rgba(142, 118, 96, 0)');
         ctx.strokeStyle = lineGrad;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(0, cy); ctx.lineTo(WORLD_WIDTH, cy);
-        ctx.moveTo(0, cy + 76); ctx.lineTo(WORLD_WIDTH, cy + 76);
+        ctx.moveTo(vx, cy); ctx.lineTo(vx + vw, cy);
+        ctx.moveTo(vx, cy + 76); ctx.lineTo(vx + vw, cy + 76);
         ctx.stroke();
 
         ctx.textAlign = 'center';
         ctx.fillStyle = '#9e8f7f';
         ctx.font = '700 12px Almendra, Cinzel, serif';
-        ctx.fillText(`OVERDRIVE UNLEASHED · ${ultimateCutIn.actorName}`, WORLD_WIDTH / 2, cy + 25);
+        ctx.fillText(`OVERDRIVE UNLEASHED · ${ultimateCutIn.actorName}`, vcx, cy + 25);
 
         ctx.fillStyle = '#e2ceb4';
         ctx.shadowColor = '#000000';
         ctx.shadowBlur = 8;
         ctx.font = '700 28px Almendra, Cinzel, serif';
-        ctx.fillText(ultimateCutIn.ultTitle, WORLD_WIDTH / 2, cy + 56);
+        ctx.fillText(ultimateCutIn.ultTitle, vcx, cy + 56);
         ctx.textAlign = 'left';
         ctx.restore();
     }
@@ -2194,6 +2266,17 @@ function drawMiniMapRadar() {
         minimapCtx.strokeRect(lx, ly, cell, cell);
     }
 
+    if (cameraView.w < WORLD_WIDTH - 2 || cameraView.h < WORLD_HEIGHT - 2) {
+        minimapCtx.strokeStyle = 'rgba(230, 212, 188, 0.35)';
+        minimapCtx.lineWidth = 0.8;
+        minimapCtx.strokeRect(
+            gridOriginX + (cameraView.x / TILE_SIZE) * cell,
+            gridOriginY + (cameraView.y / TILE_SIZE) * cell,
+            (cameraView.w / TILE_SIZE) * cell,
+            (cameraView.h / TILE_SIZE) * cell
+        );
+    }
+
     const legY = gridOriginY + mapH + 13;
     minimapCtx.font = '9px Crimson Pro, serif';
     minimapCtx.fillStyle = '#e2ceb4'; minimapCtx.fillText('■ Order', pad, legY);
@@ -2208,9 +2291,16 @@ function drawMiniMapRadar() {
 function drawGame() {
     if (!ctx || typeof map === 'undefined' || map.length === 0) return;
 
+    syncCanvasViewport();
+    updateCameraFollow();
+
+    const scaleX = canvas.width / cameraView.w;
+    const scaleY = canvas.height / cameraView.h;
+
     ctx.save();
-    ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-    ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    ctx.setTransform(scaleX, 0, 0, scaleY, -cameraView.x * scaleX, -cameraView.y * scaleY);
+    ctx.fillStyle = '#070607';
+    ctx.fillRect(cameraView.x - 24, cameraView.y - 24, cameraView.w + 48, cameraView.h + 48);
 
     if (screenShakeMag > 0.15) {
         const shakeX = (Math.random() - 0.5) * 2 * screenShakeMag;

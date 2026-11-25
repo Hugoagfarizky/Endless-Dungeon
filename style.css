@@ -768,25 +768,9 @@ body {
         inset 0 0 0 2px rgba(56, 48, 53, 0.52);
 }
 
-.stone-arch-corner {
-    position: absolute;
-    z-index: 6;
-    line-height: 0;
-    pointer-events: none;
-}
-.stone-arch-corner.corner-tl { inset-block-start: 0; inset-inline-start: 0; }
-.stone-arch-corner.corner-tr { inset-block-start: 0; inset-inline-end: 0; }
-.stone-arch-corner.corner-bl { inset-block-end: 0; inset-inline-start: 0; }
-.stone-arch-corner.corner-br { inset-block-end: 0; inset-inline-end: 0; }
-
-.stone-corner-svg {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
-}
-
 #gameCanvas {
     inline-size: 100%;
     block-size: 100%;
-    object-fit: contain;
     display: block;
     cursor: crosshair;
 }
