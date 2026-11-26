@@ -2640,7 +2640,14 @@ function drawGame() {
                 ctx.restore();
             }
 
-            drawHeroFigure(ctx, p.role, cx, baseY + bobY, torchFlickerPhase + i, 1.0, p.hitFlash || null, hFacing, strideAmt);
+            const lightDirForHero = (p === currentLeader)
+                ? -hFacing
+                : (lightOriginX >= cx ? 1 : -1);
+            drawHeroFigure(ctx, p.role, cx, baseY + bobY, torchFlickerPhase + i, 1.0, p.hitFlash || null, hFacing, strideAmt, {
+                lunge: p.lungeProgress || 0,
+                defending: !!p.defending,
+                lightDir: lightDirForHero
+            });
 
             if (p === currentLeader && typeof drawHeldTorch === 'function') {
                 drawHeldTorch(ctx, cx, baseY + bobY, hFacing, torchLight, torchFlickerPhase);
