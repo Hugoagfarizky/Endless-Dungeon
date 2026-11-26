@@ -461,7 +461,9 @@ function getSaveKey(slot) {
 }
 
 function addOverheadIcon(tileX, tileY, iconText, color = "#dfc484", size = 15) {
-    const cleanText = String(iconText)
+    const rawStr = String(iconText);
+    const svgKey = (typeof resolveCombatPopupSvgKey === 'function') ? resolveCombatPopupSvgKey(rawStr, color) : null;
+    const cleanText = rawStr
         .replace(/<[^>]*>/g, '')
         .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '')
         .replace(/\s+/g, ' ')
@@ -472,6 +474,7 @@ function addOverheadIcon(tileX, tileY, iconText, color = "#dfc484", size = 15) {
         x: tileX,
         y: tileY,
         text: cleanText,
+        svgKey: svgKey,
         color: color,
         offsetX: jitterX,
         offsetY: -4,

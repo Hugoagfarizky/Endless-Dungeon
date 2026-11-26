@@ -34,20 +34,26 @@ function mountStaticDungeonIcons() {
         'ico-seed': ['seed', 13],
         'ico-calendar': ['calendar', 13],
         'ico-pause-cog': ['cog', 13],
-        'ico-reset': ['reset', 13],
-        'ico-cmd-ult': ['overdrive', 24],
-        'ico-cmd-attack': ['sword', 21],
-        'ico-cmd-skill': ['arcane', 21],
-        'ico-cmd-skill2': ['mastery', 21],
-        'ico-cmd-defend': ['shield', 21],
-        'ico-cmd-swap': ['swap', 21],
-        'ico-cmd-item': ['satchel', 21],
-        'ico-cmd-revive': ['feather', 21],
-        'ico-cmd-flee': ['flee', 21]
+        'ico-reset': ['reset', 13]
     };
     Object.entries(mapIds).forEach(([id, [name, sz]]) => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = icon(name, sz);
+    });
+
+    const combatMapIds = {
+        'ico-cmd-ult': ['ult_default', 38],
+        'ico-cmd-attack': ['atk_sword', 32],
+        'ico-cmd-skill': ['skill_default', 32],
+        'ico-cmd-skill2': ['skill_mastery_default', 32],
+        'ico-cmd-defend': ['cmd_guard', 32],
+        'ico-cmd-swap': ['cmd_shift', 32],
+        'ico-cmd-item': ['cmd_potion', 32],
+        'ico-cmd-revive': ['cmd_phoenix', 32],
+        'ico-cmd-flee': ['cmd_retreat', 32]
+    };
+    Object.entries(combatMapIds).forEach(([id, [svgKey, sz]]) => {
+        setCombatButtonSvgIcon(id, svgKey, sz);
     });
 
     if (typeof filigreeBannerCrestSvg === 'function') {
@@ -693,16 +699,45 @@ function masterRenderLoop(now) {
 }
 requestAnimationFrame(masterRenderLoop);
 
+function setCombatButtonSvgIcon(elId, svgKey, size = 32) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const cacheTag = `${svgKey}:${size}`;
+    if (el._svgKey === cacheTag) return;
+    el._svgKey = cacheTag;
+    if (typeof combatSkillSvg === 'function') {
+        el.innerHTML = combatSkillSvg(svgKey, size);
+    } else if (typeof icon === 'function') {
+        el.innerHTML = icon('sword', size);
+    }
+}
+
+function syncHeroHotbarSkillIcons(hero) {
+    if (typeof getHeroCombatIconSet !== 'function') return;
+    const iconSet = getHeroCombatIconSet(hero);
+    setCombatButtonSvgIcon('ico-cmd-attack', iconSet.attack, 32);
+    setCombatButtonSvgIcon('ico-cmd-skill', iconSet.skill, 32);
+    setCombatButtonSvgIcon('ico-cmd-skill2', iconSet.skill2, 32);
+    setCombatButtonSvgIcon('ico-cmd-ult', iconSet.ult, 38);
+}
+
 function addLog(msg) {
     const logBox = document.getElementById('log-box');
     if (!logBox) return;
-    const cleaned = String(msg)
+    const rawStr = String(msg);
+    const combatIcoKey = (typeof resolveChronicleCombatSvgKey === 'function')
+        ? resolveChronicleCombatSvgKey(rawStr)
+        : null;
+    const cleaned = rawStr
         .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]/gu, '')
         .replace(/\s{2,}/g, ' ')
         .trim();
+    const bulletHtml = (combatIcoKey && typeof combatSkillSvg === 'function')
+        ? `<span class="chronicle-svg-ico" aria-hidden="true">${combatSkillSvg(combatIcoKey, 15)}</span>`
+        : `<span class="chronicle-bullet" aria-hidden="true">◆</span>`;
     const entry = document.createElement('div');
     entry.className = 'chronicle-entry';
-    entry.innerHTML = `<span class="chronicle-bullet" aria-hidden="true">◆</span>${cleaned}`;
+    entry.innerHTML = `${bulletHtml}${cleaned}`;
     logBox.prepend(entry);
     while (logBox.children.length > 60) {
         logBox.removeChild(logBox.lastChild);
@@ -1720,6 +1755,8 @@ function updateTurnQueueUI() {
             : `Stairwell unsealed — descend to Floor ${currentFloor + 1}`;
         queueEl.innerHTML = `<span class="queue-empty" style="color:${isFloorCleared() ? '#92c4a4' : '#9e8f7f'}">${clearHint}</span>`;
         document.getElementById('active-actor-name').innerText = '—';
+        const exploreHero = (typeof getLeader === 'function' && getLeader()) ? getLeader() : null;
+        syncHeroHotbarSkillIcons(exploreHero);
         document.getElementById('lbl-attack').innerText = 'Strike';
         if (subAttack) subAttack.innerText = 'Basic Attack';
         document.getElementById('lbl-skill').innerText = 'Primary Art';
@@ -1749,6 +1786,7 @@ function updateTurnQueueUI() {
         document.getElementById('active-actor-name').innerText = activeActor.name;
 
         if (!activeActor.isEnemy) {
+            syncHeroHotbarSkillIcons(activeActor);
             const actualCost = (typeof getEffectiveSkillCost === 'function')
                 ? getEffectiveSkillCost(activeActor, activeActor.skillCost)
                 : activeActor.skillCost;
@@ -2655,6 +2693,16 @@ function drawGame() {
             ctx.textAlign = 'center';
             ctx.lineWidth = 3.5;
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.94)';
+            const iconImg = (pop.svgKey && typeof getCombatSvgCanvasImage === 'function')
+                ? getCombatSvgCanvasImage(pop.svgKey)
+                : null;
+            if (iconImg && iconImg.complete && iconImg.naturalWidth > 0) {
+                const icoSz = Math.round(popSize * 1.25);
+                const approxW = (typeof ctx.measureText === 'function')
+                    ? ctx.measureText(pop.text).width
+                    : pop.text.length * popSize * 0.52;
+                ctx.drawImage(iconImg, -approxW * 0.5 - icoSz - 3, -icoSz * 0.82, icoSz, icoSz);
+            }
             ctx.strokeText(pop.text, 0, 0);
             ctx.fillStyle = pop.color;
             ctx.fillText(pop.text, 0, 0);
