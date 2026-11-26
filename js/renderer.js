@@ -1550,17 +1550,35 @@ function drawPropMiniature(c, type, tileX, tileY, state = {}, phase = 0) {
             c.fill();
         }
 
-        // Iron reinforcement straps & golden lockplate
-        c.fillStyle = '#7f8fa6';
+        // Oak plank seams, beveled iron reinforcement straps, rivets & brass lockplate
+        c.strokeStyle = 'rgba(24, 10, 3, 0.55)';
+        c.lineWidth = 0.8;
+        c.beginPath();
+        c.moveTo(-12.5, -10); c.lineTo(12.5, -10);
+        c.moveTo(-12.5, -5.5); c.lineTo(12.5, -5.5);
+        c.stroke();
+
+        const ironGrad = c.createLinearGradient(-9, -23, -6, -1);
+        ironGrad.addColorStop(0, '#a4b0be');
+        ironGrad.addColorStop(0.5, '#57606f');
+        ironGrad.addColorStop(1, '#2f3542');
+        c.fillStyle = ironGrad;
         c.fillRect(-9, -23, 3, 22);
         c.fillRect(6, -23, 3, 22);
-        c.strokeStyle = '#2f3640';
+        c.fillStyle = '#dfe4ea';
+        [-19, -12, -5].forEach(ry => {
+            c.fillRect(-8, ry, 1.1, 1.1);
+            c.fillRect(7, ry, 1.1, 1.1);
+        });
+        c.strokeStyle = '#24150b';
         c.lineWidth = 1;
         c.strokeRect(-13, -15, 26, 14);
-        c.fillStyle = '#f1c40f';
-        c.fillRect(-2.5, -17, 5, 6);
+        c.fillStyle = '#e1b12c';
+        c.fillRect(-2.8, -17, 5.6, 6.4);
+        c.fillStyle = '#fff3b0';
+        c.fillRect(-2.4, -16.6, 4.8, 1);
         c.fillStyle = '#1e272e';
-        c.fillRect(-0.8, -15, 1.6, 2.8);
+        c.fillRect(-0.8, -14.8, 1.6, 2.8);
     } else if (type === 'loot') {
         const bob = Math.sin(phase * 2 + tileX) * 2;
         drawSoftGroundShadow(c, cx, baseY + 2, 11, 4.5);

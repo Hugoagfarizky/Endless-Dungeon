@@ -2134,15 +2134,20 @@ function drawScreenSpaceOverlays() {
     ctx.fillStyle = edgeVig;
     ctx.fillRect(vx, vy, vw, vh);
 
-    // Subtle film-grain dither tile to prevent 8-bit gradient banding in dark stone shadows
+    // Subtle film-grain dither pattern (single GPU fillRect pass) to eliminate 8-bit gradient banding
     if (typeof getFilmGrainTile === 'function') {
         const grain = getFilmGrainTile();
-        const ox = ((Math.floor(torchFlickerPhase * 17) % 64) + 64) % 64;
-        const oy = ((Math.floor(torchFlickerPhase * 11) % 64) + 64) % 64;
-        for (let gx = vx - ox; gx < vx + vw; gx += 64) {
-            for (let gy = vy - oy; gy < vy + vh; gy += 64) {
-                ctx.drawImage(grain, gx, gy, 64, 64);
-            }
+        if (!ctx._filmGrainPattern && typeof ctx.createPattern === 'function') {
+            ctx._filmGrainPattern = ctx.createPattern(grain, 'repeat');
+        }
+        if (ctx._filmGrainPattern) {
+            const ox = ((Math.floor(torchFlickerPhase * 17) % 64) + 64) % 64;
+            const oy = ((Math.floor(torchFlickerPhase * 11) % 64) + 64) % 64;
+            ctx.save();
+            ctx.translate(vx - ox, vy - oy);
+            ctx.fillStyle = ctx._filmGrainPattern;
+            ctx.fillRect(0, 0, vw + 64, vh + 64);
+            ctx.restore();
         }
     }
 
