@@ -19,31 +19,31 @@ let isCanvasVisible = true;
 function mountStaticDungeonIcons() {
     if (typeof icon !== 'function') return;
     const mapIds = {
-        'brand-sigil-icon': ['crest', 16],
-        'ico-torch': ['torch', 14],
-        'ico-coin': ['coin', 14],
-        'ico-ingot': ['ingot', 14],
-        'ico-satchel': ['satchel', 15],
-        'ico-armory': ['armory', 15],
-        'ico-codex': ['codex', 15],
-        'ico-auto': ['auto', 14],
-        'ico-speed': ['speed', 14],
-        'ico-map': ['map', 14],
-        'ico-cog': ['cog', 14],
+        'brand-sigil-icon': ['crest', 17],
+        'ico-torch': ['torch', 16],
+        'ico-coin': ['coin', 16],
+        'ico-ingot': ['ingot', 16],
+        'ico-satchel': ['satchel', 20],
+        'ico-armory': ['armory', 20],
+        'ico-codex': ['codex', 20],
+        'ico-auto': ['auto', 19],
+        'ico-speed': ['speed', 19],
+        'ico-map': ['map', 19],
+        'ico-cog': ['cog', 19],
         'ico-save': ['save', 13],
         'ico-seed': ['seed', 13],
         'ico-calendar': ['calendar', 13],
         'ico-pause-cog': ['cog', 13],
         'ico-reset': ['reset', 13],
-        'ico-cmd-ult': ['overdrive', 16],
-        'ico-cmd-attack': ['sword', 15],
-        'ico-cmd-skill': ['arcane', 15],
-        'ico-cmd-skill2': ['mastery', 15],
-        'ico-cmd-defend': ['shield', 15],
-        'ico-cmd-swap': ['swap', 15],
-        'ico-cmd-item': ['satchel', 15],
-        'ico-cmd-revive': ['feather', 15],
-        'ico-cmd-flee': ['flee', 15]
+        'ico-cmd-ult': ['overdrive', 24],
+        'ico-cmd-attack': ['sword', 21],
+        'ico-cmd-skill': ['arcane', 21],
+        'ico-cmd-skill2': ['mastery', 21],
+        'ico-cmd-defend': ['shield', 21],
+        'ico-cmd-swap': ['swap', 21],
+        'ico-cmd-item': ['satchel', 21],
+        'ico-cmd-revive': ['feather', 21],
+        'ico-cmd-flee': ['flee', 21]
     };
     Object.entries(mapIds).forEach(([id, [name, sz]]) => {
         const el = document.getElementById(id);
@@ -2164,7 +2164,7 @@ function drawMiniMapRadar() {
     const biome = getCurrentBiome();
 
     minimapCtx.save();
-    minimapCtx.fillStyle = 'rgba(18, 16, 18, 0.94)';
+    minimapCtx.fillStyle = 'rgba(10, 9, 12, 0.42)';
     minimapCtx.fillRect(0, 0, boxW, boxH);
 
     minimapCtx.fillStyle = '#c7ae91';
