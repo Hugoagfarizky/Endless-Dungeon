@@ -16,20 +16,22 @@ Lalu buka <http://localhost:8080>.
 
 ## Struktur berkas
 
-| Berkas | Isi |
+| Direktori / Berkas | Isi |
 | --- | --- |
-| `index.html` | kerangka UI, dialog, dan urutan pemuatan script |
-| `style.css` | tema gothic, layout responsif, animasi HUD |
-| `js/grid.js` | generator ruangan prosedural, biome, boss, fog of war |
-| `js/player.js` | party, zirah, relic, skill, dan penyimpanan save |
-| `js/combat.js` | sistem giliran, AI boss, reaksi elemen |
-| `js/renderer.js` | tekstur 2.5D, miniatur karakter, pencahayaan |
-| `js/ui.js` | HUD, minimap, modal, dan alur save/load |
-| `js/sound.js` | sintesis Web Audio dan musik adaptif |
-| `js/main.js` | input keyboard/mouse dan inisialisasi |
+| `index.html` | kerangka UI, dialog, dan urutan pemuatan CSS & `<script defer>` |
+| `css/tokens-base.css`, `css/hud.css`, `css/modals.css` | tema batu gothic, floating HUD, modal dialog, dan aturan responsif |
+| `js/data/catalogs.js` | katalog zirah, set bonus, relic, item, bestiary, dan template party |
+| `js/core/persistence.js` | Hall of Fame, save/load slot, export/import JSON, seed, dan ascension |
+| `js/party/` (`party-stats.js`, `loot-forge.js`) | atribut hero, perk/mastery, formasi, loot generator, dan forge |
+| `js/world/` (`grid.js`, `exploration.js`, `events.js`) | generator ruangan, pergerakan party, trap/peti, merchant/shrine/campfire |
+| `js/combat/` (`combat-engine.js`, `combat-actions.js`) | antrean giliran, reaksi elemen, jurus 4 kelas hero, dan AI boss |
+| `js/render/` (`material-baker.js`, `environment.js`, `characters.js`, `monsters.js`, `lighting-fog.js`) | tekstur 3D normal-mapped, anatomi hero & monster, raycast pencahayaan |
+| `js/ui/` (`icons.js`, `camera-vfx.js`, `hud.js`, `modals.js`, `scene-loop.js`) | ilustrasi SVG, kamera/VFX, HUD, modal, dan loop render 60 FPS |
+| `js/audio/sound.js` | sintesis Web Audio API, cavern reverb, dan musik adaptif |
+| `js/main.js` | input keyboard/mouse dan inisialisasi permainan |
 | `GDD.docx` | acuan desain; tanya dulu sebelum mengubah aturan inti |
 
-Script dimuat berurutan lewat tag `<script>` biasa, bukan ES module. Jangan mengubah urutan di `index.html` tanpa alasan yang jelas.
+Script dimuat berurutan lewat tag `<script defer>` biasa (tanpa bundler atau build step). Jangan mengubah urutan di `index.html` tanpa memperhatikan ketergantungan antar-modul.
 
 ## Sebelum mengirim perubahan
 

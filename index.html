@@ -8,7 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Almendra + Jacquard 12 + Crimson Pro untuk estetika Gothic Pixel Filigree -->
     <link href="https://fonts.googleapis.com/css2?family=Almendra:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/tokens-base.css">
+    <link rel="stylesheet" href="css/hud.css">
+    <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
     <div id="game-wrapper">
@@ -514,14 +516,27 @@
         </div>
     </div>
 
-    <!-- Modul JS (defer menjaga urutan eksekusi tanpa memblokir HTML parser) -->
-    <script defer src="js/icons.js"></script>
-    <script defer src="js/sound.js"></script>
-    <script defer src="js/grid.js"></script>
-    <script defer src="js/player.js"></script>
-    <script defer src="js/combat.js"></script>
-    <script defer src="js/renderer.js"></script>
-    <script defer src="js/ui.js"></script>
+    <!-- Modul JS Terstruktur (defer menjaga urutan eksekusi tanpa memblokir HTML parser) -->
+    <script defer src="js/ui/icons.js"></script>
+    <script defer src="js/audio/sound.js"></script>
+    <script defer src="js/world/grid.js"></script>
+    <script defer src="js/data/catalogs.js"></script>
+    <script defer src="js/core/persistence.js"></script>
+    <script defer src="js/party/party-stats.js"></script>
+    <script defer src="js/party/loot-forge.js"></script>
+    <script defer src="js/world/exploration.js"></script>
+    <script defer src="js/world/events.js"></script>
+    <script defer src="js/combat/combat-engine.js"></script>
+    <script defer src="js/combat/combat-actions.js"></script>
+    <script defer src="js/render/material-baker.js"></script>
+    <script defer src="js/render/environment.js"></script>
+    <script defer src="js/render/characters.js"></script>
+    <script defer src="js/render/monsters.js"></script>
+    <script defer src="js/render/lighting-fog.js"></script>
+    <script defer src="js/ui/camera-vfx.js"></script>
+    <script defer src="js/ui/hud.js"></script>
+    <script defer src="js/ui/modals.js"></script>
+    <script defer src="js/ui/scene-loop.js"></script>
     <script defer src="js/main.js"></script>
 </body>
 </html>

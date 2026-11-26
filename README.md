@@ -62,19 +62,42 @@ Lalu buka `http://localhost:8080` di browser.
 
 ```text
 Endless Dungeon/
-├── index.html       # Antarmuka utama & modal <dialog> aksesibel
-├── style.css        # Tema Gothic Dark-Fantasy, layout responsif & animasi UI
-├── GDD.docx         # Dokumen Konsep Game (Game Design Document)
-├── js/
-│   ├── icons.js     # Sistem ikonografi vektor SVG abad pertengahan kustom
-│   ├── sound.js     # Web Audio API synth, cavern reverb & BGM dinamis
-│   ├── grid.js      # Generator ruangan prosedural, biome, boss, & Fog of War
-│   ├── player.js    # Party 4 ksatria, zirah, set bonus, relic, & penyimpanan
-│   ├── combat.js    # Sistem turn-based, AI boss 2 fase, reaksi elemen & taktik
-│   ├── renderer.js  # Engine tekstur batu 2.5D, miniatur karakter & pencahayaan
-│   ├── ui.js        # Loop render 60 FPS, HUD, minimap radar, & sistem modal
-│   └── main.js      # Kontrol input keyboard/mouse & inisialisasi permainan
-└── assets/          # Direktori aset tambahan
+├── index.html                  # Antarmuka utama & modal <dialog> aksesibel
+├── GDD.docx                    # Dokumen Konsep Game (Game Design Document)
+├── css/
+│   ├── tokens-base.css         # Variabel tema batu/perunggu, tekstur SVG 9-slice & dasar
+│   ├── hud.css                 # Fullscreen floating HUD, kartu party, bar & hotbar SVG
+│   └── modals.css              # Gaya 11 modal <dialog>, popover, & mist transition
+└── js/
+    ├── main.js                 # Kontrol input keyboard/mouse & inisialisasi permainan
+    ├── audio/
+    │   └── sound.js            # Web Audio API synth, cavern reverb & BGM dinamis
+    ├── data/
+    │   └── catalogs.js         # Katalog zirah, set bonus, relic, item, & template party
+    ├── core/
+    │   └── persistence.js      # Hall of Fame, Bestiary, Save/Load, Seed, & Ascension
+    ├── party/
+    │   ├── party-stats.js      # Atribut hero, level-up, perk, mastery, & formasi
+    │   └── loot-forge.js       # Generator loot, Cursed Relic, Armory, & Blacksmith Forge
+    ├── world/
+    │   ├── grid.js             # Generator ruangan prosedural, biome, boss, & Fog of War
+    │   ├── exploration.js      # Pergerakan party, peti harta, Mimic, & jebakan lantai
+    │   └── events.js           # Logika interaksi Merchant Caravan, Shrine, & Campfire
+    ├── combat/
+    │   ├── combat-engine.js    # Siklus giliran, ambush, reaksi elemen, & Auto-Battle AI
+    │   └── combat-actions.js   # Eksekusi jurus 4 kelas Hero & AI Boss multi-fase
+    ├── render/
+    │   ├── material-baker.js   # Baker tekstur batu 3D Sobel normal-map & FBM noise
+    │   ├── environment.js      # Render lantai, dinding ashlar, tangga, & prop miniatur
+    │   ├── characters.js       # Anatomi 3D 4 kelas Hero bersendi & potret bust 128x128
+    │   ├── monsters.js         # Render anatomi Boss, Mini-Boss, Mimic, Skeleton, & Slime
+    │   └── lighting-fog.js     # Raycast bayangan obor, kabut volumetrik, & film grain
+    └── ui/
+        ├── icons.js            # Ikonografi UI, ornamen batu, & 24 ilustrasi SVG serangan
+        ├── camera-vfx.js       # Kamera dinamis Hi-DPI, partikel biome, & combat VFX
+        ├── hud.js              # Sinkronisasi HUD, antrean giliran, log kronik, & tooltip
+        ├── modals.js           # Render seluruh modal <dialog>, Armory, Codex, & transisi
+        └── scene-loop.js       # Loop render 60 FPS utama, overlay layar, & radar minimap
 ```
 
 ---

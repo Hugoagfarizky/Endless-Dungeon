@@ -1,0 +1,1045 @@
+/* =========================================================
+   FULLSCREEN DIEGETIC HUD ZONES & TOP-LEFT BRAND PLAQUE
+   ========================================================= */
+#hud-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.hud-zone {
+    position: absolute;
+    pointer-events: none;
+}
+
+.hud-top-left {
+    inset-block-start: max(10px, env(safe-area-inset-top, 0px));
+    inset-inline-start: max(14px, env(safe-area-inset-left, 0px));
+    inline-size: 252px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-block-size: calc(100dvh - 122px);
+}
+
+.hud-top-center {
+    inset-block-start: max(8px, env(safe-area-inset-top, 0px));
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    max-inline-size: min(440px, calc(100dvw - 610px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hud-top-right {
+    inset-block-start: max(10px, env(safe-area-inset-top, 0px));
+    inset-inline-end: max(14px, env(safe-area-inset-right, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.hud-top-right-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    pointer-events: auto;
+}
+
+.hud-bottom-left {
+    inset-block-end: max(10px, env(safe-area-inset-bottom, 0px));
+    inset-inline-start: max(14px, env(safe-area-inset-left, 0px));
+    inline-size: min(296px, 23dvw);
+    pointer-events: auto;
+}
+
+.hud-bottom-center {
+    inset-block-end: max(10px, env(safe-area-inset-bottom, 0px));
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-inline-size: calc(100dvw - 24px);
+}
+
+/* Frameless Top-Left Brand Whisper */
+.hud-brand-plaque {
+    pointer-events: auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.header-crest {
+    pointer-events: none;
+    line-height: 0;
+    margin-block-end: -2px;
+    z-index: 2;
+    opacity: 0.85;
+}
+
+.filigree-crest-svg {
+    filter: var(--hud-icon-shadow);
+}
+
+.title-lockup {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sigil-inline {
+    color: var(--filigree-bright);
+    display: inline-flex;
+    filter: var(--hud-icon-shadow);
+}
+
+.title-lockup h1 {
+    margin: 0;
+    font-family: var(--font-gothic);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    color: var(--filigree-ivory);
+    text-shadow: var(--hud-text-shadow);
+}
+
+.mode-tag {
+    font-family: var(--font-gothic);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0 4px;
+    border: none;
+    background: transparent;
+    color: var(--filigree-bright);
+    text-shadow: var(--hud-text-shadow);
+}
+.mode-combat {
+    color: #ef8b8e;
+}
+
+.expedition-sub {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-family: var(--font-prose);
+    font-size: 12px;
+    color: var(--text-sand);
+    text-shadow: var(--hud-text-shadow);
+}
+.expedition-sub b { color: var(--filigree-ivory); font-weight: 600; }
+.biome-name { color: var(--filigree-bright); font-family: var(--font-gothic); }
+.dot-sep { color: #8c7a6b; }
+
+/* =========================================================
+   BOXLESS FLOATING CURRENCY & TORCH READOUTS
+   ========================================================= */
+.header-center-plaques {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-inline: 2px;
+}
+
+.currency-plaque {
+    min-inline-size: 0;
+    block-size: auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-gothic);
+    text-shadow: var(--hud-text-shadow);
+}
+
+.plaque-ico {
+    color: var(--filigree-bright);
+    display: inline-flex;
+    filter: var(--hud-icon-shadow);
+}
+
+.currency-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--filigree-ivory);
+    letter-spacing: 0.04em;
+}
+
+.currency-sym {
+    font-size: 11px;
+    color: var(--text-sand);
+}
+
+.torch-plaque {
+    inline-size: 118px;
+    justify-content: flex-start;
+}
+
+.torch-plaque-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.torch-plaque-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    line-height: 1;
+}
+.torch-plaque-row em {
+    font-style: normal;
+    color: var(--text-sand);
+    letter-spacing: 0.05em;
+}
+.torch-plaque-row b {
+    color: var(--filigree-ivory);
+}
+
+/* =========================================================
+   BOXLESS FLOATING TOOLBAR BUTTONS (PURE ICON + LABEL!)
+   ========================================================= */
+.hud-toolbar {
+    display: flex;
+    align-items: safe center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: safe center;
+    gap: 8px;
+}
+
+.toolbar-sep {
+    inline-size: 0;
+    block-size: 18px;
+    border-inline-start: 1px solid rgba(199, 174, 145, 0.28);
+    margin-inline: 2px;
+}
+
+.icon-slot-btn {
+    position: relative;
+    min-inline-size: max(36px, var(--target-size));
+    min-block-size: max(36px, var(--target-size));
+    padding: 3px 4px;
+    background: transparent;
+    color: var(--text-bone);
+    border: none;
+    box-shadow: none;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-family: var(--font-gothic);
+    cursor: pointer;
+    filter: var(--hud-icon-shadow);
+    transition: color 130ms ease-out, translate 130ms ease-out, filter 130ms ease-out, scale 100ms ease-out;
+}
+
+@media (hover: hover) {
+    .icon-slot-btn:hover {
+        color: #f6e7ce;
+        translate: 0 -2px;
+        filter: drop-shadow(0 0 8px rgba(230, 212, 188, 0.55)) var(--hud-icon-shadow);
+    }
+}
+
+.icon-slot-btn[aria-pressed="true"],
+.slot-highlight {
+    color: #f4dfb9;
+    filter: drop-shadow(0 0 7px rgba(226, 185, 120, 0.52)) var(--hud-icon-shadow);
+}
+
+.icon-slot-btn[aria-pressed="true"]::after {
+    content: "◆";
+    position: absolute;
+    inset-block-end: -5px;
+    font-size: 7px;
+    line-height: 1;
+    color: var(--filigree-bright);
+}
+
+.slot-lbl {
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-shadow: var(--hud-text-shadow);
+}
+
+.slot-badge {
+    position: absolute;
+    inset-block-start: -2px;
+    inset-inline-end: -2px;
+    padding: 0;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    background: transparent;
+    color: #f2d59b;
+    border: none;
+    box-shadow: none;
+    text-shadow: var(--hud-text-shadow);
+}
+
+/* =========================================================
+   POINTED / SPEAR-TIPPED GOTHIC STATUS BARS (SUNKEN STONE GROOVE!)
+   ========================================================= */
+.pointed-bar-wrap {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.85));
+}
+
+.pointed-bar-track {
+    position: relative;
+    block-size: 7px;
+    background: linear-gradient(to bottom var(--in-oklab), #0b090d, #161318);
+    border: 1px solid #574a40;
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%);
+    overflow: clip;
+}
+
+.bar-track-torch { block-size: 5px; }
+.bar-track-hp    { inline-size: 100%; block-size: 7.5px; }
+.bar-track-mp    { inline-size: 92%;  block-size: 6.5px; }
+.bar-track-od    { inline-size: 76%;  block-size: 6px; }
+
+.pointed-bar-fill {
+    display: block;
+    block-size: 100%;
+    clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 0 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transition: width 200ms ease-out;
+}
+
+.fill-crimson   { background: linear-gradient(to right var(--in-oklab), var(--bar-hp-dark), var(--bar-hp-fill)); }
+.fill-cobalt    { background: linear-gradient(to right var(--in-oklab), var(--bar-mp-dark), var(--bar-mp-fill)); }
+.fill-verdigris { background: linear-gradient(to right var(--in-oklab), var(--bar-od-dark), var(--bar-od-fill)); }
+.fill-amber     { background: linear-gradient(to right var(--in-oklab), #73471b, var(--bar-amber-fill)); }
+
+/* =========================================================
+   BOXLESS TOP-CENTER INITIATIVE RIBBON & MINIMAP
+   ========================================================= */
+.mist-strip {
+    pointer-events: auto;
+    position: relative;
+    min-block-size: 26px;
+    padding-block: 2px;
+    padding-inline: 10px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mist-strip::before { display: none; }
+.mist-strip::after {
+    content: "";
+    position: absolute;
+    inset-inline: 10%;
+    inset-block-end: -1px;
+    block-size: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(199, 174, 145, 0.45) 50%, transparent 100%);
+    pointer-events: none;
+}
+
+.queue-label {
+    font-family: var(--font-gothic);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--filigree-ivory);
+    text-shadow: var(--hud-text-shadow);
+    white-space: nowrap;
+}
+
+#turn-queue-list {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    flex: 1;
+    min-inline-size: 0;
+}
+
+.queue-empty {
+    font-family: var(--font-prose);
+    font-style: italic;
+    font-size: 12.5px;
+    color: var(--text-sand);
+    text-shadow: var(--hud-text-shadow);
+    white-space: nowrap;
+}
+
+.decree-whisper {
+    font-family: var(--font-prose);
+    font-size: 12px;
+    color: var(--text-sand);
+    text-shadow: var(--hud-text-shadow);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.turn-badge {
+    scroll-snap-align: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    font-family: var(--font-gothic);
+    font-size: 12px;
+    color: var(--text-sand);
+    text-shadow: var(--hud-text-shadow);
+    white-space: nowrap;
+}
+.turn-badge small { color: var(--text-taupe); font-family: var(--font-prose); }
+.turn-badge.active-turn {
+    color: #f6e7ce;
+    border-block-end: 1.5px solid var(--filigree-ivory);
+}
+.turn-badge.enemy-turn { color: #e69598; }
+.turn-badge.target-locked {
+    color: #9ec8ed;
+    border-block-end: 1.5px dashed #79a6cf;
+}
+.turn-arrow { color: var(--text-taupe); font-size: 11px; text-shadow: var(--hud-text-shadow); }
+
+/* FULLSCREEN 100% EDGE-TO-EDGE DUNGEON CANVAS */
+#canvas-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: #060504;
+    padding: 0;
+    overflow: clip;
+    content-visibility: auto;
+    contain-intrinsic-size: auto none auto 100dvh;
+}
+
+#canvas-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 90px rgba(4, 3, 5, 0.72);
+}
+
+#gameCanvas {
+    inline-size: 100%;
+    block-size: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+#minimapCanvas {
+    position: relative;
+    inline-size: 192px;
+    block-size: 140px;
+    pointer-events: none;
+    border: none;
+    background: transparent;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.85));
+}
+
+.hover-tooltip {
+    position: fixed;
+    z-index: 25;
+    pointer-events: none;
+    max-inline-size: 360px;
+    padding: 6px 10px;
+    background-color: rgba(20, 17, 22, 0.96);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.94);
+    display: none;
+}
+.hover-tooltip .ht-title {
+    font-family: var(--font-gothic);
+    font-size: 14px;
+    font-weight: 700;
+    margin-block-end: 2px;
+}
+.hover-tooltip .ht-sub {
+    font-family: var(--font-prose);
+    font-size: 13px;
+    color: var(--text-taupe);
+    line-height: 1.3;
+}
+.hover-tooltip.visible { display: block; }
+
+/* =========================================================
+   BOXLESS BOTTOM-LEFT FLOATING CHRONICLE TEXT
+   ========================================================= */
+.mist-lore-box {
+    block-size: 88px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-inline: 2px 6px;
+    background: transparent;
+    text-shadow: var(--hud-text-shadow);
+}
+
+.mist-lore-box::before,
+.mist-lore-box::after {
+    display: none;
+}
+
+.gothic-spear-svg {
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
+}
+
+.mist-lore-inner {
+    flex: 1;
+    block-size: 100%;
+    padding-block: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+}
+
+.mist-lore-title {
+    font-family: var(--font-gothic);
+    font-size: 13px;
+    color: var(--filigree-ivory);
+    text-align: center;
+    letter-spacing: 0.05em;
+    padding-block-end: 3px;
+    margin-block-end: 3px;
+    background: linear-gradient(90deg, transparent 20%, rgba(142, 118, 96, 0.35) 50%, transparent 80%) bottom / 100% 1px no-repeat;
+}
+
+#log-box {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+    font-family: var(--font-prose);
+    font-size: 13.5px;
+    line-height: 1.36;
+    color: var(--text-taupe);
+    padding-inline: 8px;
+}
+
+#log-box .chronicle-entry {
+    padding-block: 1px;
+    color: var(--text-taupe);
+}
+#log-box .chronicle-entry:first-child {
+    color: var(--text-bone);
+}
+#log-box .chronicle-bullet {
+    color: var(--filigree-mid);
+    font-size: 8px;
+    margin-inline-end: 6px;
+}
+
+#log-box .chronicle-svg-ico {
+    display: inline-flex;
+    vertical-align: -0.22em;
+    margin-inline-end: 5px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.92));
+}
+
+.mist-lore-caret {
+    text-align: center;
+    font-size: 7px;
+    line-height: 1;
+    color: var(--filigree-mid);
+    padding-block-start: 1px;
+}
+
+.spear-margin-ornament {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* =========================================================
+   FLOATING TOP-LEFT PARTY FRAMES (NO OUTER WRAPPER BOX!)
+   ========================================================= */
+#party-status {
+    min-block-size: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+    pointer-events: none;
+}
+
+h3 {
+    margin: 0;
+    font-family: var(--font-gothic);
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--filigree-ivory);
+}
+
+.synergy-readout {
+    font-family: var(--font-gothic);
+    font-size: 10.5px;
+    color: #88bd9c;
+    margin-inline-start: 4px;
+}
+
+#party-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Individual Boxless Floating Hero HUD Unit over Live Dungeon */
+.member-card {
+    pointer-events: auto;
+    position: relative;
+    padding: 2px 4px 2px 0;
+    background: transparent;
+    border: none;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    cursor: pointer;
+    text-shadow: var(--hud-text-shadow);
+    transition: translate 130ms ease-out, filter 130ms ease-out;
+}
+
+@media (hover: hover) {
+    .member-card:hover {
+        translate: 3px 0;
+        filter: drop-shadow(0 0 8px rgba(230, 212, 188, 0.32));
+    }
+}
+
+.member-card.active-turn-card .hero-portrait-frame {
+    border-color: #f6e7ce;
+    box-shadow: 0 0 10px rgba(230, 212, 188, 0.6), 0 3px 8px rgba(0, 0, 0, 0.9);
+}
+
+.hero-portrait-frame {
+    position: relative;
+    inline-size: 42px;
+    block-size: 42px;
+    border-radius: 50%;
+    background-color: rgba(16, 14, 18, 0.78);
+    border: 1.5px solid rgba(199, 174, 145, 0.72);
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.9);
+    flex-shrink: 0;
+    overflow: clip;
+}
+
+.hero-portrait-frame img {
+    inline-size: 100%;
+    block-size: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.rank-numeral {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 3px;
+    padding: 0;
+    font-family: var(--font-gothic);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 11px;
+    color: var(--filigree-ivory);
+    background: transparent;
+    border: none;
+    text-shadow: var(--hud-text-shadow);
+}
+
+.member-details {
+    flex: 1;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.member-top-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+}
+
+.hero-id-line {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    min-inline-size: 0;
+}
+
+.hero-name-title {
+    font-family: var(--font-gothic);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--filigree-ivory);
+    text-shadow: var(--hud-text-shadow);
+}
+
+.hero-lv-tag {
+    font-family: var(--font-prose);
+    font-size: 11.5px;
+    color: var(--text-sand);
+}
+
+.unspent-pt {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #98d4ad;
+}
+
+/* Boxless Floating Equipment Micro-Glyphs */
+.mini-slot-boxes {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    filter: var(--hud-icon-shadow);
+}
+
+.micro-slot-box {
+    inline-size: 13px;
+    block-size: 13px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    display: grid;
+    place-items: center;
+    color: var(--filigree-bright);
+}
+.micro-slot-box.empty {
+    color: #7c6d60;
+    opacity: 0.45;
+}
+.micro-slot-box.cursed {
+    color: #e66c74;
+}
+
+/* Rows 2-4: 3 Staggered Pointed Bars (Red, Blue, Green) */
+.staggered-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.92));
+}
+
+.member-bottom-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-prose);
+    font-size: 11px;
+    color: var(--text-sand);
+    line-height: 1;
+}
+
+.member-bottom-meta b {
+    color: var(--filigree-ivory);
+    font-weight: 600;
+}
+
+.rank-swap-controls {
+    display: inline-flex;
+    gap: 2px;
+    opacity: 0;
+}
+.member-card:hover .rank-swap-controls,
+.member-card:focus-within .rank-swap-controls { opacity: 1; }
+@media (hover: none) { .rank-swap-controls { opacity: 1; } }
+
+.btn-rank-step {
+    min-inline-size: 20px;
+    min-block-size: 20px;
+    padding: 0 3px;
+    background: transparent;
+    color: var(--filigree-ivory);
+    border: none;
+    text-shadow: var(--hud-text-shadow);
+    font-size: 9.5px;
+    cursor: pointer;
+}
+
+.status-tags {
+    display: inline-flex;
+    gap: 4px;
+    font-family: var(--font-gothic);
+    font-size: 10px;
+}
+.tag-poison { color: #78ab8c; }
+.tag-burn   { color: #d68b49; }
+.tag-stun   { color: #7ba6cc; }
+.tag-curse  { color: #cf5b64; }
+
+/* =========================================================
+   BOXLESS BOTTOM-CENTER FLOATING RPG SKILL BUTTONS
+   ========================================================= */
+.hotbar-top-strip {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.hotbar-actor-pill {
+    font-family: var(--font-gothic);
+    font-size: 12px;
+    color: var(--text-sand);
+    letter-spacing: 0.05em;
+    text-shadow: var(--hud-text-shadow);
+}
+
+.cmd-actor { color: var(--filigree-ivory); }
+
+.stance-switches { display: inline-flex; gap: 8px; }
+.stance-chip {
+    min-inline-size: var(--target-size);
+    min-block-size: 24px;
+    padding: 0 4px;
+    background: transparent;
+    color: var(--filigree-bright);
+    border: none;
+    font-family: var(--font-gothic);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-shadow: var(--hud-text-shadow);
+    cursor: pointer;
+    transition: color 130ms ease-out, translate 130ms ease-out;
+}
+@media (hover: hover) {
+    .stance-chip:hover {
+        color: #f6e7ce;
+        translate: 0 -1px;
+    }
+}
+
+.hotbar-dock {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    max-inline-size: 100%;
+}
+
+.hotbar-divider {
+    inline-size: 1px;
+    block-size: 28px;
+    align-self: center;
+    background: linear-gradient(to bottom, transparent, rgba(199, 174, 145, 0.45), transparent);
+    flex-shrink: 0;
+}
+
+.btn-ult-plaque {
+    position: relative;
+    min-inline-size: 108px;
+    min-block-size: max(54px, var(--target-size));
+    padding: 4px 6px;
+    background: transparent;
+    color: var(--text-bone);
+    border: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    text-align: left;
+    cursor: pointer;
+    flex-shrink: 0;
+    filter: var(--hud-icon-shadow);
+    transition: translate 140ms ease-out, filter 140ms ease-out, scale 100ms ease-out;
+}
+
+/* Soft circular golden aura behind Overdrive icon (zero box!) */
+.ult-charge-fill {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 28px;
+    inline-size: 44px;
+    block-size: 44px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(235, 182, 92, 0.58) 0%, transparent 72%);
+    opacity: calc(var(--od-pct, 0%) / 100);
+    pointer-events: none;
+}
+
+.btn-ult-plaque:not(:disabled) {
+    color: #f7dfb2;
+    filter: drop-shadow(0 0 11px rgba(235, 182, 94, 0.72)) var(--hud-icon-shadow);
+}
+@media (hover: hover) {
+    .btn-ult-plaque:hover:not(:disabled) {
+        translate: 0 -3px;
+    }
+}
+.btn-ult-plaque:disabled {
+    opacity: 0.62;
+    filter: saturate(0.78) var(--hud-icon-shadow);
+    cursor: not-allowed;
+}
+
+.action-grid {
+    display: flex;
+    align-items: flex-end;
+    gap: 11px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    padding-block: 4px 2px;
+}
+
+.btn-action {
+    scroll-snap-align: start;
+    position: relative;
+    min-inline-size: 62px;
+    min-block-size: max(54px, var(--target-size));
+    padding: 4px 4px 2px;
+    background: transparent;
+    color: var(--text-bone);
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    filter: var(--hud-icon-shadow);
+    transition: translate 130ms ease-out, color 130ms ease-out, filter 130ms ease-out, scale 100ms ease-out;
+}
+
+@media (hover: hover) {
+    .btn-action:hover:not(:disabled) {
+        color: #f6e7ce;
+        translate: 0 -3px;
+        filter: drop-shadow(0 0 10px rgba(235, 205, 160, 0.65)) var(--hud-icon-shadow);
+    }
+    .btn-action:hover:not(:disabled) .cmd-ico {
+        color: #f8e8ca;
+    }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .btn-action:hover:not(:disabled) .combat-skill-svg,
+    .btn-ult-plaque:hover:not(:disabled) .combat-skill-svg {
+        scale: 1.1;
+    }
+}
+
+.btn-action:disabled {
+    opacity: 0.58;
+    filter: saturate(0.78) var(--hud-icon-shadow);
+    cursor: not-allowed;
+}
+
+.btn-action .key-cap {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 4px;
+    font-size: 9.5px;
+}
+
+.key-cap {
+    position: relative;
+    z-index: 2;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    font-family: var(--font-gothic);
+    font-weight: 700;
+    font-size: 10.5px;
+    line-height: 1;
+    color: #e6c896;
+    text-shadow: var(--hud-text-shadow);
+    flex-shrink: 0;
+}
+
+.cmd-ico {
+    position: relative;
+    z-index: 1;
+    inline-size: 34px;
+    block-size: 34px;
+    color: var(--filigree-ivory);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    line-height: 0;
+    transition: color 130ms ease-out;
+}
+
+.btn-ult-plaque .cmd-ico {
+    inline-size: 40px;
+    block-size: 40px;
+}
+
+.combat-skill-svg {
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.92));
+    transition: scale 140ms ease-out;
+}
+
+.cmd-copy {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    max-inline-size: 74px;
+}
+
+.cmd-title {
+    font-family: var(--font-gothic);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.08;
+    color: var(--filigree-ivory);
+    text-shadow: var(--hud-text-shadow);
+    white-space: nowrap;
+    overflow: clip;
+    text-overflow: ellipsis;
+}
+
+.cmd-sub {
+    font-family: var(--font-prose);
+    font-size: 9.5px;
+    line-height: 1.05;
+    color: var(--text-sand);
+    text-shadow: var(--hud-text-shadow);
+    white-space: nowrap;
+    overflow: clip;
+    text-overflow: ellipsis;
+}
+
+.hidden { display: none !important; }

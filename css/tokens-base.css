@@ -1,0 +1,204 @@
+/* ============================================================================
+   DARK FANTASY ULTIMATE UI PACK V2.0 — CARVED DUNGEON STONE & FILIGREE EDITION
+   Hewn basalt ashlar masonry, mineral rock grain, weathered stone friezes,
+   chiseled 9-slice stone+bronze filigree frames, & pointed gothic status bars.
+   ============================================================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    color-scheme: dark;
+    --in-oklab: ;
+    --target-size: 28px;
+    --hud-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.98), 0 2px 6px rgba(0, 0, 0, 0.92), 0 0 12px rgba(0, 0, 0, 0.78);
+    --hud-icon-shadow: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.96)) drop-shadow(0 0 7px rgba(0, 0, 0, 0.82));
+
+    /* Carved Basalt / Dungeon Slate + Champagne-Bronze Filigree Palette */
+    --void-black: #110f13;
+    --stone-deep: #151317;
+    --slot-charcoal: #1c191e;
+    --slot-raised: #262228;
+    --slot-hover: #302a31;
+    --stone-bevel-lit: #52494f;
+    --stone-bevel-mid: #383137;
+    --stone-mortar: #09080b;
+
+    --filigree-dim: #4d423a;
+    --filigree-mid: #8e7660;
+    --filigree-bright: #c7ae91;
+    --filigree-ivory: #e6d4bc;
+
+    /* WCAG >= 4.5:1 Contrast-Verified Stone Inscription Ink */
+    --text-bone: #e6d9c7;
+    --text-sand: #c6b49e;
+    --text-taupe: #a39485;
+
+    /* Exact Reference Sheet 3-Bar Colors */
+    --bar-hp-dark: #7a2629;
+    --bar-hp-fill: #a8383b;
+    --bar-mp-dark: #284b6e;
+    --bar-mp-fill: #4376a8;
+    --bar-od-dark: #295740;
+    --bar-od-fill: #458a66;
+    --bar-amber-fill: #c78d44;
+
+    --scrollbar-thumb: #6f5f52;
+    --scrollbar-track: #121014;
+
+    --font-gothic: 'Almendra', 'Cinzel', Georgia, serif;
+    --font-prose: 'Crimson Pro', Georgia, serif;
+
+    /* Seamless Running-Bond Dungeon Ashlar Stone Wall (128x64) */
+    --stone-ashlar-wall: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='64' viewBox='0 0 128 64' shape-rendering='crispEdges'%3E%3Crect width='128' height='64' fill='%230b090d'/%3E%3Crect x='1' y='1' width='62' height='30' fill='%23161418'/%3E%3Crect x='1' y='1' width='62' height='1' fill='%2329242a'/%3E%3Crect x='1' y='1' width='1' height='30' fill='%23231f24'/%3E%3Crect x='65' y='1' width='62' height='30' fill='%23141216'/%3E%3Crect x='65' y='1' width='62' height='1' fill='%23262127'/%3E%3Crect x='65' y='1' width='1' height='30' fill='%23201c21'/%3E%3Crect x='0' y='33' width='30' height='30' fill='%23151317'/%3E%3Crect x='0' y='33' width='30' height='1' fill='%23272228'/%3E%3Crect x='32' y='33' width='63' height='30' fill='%2318151a'/%3E%3Crect x='32' y='33' width='63' height='1' fill='%232c262d'/%3E%3Crect x='32' y='33' width='1' height='30' fill='%23241f25'/%3E%3Crect x='97' y='33' width='31' height='30' fill='%23151317'/%3E%3Crect x='97' y='33' width='31' height='1' fill='%23272228'/%3E%3Crect x='97' y='33' width='1' height='30' fill='%23201c21'/%3E%3Cpath d='M18 1v5l3 3M88 31v-6l-3-3M52 33v7l-2 4M112 63v-5l2-3' stroke='%230c0a0e' stroke-width='1' fill='none'/%3E%3Crect x='61' y='29' width='2' height='2' fill='%230c0a0e'/%3E%3Crect x='32' y='33' width='2' height='2' fill='%230c0a0e'/%3E%3C/svg%3E");
+
+    /* Organic Mineral Rock Grain & Pores (feTurbulence Soft-Light Texture) */
+    --stone-mineral-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='0.26'/%3E%3C/svg%3E");
+
+    /* Subtle Carved Stone Slab Cracks & Joint Lines */
+    --stone-slab-cracks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='120' viewBox='0 0 180 120' fill='none'%3E%3Cpath d='M0 59.5H180' stroke='%230a080c' stroke-opacity='0.42'/%3E%3Cpath d='M0 60.5H180' stroke='%23ffffff' stroke-opacity='0.035'/%3E%3Cpath d='M36 0L39 11L35 19M142 60L138 72L141 81M88 120L91 108' stroke='%2309070b' stroke-opacity='0.5' stroke-width='1'/%3E%3C/svg%3E");
+
+    /* Weathered / Chipped Stone Edge Alpha Mask (for visually-texture-content) */
+    --stone-weathered-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='24' viewBox='0 0 160 24' shape-rendering='crispEdges'%3E%3Crect width='160' height='24' fill='%23ffffff'/%3E%3Cg fill='%23ffffff' fill-opacity='0.18'%3E%3Crect x='12' y='0' width='3' height='2'/%3E%3Crect x='47' y='0' width='4' height='1'/%3E%3Crect x='83' y='0' width='2' height='2'/%3E%3Crect x='126' y='0' width='5' height='1'/%3E%3Crect x='29' y='22' width='4' height='2'/%3E%3Crect x='71' y='23' width='5' height='1'/%3E%3Crect x='114' y='22' width='3' height='2'/%3E%3Crect x='149' y='23' width='3' height='1'/%3E%3C/g%3E%3C/svg%3E");
+
+    /* 9-Slice Carved Stone Coping + Pixel-Gothic Bronze Filigree (56x56, slice 16) */
+    --filigree-9slice-ornate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' shape-rendering='crispEdges'%3E%3C!-- Outer Cut-Stone Shadow --%3E%3Crect x='0' y='0' width='56' height='56' fill='none' stroke='%230c0a0e' stroke-width='2'/%3E%3C!-- Hewn Stone Coping Ring --%3E%3Crect x='2' y='2' width='52' height='52' fill='none' stroke='%232b262b' stroke-width='4'/%3E%3C!-- Top & Left Chiseled Stone Bevel Highlight --%3E%3Crect x='1' y='1' width='54' height='2' fill='%234c4349'/%3E%3Crect x='1' y='1' width='2' height='54' fill='%23433b41'/%3E%3C!-- Stone Mortar Notches & Chips along Coping --%3E%3Cg fill='%23110e13'%3E%3Crect x='22' y='1' width='2' height='4'/%3E%3Crect x='36' y='2' width='1' height='3'/%3E%3Crect x='20' y='51' width='2' height='4'/%3E%3Crect x='35' y='51' width='1' height='4'/%3E%3Crect x='1' y='23' width='4' height='2'/%3E%3Crect x='51' y='25' width='4' height='2'/%3E%3C/g%3E%3C!-- Inner Recessed Bronze Filigree Track --%3E%3Crect x='5' y='5' width='46' height='46' fill='none' stroke='%23786350' stroke-width='2'/%3E%3C!-- 4 Symmetrical Champagne-Bronze Gothic Corner Spandrels --%3E%3Cg fill='%23c7ae91'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(56,0) scale(-1,1)'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(0,56) scale(1,-1)'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23c7ae91' transform='translate(56,56) scale(-1,-1)'%3E%3Crect x='1' y='1' width='13' height='2'/%3E%3Crect x='1' y='1' width='2' height='13'/%3E%3Crect x='3' y='3' width='7' height='2'/%3E%3Crect x='3' y='3' width='2' height='7'/%3E%3Crect x='6' y='6' width='4' height='2'/%3E%3Crect x='6' y='6' width='2' height='4'/%3E%3Crect x='11' y='3' width='2' height='2'/%3E%3Crect x='3' y='11' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+
+    /* 9-Slice Chiseled Rune-Stone Tablet + Bronze Corner Clasps (32x32, slice 10) */
+    --filigree-9slice-slot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' shape-rendering='crispEdges'%3E%3C!-- Cut-Stone Outer Rim --%3E%3Crect x='0' y='0' width='32' height='32' fill='none' stroke='%230c0a0e' stroke-width='2'/%3E%3C!-- Beveled Stone Rim --%3E%3Crect x='1' y='1' width='30' height='30' fill='none' stroke='%23332d33' stroke-width='2'/%3E%3Crect x='1' y='1' width='29' height='2' fill='%234c4349'/%3E%3Crect x='1' y='1' width='2' height='29' fill='%23443c42'/%3E%3C!-- Stone Edge Chips --%3E%3Crect x='15' y='1' width='2' height='2' fill='%23141116'/%3E%3Crect x='14' y='29' width='2' height='2' fill='%230c0a0e'/%3E%3C!-- Bronze Corner Clasps --%3E%3Cg fill='%23b89f82'%3E%3Crect x='1' y='1' width='7' height='2'/%3E%3Crect x='1' y='1' width='2' height='7'/%3E%3Crect x='3' y='3' width='2' height='2'/%3E%3Crect x='24' y='1' width='7' height='2'/%3E%3Crect x='29' y='1' width='2' height='7'/%3E%3Crect x='27' y='3' width='2' height='2'/%3E%3Crect x='1' y='29' width='7' height='2'/%3E%3Crect x='1' y='24' width='2' height='7'/%3E%3Crect x='3' y='27' width='2' height='2'/%3E%3Crect x='24' y='29' width='7' height='2'/%3E%3Crect x='29' y='24' width='2' height='7'/%3E%3Crect x='27' y='27' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+
+    --filigree-9slice-slot-active: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='32' height='32' fill='none' stroke='%230c0a0e' stroke-width='2'/%3E%3Crect x='1' y='1' width='30' height='30' fill='none' stroke='%238e7660' stroke-width='2'/%3E%3Crect x='1' y='1' width='29' height='2' fill='%23c7ae91'/%3E%3Crect x='1' y='1' width='2' height='29' fill='%23b59b7e'/%3E%3Cg fill='%23ead8be'%3E%3Crect x='1' y='1' width='8' height='2'/%3E%3Crect x='1' y='1' width='2' height='8'/%3E%3Crect x='3' y='3' width='3' height='3'/%3E%3Crect x='23' y='1' width='8' height='2'/%3E%3Crect x='29' y='1' width='2' height='8'/%3E%3Crect x='26' y='3' width='3' height='3'/%3E%3Crect x='1' y='29' width='8' height='2'/%3E%3Crect x='1' y='23' width='2' height='8'/%3E%3Crect x='3' y='26' width='3' height='3'/%3E%3Crect x='23' y='29' width='8' height='2'/%3E%3Crect x='29' y='23' width='2' height='8'/%3E%3Crect x='26' y='26' width='3' height='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+@supports (background: linear-gradient(in oklab, white, black)) {
+    :root { --in-oklab: in oklab; }
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    inline-size: 100%;
+    min-block-size: 100dvh;
+    block-size: 100dvh;
+    background-color: var(--void-black);
+    background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(74, 62, 54, 0.2) 0%, rgba(10, 8, 12, 0.72) 75%),
+        var(--stone-mineral-grain),
+        var(--stone-ashlar-wall);
+    background-blend-mode: normal, soft-light, normal;
+    color: var(--text-bone);
+    font-family: var(--font-prose);
+    font-variant-numeric: tabular-nums;
+    accent-color: var(--filigree-bright);
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+}
+
+#game-wrapper {
+    position: relative;
+    inline-size: 100dvw;
+    block-size: 100dvh;
+    overflow: clip;
+    background-color: #060504;
+    padding: 0;
+    margin: 0;
+}
+
+.svg-ico {
+    display: inline-block;
+    vertical-align: -0.15em;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   CARVED STONE SLABS & 9-SLICE GOTHIC FILIGREE FRAMES
+   ========================================================= */
+.filigree-frame {
+    background-color: var(--slot-charcoal);
+    background-image:
+        var(--stone-slab-cracks),
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #231f24 0%, #19161b 55%, #141216 100%);
+    background-blend-mode: normal, soft-light, normal;
+    border: 9px solid transparent;
+    border-image: var(--filigree-9slice-ornate) 16 stretch;
+    box-shadow:
+        inset 0 1px 0 rgba(230, 212, 188, 0.1),
+        inset 0 -3px 0 rgba(6, 5, 8, 0.85),
+        inset 0 0 26px rgba(7, 6, 9, 0.72),
+        0 8px 22px rgba(0, 0, 0, 0.78);
+}
+
+.filigree-subbox {
+    background-color: var(--stone-deep);
+    background-image:
+        var(--stone-mineral-grain),
+        linear-gradient(to bottom var(--in-oklab), #1e1b20, #141216);
+    background-blend-mode: soft-light, normal;
+    border: 6px solid transparent;
+    border-image: var(--filigree-9slice-slot) 10 stretch;
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.75),
+        0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================================
+   INTERACTION STATES & ACCESSIBILITY
+   ========================================================= */
+@media (prefers-reduced-motion: no-preference) {
+    :where(button, select, input) {
+        transition: background-color 130ms ease-out, color 130ms ease-out, box-shadow 110ms ease-out, scale 100ms ease-out;
+    }
+    button:active:not(:disabled):not([aria-disabled="true"]) {
+        scale: 0.97;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.92);
+    }
+}
+
+@media (pointer: coarse) {
+    :root { --target-size: 44px; }
+}
+
+@media (hover: hover) {
+    button:hover:not(:disabled):not([aria-disabled="true"]):not(.icon-slot-btn):not(.btn-action):not(.btn-ult-plaque):not(.stance-chip):not(.btn-rank-step) {
+        background-color: var(--slot-hover);
+        color: var(--filigree-ivory);
+    }
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--filigree-ivory);
+    outline-offset: 2px;
+}
+
+/* Standard Scrollbars + Legacy Fallback */
+.scroller, #log-box, #party-status, .slots-list, .bag-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+@supports not (scrollbar-color: auto) {
+    #log-box, #party-status, .slots-list, .bag-list {
+        scrollbar-width: auto;
+    }
+    #log-box::-webkit-scrollbar,
+    #party-status::-webkit-scrollbar,
+    .slots-list::-webkit-scrollbar,
+    .bag-list::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    #log-box::-webkit-scrollbar-thumb,
+    #party-status::-webkit-scrollbar-thumb,
+    .slots-list::-webkit-scrollbar-thumb,
+    .bag-list::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+    }
+    #log-box::-webkit-scrollbar-track,
+    #party-status::-webkit-scrollbar-track,
+    .slots-list::-webkit-scrollbar-track,
+    .bag-list::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+    }
+}
