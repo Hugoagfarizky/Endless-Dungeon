@@ -16,9 +16,34 @@ const lightCtx = lightCanvas.getContext('2d');
 const biomeAtlasCache = {};
 
 function seededNoise(x, y, seed = 1) {
-    let n = Math.imul(x * 374761393 + y * 668265263 + seed * 1442695041, 1274126177);
+    let n = Math.imul((x | 0) * 374761393 + (y | 0) * 668265263 + (seed | 0) * 1442695041, 1274126177);
     n = (n ^ (n >>> 13)) >>> 0;
     return (n % 10000) / 10000;
+}
+
+function smoothNoise2D(x, y, seed = 1) {
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    const fx = x - ix;
+    const fy = y - iy;
+    const ux = fx * fx * (3 - 2 * fx);
+    const uy = fy * fy * (3 - 2 * fy);
+    const a = seededNoise(ix, iy, seed);
+    const b = seededNoise(ix + 1, iy, seed);
+    const c = seededNoise(ix, iy + 1, seed);
+    const d = seededNoise(ix + 1, iy + 1, seed);
+    return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+}
+
+function fbmStone(x, y, seed = 1) {
+    return smoothNoise2D(x * 0.09, y * 0.09, seed) * 0.55
+         + smoothNoise2D(x * 0.23, y * 0.23, seed + 19) * 0.30
+         + smoothNoise2D(x * 0.58, y * 0.58, seed + 47) * 0.15;
+}
+
+function smoothstep(edge0, edge1, x) {
+    const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
 }
 
 function hexToRgb(hex) {
@@ -33,33 +58,60 @@ function clampByte(v) {
     return v < 0 ? 0 : (v > 255 ? 255 : Math.round(v));
 }
 
+function smoothStep(edge0, edge1, x) {
+    const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+}
+
+function valueNoise2D(x, y, seed = 1) {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const xf = x - xi;
+    const yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf);
+    const v = yf * yf * (3 - 2 * yf);
+    const n00 = seededNoise(xi, yi, seed);
+    const n10 = seededNoise(xi + 1, yi, seed);
+    const n01 = seededNoise(xi, yi + 1, seed);
+    const n11 = seededNoise(xi + 1, yi + 1, seed);
+    const nx0 = n00 + (n10 - n00) * u;
+    const nx1 = n01 + (n11 - n01) * u;
+    return nx0 + (nx1 - nx0) * v;
+}
+
+function fbm2D(x, y, seed = 1) {
+    return valueNoise2D(x, y, seed) * 0.55
+         + valueNoise2D(x * 2.07, y * 2.07, seed + 17) * 0.30
+         + valueNoise2D(x * 4.23, y * 4.23, seed + 43) * 0.15;
+}
+
 // ============================================================================
-// 1. PROCEDURAL PBR-STYLE STONE & BIOME TEXTURE ATLAS BAKER
+// 1. PER-PIXEL 3D NORMAL-MAPPED PBR STONE & BIOME TEXTURE ATLAS BAKER
 // ============================================================================
 const BIOME_MATERIAL_SPECS = {
     crypt: {
-        floorA: '#22201d', floorB: '#1c1a17', mortar: '#0c0b09',
-        bevel: 'rgba(215, 200, 175, 0.14)', moss: 'rgba(54, 108, 58, 0.34)',
-        wallTop: '#2c2925', wallFace: '#3d3832', wallDark: '#1b1815',
-        ambientDark: 'rgba(6, 5, 4, 0.86)', torchTint: 'rgba(255, 168, 72, 0.24)'
+        floorA: '#26231f', floorB: '#1f1c19', mortar: '#090807',
+        specStr: 0.28, shininess: 22, mossRgb: [48, 86, 46],
+        wallTop: '#2c2824', wallFace: '#3e3832', wallDark: '#191613',
+        ambientDark: 'rgba(5, 4, 4, 0.88)', torchTint: 'rgba(255, 166, 70, 0.25)'
     },
     ice: {
-        floorA: '#172838', floorB: '#132231', mortar: '#08111a',
-        bevel: 'rgba(180, 232, 255, 0.20)', moss: 'rgba(135, 215, 255, 0.22)',
-        wallTop: '#1f3b54', wallFace: '#2e5578', wallDark: '#102030',
-        ambientDark: 'rgba(4, 10, 18, 0.84)', torchTint: 'rgba(190, 225, 255, 0.20)'
+        floorA: '#1a2d3f', floorB: '#152535', mortar: '#071019',
+        specStr: 0.58, shininess: 34, mossRgb: [145, 218, 250],
+        wallTop: '#213e58', wallFace: '#31597d', wallDark: '#0f1f2e',
+        ambientDark: 'rgba(4, 9, 17, 0.85)', torchTint: 'rgba(188, 226, 255, 0.22)'
     },
     lava: {
-        floorA: '#241514', floorB: '#1d1110', mortar: '#0d0504',
-        bevel: 'rgba(255, 145, 90, 0.14)', moss: 'rgba(255, 88, 28, 0.42)',
-        wallTop: '#361916', wallFace: '#4f241e', wallDark: '#1c0a08',
-        ambientDark: 'rgba(12, 4, 3, 0.82)', torchTint: 'rgba(255, 120, 45, 0.26)'
+        floorA: '#261715', floorB: '#1e1211', mortar: '#0b0403',
+        specStr: 0.24, shininess: 18, mossRgb: [235, 82, 22],
+        wallTop: '#381a17', wallFace: '#52251f', wallDark: '#1a0907',
+        ambientDark: 'rgba(11, 4, 3, 0.84)', torchTint: 'rgba(255, 118, 42, 0.27)'
     },
     void: {
-        floorA: '#191229', floorB: '#140e21', mortar: '#07040e',
-        bevel: 'rgba(210, 150, 255, 0.16)', moss: 'rgba(176, 72, 255, 0.28)',
-        wallTop: '#281a40', wallFace: '#3b265e', wallDark: '#120a20',
-        ambientDark: 'rgba(7, 3, 14, 0.88)', torchTint: 'rgba(215, 140, 255, 0.22)'
+        floorA: '#1c142d', floorB: '#160f24', mortar: '#06030c',
+        specStr: 0.42, shininess: 28, mossRgb: [162, 76, 238],
+        wallTop: '#291b42', wallFace: '#3d2862', wallDark: '#11091f',
+        ambientDark: 'rgba(6, 3, 13, 0.89)', torchTint: 'rgba(212, 138, 255, 0.23)'
     }
 };
 
@@ -72,184 +124,141 @@ function bakeFloorVariant(biomeId, variantIdx) {
     const c = off.getContext('2d');
 
     const baseRgb = hexToRgb(variantIdx % 2 === 0 ? spec.floorA : spec.floorB);
-    const img = c.createImageData(size, size);
-    const data = img.data;
+    const mortarRgb = hexToRgb(spec.mortar);
+    const heightMap = new Float32Array(size * size);
+    const slabIdMap = new Uint8Array(size * size);
 
-    // Stone micro-grain + mineral variation + subtle radial slab shading
+    const splitY = size * (0.46 + (variantIdx % 3) * 0.045);
+    const splitX1 = size * (0.43 + ((variantIdx * 7) % 4) * 0.05);
+    const splitX2 = size * (0.57 - ((variantIdx * 5) % 3) * 0.055);
+    const seedBase = variantIdx * 71 + (biomeId.charCodeAt(0) * 13);
+
+    // 1. Build organic sculpted flagstone heightfield H(px, py)
     for (let py = 0; py < size; py++) {
         for (let px = 0; px < size; px++) {
-            const n1 = seededNoise(px, py, variantIdx * 31 + 7);
-            const n2 = seededNoise(Math.floor(px / 3), Math.floor(py / 3), variantIdx * 17 + 3);
-            const n3 = seededNoise(Math.floor(px / 8), Math.floor(py / 8), variantIdx * 53 + 11);
-            const grain = (n1 - 0.5) * 14 + (n2 - 0.5) * 18 + (n3 - 0.5) * 12;
+            const warpX = (fbm2D(px * 0.075, py * 0.075, seedBase + 3) - 0.5) * 6.5;
+            const warpY = (fbm2D(px * 0.075, py * 0.075, seedBase + 19) - 0.5) * 6.5;
+            const wx = px + warpX;
+            const wy = py + warpY;
+
+            const dOuter = Math.min(px, py, size - 1 - px, size - 1 - py);
+            const dHoriz = Math.abs(wy - splitY);
+            const dVert = wy < splitY ? Math.abs(wx - splitX1) : Math.abs(wx - splitX2);
+            const dJoint = Math.min(dOuter * 1.15, dHoriz, dVert);
+
+            const slabId = (wy < splitY ? 0 : 2) + ((wy < splitY ? wx >= splitX1 : wx >= splitX2) ? 1 : 0);
+            slabIdMap[py * size + px] = slabId;
+
+            const bevel = smoothStep(1.4, 6.8, dJoint);
+            const rockMacro = fbm2D(px * 0.09, py * 0.09, seedBase + slabId * 29);
+            const rockMicro = seededNoise(px, py, seedBase + 101) * 0.08;
+            const pit = Math.max(0, fbm2D(px * 0.24, py * 0.24, seedBase + 59) - 0.66) * 0.9;
+
+            // Hairline diagonal stone crack carved into heightmap
+            let crackDip = 0;
+            if ((variantIdx + slabId) % 3 === 0) {
+                const crackDist = Math.abs((wx - 22) * 0.68 - (wy - 18) * 0.73 + Math.sin(py * 0.18) * 3.2);
+                if (crackDist < 1.8) crackDip = (1 - crackDist / 1.8) * 0.42;
+            }
+
+            heightMap[py * size + px] = bevel * (0.72 + rockMacro * 0.26 + rockMicro - pit - crackDip);
+        }
+    }
+
+    // 2. Shade every pixel with Sobel 3D surface normals (Lambertian + Blinn-Phong specular + crevice AO)
+    const img = c.createImageData(size, size);
+    const data = img.data;
+    const lx = -0.46, ly = -0.60, lz = 0.65; // Top-left dungeon light vector
+    const hx = -0.25, hy = -0.35, hz = 0.90; // Halfway specular vector
+
+    for (let py = 0; py < size; py++) {
+        const ym = Math.max(0, py - 1), yp = Math.min(size - 1, py + 1);
+        for (let px = 0; px < size; px++) {
+            const xm = Math.max(0, px - 1), xp = Math.min(size - 1, px + 1);
+            const hC = heightMap[py * size + px];
+            const dHx = (heightMap[py * size + xp] - heightMap[py * size + xm]) * 2.35;
+            const dHy = (heightMap[yp * size + px] - heightMap[ym * size + px]) * 2.35;
+            const invLen = 1 / Math.hypot(dHx, dHy, 1);
+            const nx = -dHx * invLen;
+            const ny = -dHy * invLen;
+            const nz = invLen;
+
+            const nDotL = Math.max(0, nx * lx + ny * ly + nz * lz);
+            const nDotH = Math.max(0, nx * hx + ny * hy + nz * hz);
+            const specGlow = Math.pow(nDotH, spec.shininess) * spec.specStr * smoothStep(0.3, 0.8, hC);
+
+            const slabId = slabIdMap[py * size + px];
+            const slabTint = 1 + ((slabId + variantIdx) % 3 - 1) * 0.065;
+            const mortarMix = smoothStep(0.08, 0.42, hC);
+            const ao = 0.34 + 0.66 * mortarMix;
+            const light = (0.48 + nDotL * 0.82) * ao;
+
+            let r = (mortarRgb.r * (1 - mortarMix) + baseRgb.r * slabTint * mortarMix) * light + specGlow * 235;
+            let g = (mortarRgb.g * (1 - mortarMix) + baseRgb.g * slabTint * mortarMix) * light + specGlow * 228;
+            let b = (mortarRgb.b * (1 - mortarMix) + baseRgb.b * slabTint * mortarMix) * light + specGlow * 215;
+
+            // Organic crevice moss / frost / magma glowing inside stone joints!
+            const mossNoise = fbm2D(px * 0.11, py * 0.11, seedBase + 137);
+            if (hC < 0.36 && mossNoise > 0.56) {
+                const mAmt = Math.min(0.85, (0.36 - hC) * 2.4 * (mossNoise - 0.52) * 3.2);
+                const emissive = (biomeId === 'lava' || biomeId === 'void') ? 1.45 : 0.78;
+                r = r * (1 - mAmt) + spec.mossRgb[0] * emissive * mAmt;
+                g = g * (1 - mAmt) + spec.mossRgb[1] * emissive * mAmt;
+                b = b * (1 - mAmt) + spec.mossRgb[2] * emissive * mAmt;
+            }
 
             const idx = (py * size + px) * 4;
-            data[idx]     = clampByte(baseRgb.r + grain);
-            data[idx + 1] = clampByte(baseRgb.g + grain);
-            data[idx + 2] = clampByte(baseRgb.b + grain);
+            data[idx]     = clampByte(r);
+            data[idx + 1] = clampByte(g);
+            data[idx + 2] = clampByte(b);
             data[idx + 3] = 255;
         }
     }
     c.putImageData(img, 0, 0);
 
-    // Hand-laid medieval flagstones (irregular slabs + mortar crevices + bevel highlights)
-    const splitY = Math.floor(size * (0.46 + (variantIdx % 3) * 0.05));
-    const splitX1 = Math.floor(size * (0.42 + ((variantIdx * 7) % 4) * 0.06));
-    const splitX2 = Math.floor(size * (0.58 - ((variantIdx * 5) % 3) * 0.07));
-
-    const slabs = [
-        { x: 1, y: 1, w: splitX1 - 2, h: splitY - 2 },
-        { x: splitX1 + 1, y: 1, w: size - splitX1 - 2, h: splitY - 2 },
-        { x: 1, y: splitY + 1, w: splitX2 - 2, h: size - splitY - 2 },
-        { x: splitX2 + 1, y: splitY + 1, w: size - splitX2 - 2, h: size - splitY - 2 }
-    ];
-
-    // Deep mortar background lines
-    c.strokeStyle = spec.mortar;
-    c.lineWidth = 2.6;
-    c.strokeRect(0.5, 0.5, size - 1, size - 1);
-    c.beginPath();
-    c.moveTo(0, splitY); c.lineTo(size, splitY);
-    c.moveTo(splitX1, 0); c.lineTo(splitX1, splitY);
-    c.moveTo(splitX2, splitY); c.lineTo(splitX2, size);
-    c.stroke();
-
-    slabs.forEach((s, sIdx) => {
-        // Subtle per-slab tone shift
-        const tone = ((variantIdx + sIdx) % 3 - 1) * 0.045;
-        if (tone !== 0) {
-            c.fillStyle = tone > 0 ? `rgba(255,255,255,${tone})` : `rgba(0,0,0,${-tone * 1.4})`;
-            c.fillRect(s.x, s.y, s.w, s.h);
+    // 3. Special realistic environmental details (iron grate, reflective puddle, glowing magma seam)
+    if (biomeId === 'crypt' && variantIdx === 2) {
+        c.fillStyle = '#060505';
+        c.fillRect(28, 28, 36, 36);
+        c.strokeStyle = '#3b4046';
+        c.lineWidth = 2.4;
+        c.strokeRect(28, 28, 36, 36);
+        for (let gx = 35; gx <= 57; gx += 7) {
+            c.beginPath(); c.moveTo(gx, 29); c.lineTo(gx, 63); c.stroke();
         }
-        // Top-left stone bevel highlight
-        c.strokeStyle = spec.bevel;
-        c.lineWidth = 1.4;
+        c.strokeStyle = 'rgba(255, 245, 225, 0.18)';
+        c.lineWidth = 1;
+        c.strokeRect(27, 27, 38, 38);
+    } else if (biomeId === 'crypt' && variantIdx === 5) {
+        const pGrad = c.createRadialGradient(50, 54, 2, 54, 56, 24);
+        pGrad.addColorStop(0, 'rgba(135, 175, 200, 0.36)');
+        pGrad.addColorStop(0.65, 'rgba(18, 28, 38, 0.52)');
+        pGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        c.fillStyle = pGrad;
         c.beginPath();
-        c.moveTo(s.x + 1, s.y + s.h - 2);
-        c.lineTo(s.x + 1, s.y + 1);
-        c.lineTo(s.x + s.w - 2, s.y + 1);
-        c.stroke();
-
-        // Bottom-right stone shadow edge
-        c.strokeStyle = 'rgba(0, 0, 0, 0.42)';
+        c.ellipse(54, 56, 23, 15, 0.22, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = 'rgba(235, 248, 255, 0.28)';
+        c.lineWidth = 1.1;
         c.beginPath();
-        c.moveTo(s.x + s.w - 1, s.y + 2);
-        c.lineTo(s.x + s.w - 1, s.y + s.h - 1);
-        c.lineTo(s.x + 2, s.y + s.h - 1);
+        c.arc(47, 51, 9, -Math.PI * 0.82, -Math.PI * 0.22);
         c.stroke();
-    });
-
-    // Cracks & biome-specific surface details
-    if (variantIdx % 2 === 0) {
-        c.strokeStyle = 'rgba(0, 0, 0, 0.48)';
-        c.lineWidth = 1.2;
+    } else if (biomeId === 'lava' && variantIdx % 2 === 1) {
+        c.save();
+        c.shadowColor = '#ff5e00';
+        c.shadowBlur = 10;
+        c.strokeStyle = 'rgba(255, 120, 28, 0.72)';
+        c.lineWidth = 2.2;
         c.beginPath();
-        const cx = 18 + (variantIdx * 13) % 45;
-        const cy = 16 + (variantIdx * 19) % 45;
-        c.moveTo(cx, cy);
-        c.lineTo(cx + 9, cy + 7);
-        c.lineTo(cx + 16, cy + 4);
-        c.moveTo(cx + 9, cy + 7);
-        c.lineTo(cx + 7, cy + 15);
+        c.moveTo(splitX2, splitY);
+        c.lineTo(splitX2 - 8, splitY + 18);
+        c.lineTo(splitX2 + 4, splitY + 31);
         c.stroke();
+        c.strokeStyle = 'rgba(255, 240, 150, 0.78)';
+        c.lineWidth = 0.9;
+        c.stroke();
+        c.restore();
     }
-
-    if (biomeId === 'crypt') {
-        if (variantIdx % 3 === 0) {
-            // Creeping damp moss & tiny pebbles in mortar joints
-            c.fillStyle = spec.moss;
-            c.beginPath();
-            c.arc(splitX1, splitY, 8.5, 0, Math.PI * 2);
-            c.arc(splitX1 + 7, splitY + 1, 5, 0, Math.PI * 2);
-            c.arc(splitX2 - 5, splitY, 4, 0, Math.PI * 2);
-            c.fill();
-        } else if (variantIdx === 2) {
-            // Recessed iron drainage grate in flagstone floor
-            c.fillStyle = '#070606';
-            c.fillRect(28, 28, 36, 36);
-            c.strokeStyle = '#3a3f44';
-            c.lineWidth = 2.4;
-            c.strokeRect(28, 28, 36, 36);
-            for (let gx = 35; gx <= 57; gx += 7) {
-                c.beginPath(); c.moveTo(gx, 29); c.lineTo(gx, 63); c.stroke();
-            }
-            c.strokeStyle = 'rgba(255, 255, 255, 0.14)';
-            c.lineWidth = 1;
-            c.strokeRect(27, 27, 38, 38);
-        } else if (variantIdx === 5) {
-            // Shallow damp water puddle with realistic sky/torch sheen
-            const pGrad = c.createRadialGradient(52, 56, 2, 54, 56, 23);
-            pGrad.addColorStop(0, 'rgba(115, 150, 175, 0.30)');
-            pGrad.addColorStop(0.68, 'rgba(20, 32, 42, 0.44)');
-            pGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            c.fillStyle = pGrad;
-            c.beginPath();
-            c.ellipse(54, 56, 22, 14, 0.2, 0, Math.PI * 2);
-            c.fill();
-            c.strokeStyle = 'rgba(225, 242, 255, 0.22)';
-            c.lineWidth = 1.1;
-            c.beginPath();
-            c.arc(48, 52, 8, -Math.PI * 0.82, -Math.PI * 0.18);
-            c.stroke();
-        }
-    } else if (biomeId === 'ice') {
-        // Crystalline frost veins & mirror-like frozen specular sheen
-        const sheen = c.createLinearGradient(0, 0, size, size);
-        sheen.addColorStop(0, 'rgba(200, 242, 255, 0.08)');
-        sheen.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
-        sheen.addColorStop(1, 'rgba(120, 190, 230, 0.04)');
-        c.fillStyle = sheen;
-        c.fillRect(2, 2, size - 4, size - 4);
-
-        c.strokeStyle = 'rgba(195, 242, 255, 0.32)';
-        c.lineWidth = 1.2;
-        c.beginPath();
-        c.moveTo(12 + variantIdx * 6, 14);
-        c.lineTo(34 + variantIdx * 4, 38);
-        c.lineTo(62, 44 + variantIdx * 3);
-        c.stroke();
-    } else if (biomeId === 'lava') {
-        if (variantIdx % 2 === 1) {
-            // Subsurface glowing magma fissure + cooled basalt crust
-            c.save();
-            c.shadowColor = '#ff5e00';
-            c.shadowBlur = 10;
-            c.strokeStyle = 'rgba(255, 115, 25, 0.72)';
-            c.lineWidth = 2.4;
-            c.beginPath();
-            c.moveTo(splitX2, splitY);
-            c.lineTo(splitX2 - 8, splitY + 18);
-            c.lineTo(splitX2 + 4, splitY + 30);
-            c.stroke();
-            c.strokeStyle = 'rgba(255, 238, 140, 0.75)';
-            c.lineWidth = 1.0;
-            c.stroke();
-            c.restore();
-        }
-    } else if (biomeId === 'void') {
-        if (variantIdx % 3 === 1) {
-            // Faint arcane obsidian crystal vein
-            c.save();
-            c.shadowColor = '#c56cf0';
-            c.shadowBlur = 8;
-            c.strokeStyle = 'rgba(198, 110, 255, 0.44)';
-            c.lineWidth = 1.5;
-            c.beginPath();
-            c.moveTo(splitX1, splitY - 12);
-            c.lineTo(splitX1, splitY + 12);
-            c.moveTo(splitX1 - 8, splitY);
-            c.lineTo(splitX1 + 8, splitY);
-            c.stroke();
-            c.restore();
-        }
-    }
-
-    // Fine pebble scatter & micro-ao vignette around tile mortar perimeter
-    const edgeAo = c.createRadialGradient(size * 0.5, size * 0.5, size * 0.28, size * 0.5, size * 0.5, size * 0.72);
-    edgeAo.addColorStop(0, 'rgba(0,0,0,0)');
-    edgeAo.addColorStop(1, 'rgba(0,0,0,0.22)');
-    c.fillStyle = edgeAo;
-    c.fillRect(0, 0, size, size);
 
     return off;
 }
@@ -266,107 +275,94 @@ function bakeWallVariant(biomeId, variantIdx, isCracked = false) {
 
     const topRgb = hexToRgb(spec.wallTop);
     const faceRgb = hexToRgb(spec.wallFace);
+    const mortarRgb = hexToRgb(spec.mortar);
+    const seedBase = variantIdx * 89 + (biomeId.charCodeAt(0) * 19) + (isCracked ? 311 : 0);
 
-    // 1. Top Roof / Cap Surface (0 .. 96) with textured stone grain
-    const topImg = c.createImageData(w, w);
-    for (let py = 0; py < w; py++) {
+    // 1. Per-pixel 3D Normal-Mapped Wall Cap (0..96) & 3-Course Ashlar Masonry Face (96..136)
+    const hMap = new Float32Array(w * totalH);
+    const off1 = (variantIdx % 2) * 12;
+
+    for (let py = 0; py < totalH; py++) {
         for (let px = 0; px < w; px++) {
-            const n = (seededNoise(px, py, variantIdx * 41 + 99) - 0.5) * 18
-                    + (seededNoise(Math.floor(px / 4), Math.floor(py / 4), variantIdx * 13) - 0.5) * 16;
-            const i = (py * w + px) * 4;
-            topImg.data[i]     = clampByte(topRgb.r + n);
-            topImg.data[i + 1] = clampByte(topRgb.g + n);
-            topImg.data[i + 2] = clampByte(topRgb.b + n);
-            topImg.data[i + 3] = 255;
+            const warp = (fbm2D(px * 0.09, py * 0.09, seedBase + 7) - 0.5) * 3.8;
+            let dJoint;
+            if (py < w) {
+                // Roof cap stone blocks with cornice lip at py = 92..95
+                const dEdge = Math.min(px, py, w - 1 - px, w - 1 - py);
+                const dCross = Math.min(Math.abs(px + warp - 48), Math.abs(py + warp - 48));
+                dJoint = Math.min(dEdge * 1.2, dCross);
+            } else {
+                // 3D Vertical Masonry Courses (3 staggered ashlar rows)
+                const fy = py - w;
+                const dRow = Math.min(fy, Math.abs(fy + warp * 0.45 - 13), Math.abs(fy + warp * 0.45 - 27), wallH - 1 - fy);
+                let dCol = 99;
+                if (fy < 13) dCol = Math.min(Math.abs(px + warp - (28 + off1)), Math.abs(px + warp - (70 - off1)));
+                else if (fy < 27) dCol = Math.min(Math.abs(px + warp - (15 + off1)), Math.abs(px + warp - 54));
+                else dCol = Math.min(Math.abs(px + warp - (36 - off1)), Math.abs(px + warp - (78 - off1)));
+                dJoint = Math.min(dRow, dCol);
+            }
+            const bevel = smoothStep(1.1, 5.2, dJoint);
+            const rough = fbm2D(px * 0.14, py * 0.14, seedBase + 23) * 0.28 + seededNoise(px, py, seedBase) * 0.07;
+            hMap[py * w + px] = bevel * (0.74 + rough);
         }
     }
-    c.putImageData(topImg, 0, 0);
 
-    // Inner darker stone core on roof for architectural depth
-    const coreGrad = c.createLinearGradient(0, 0, 0, w);
-    coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
-    coreGrad.addColorStop(0.2, 'rgba(0, 0, 0, 0.18)');
-    coreGrad.addColorStop(0.85, 'rgba(0, 0, 0, 0.34)');
-    coreGrad.addColorStop(1, 'rgba(255, 255, 255, 0.14)');
-    c.fillStyle = coreGrad;
-    c.fillRect(0, 0, w, w);
+    const img = c.createImageData(w, totalH);
+    const data = img.data;
+    for (let py = 0; py < totalH; py++) {
+        const ym = Math.max(0, py - 1), yp = Math.min(totalH - 1, py + 1);
+        const isCap = py < w;
+        const srcRgb = isCap ? topRgb : faceRgb;
+        const faceVertShade = isCap
+            ? (py > w - 6 ? 1.22 : (0.78 + 0.22 * (1 - py / w)))
+            : (1.10 - (py - w) / wallH * 0.46);
 
-    // Chiseled cornice border on top edge & front lip
-    c.strokeStyle = 'rgba(255, 245, 225, 0.18)';
-    c.lineWidth = 2;
-    c.strokeRect(1, 1, w - 2, w - 2);
-    c.fillStyle = 'rgba(255, 245, 220, 0.16)';
-    c.fillRect(0, w - 5, w, 3);
-    c.fillStyle = 'rgba(0, 0, 0, 0.55)';
-    c.fillRect(0, w - 2, w, 2);
-
-    // 2. 3D Front Masonry Face (96 .. 136)
-    const faceImg = c.createImageData(w, wallH);
-    for (let py = 0; py < wallH; py++) {
-        const vertShade = (1 - py / wallH) * 14 - 8;
         for (let px = 0; px < w; px++) {
-            const n = (seededNoise(px, py + 200, variantIdx * 29 + 5) - 0.5) * 20;
-            const i = (py * w + px) * 4;
-            faceImg.data[i]     = clampByte(faceRgb.r + n + vertShade);
-            faceImg.data[i + 1] = clampByte(faceRgb.g + n + vertShade);
-            faceImg.data[i + 2] = clampByte(faceRgb.b + n + vertShade);
-            faceImg.data[i + 3] = 255;
+            const xm = Math.max(0, px - 1), xp = Math.min(w - 1, px + 1);
+            const hC = hMap[py * w + px];
+            const dHx = (hMap[py * w + xp] - hMap[py * w + xm]) * 2.4;
+            const dHy = (hMap[yp * w + px] - hMap[ym * w + px]) * 2.4;
+            const inv = 1 / Math.hypot(dHx, dHy, 1);
+            const nDotL = Math.max(0, (-dHx * -0.38 + -dHy * -0.72 + 0.58) * inv);
+            const mortarMix = smoothStep(0.08, 0.40, hC);
+            const shade = (0.44 + nDotL * 0.88) * (0.35 + 0.65 * mortarMix) * faceVertShade;
+
+            const idx = (py * w + px) * 4;
+            data[idx]     = clampByte((mortarRgb.r * (1 - mortarMix) + srcRgb.r * mortarMix) * shade);
+            data[idx + 1] = clampByte((mortarRgb.g * (1 - mortarMix) + srcRgb.g * mortarMix) * shade);
+            data[idx + 2] = clampByte((mortarRgb.b * (1 - mortarMix) + srcRgb.b * mortarMix) * shade);
+            data[idx + 3] = 255;
         }
     }
-    c.putImageData(faceImg, 0, w);
+    c.putImageData(img, 0, 0);
 
-    // Dressed stone courses (3 rows of ashlar blocks on the front wall)
-    const r1 = w + 13;
-    const r2 = w + 27;
-    c.strokeStyle = spec.mortar;
-    c.lineWidth = 2.4;
-    c.beginPath();
-    c.moveTo(0, r1); c.lineTo(w, r1);
-    c.moveTo(0, r2); c.lineTo(w, r2);
-    // Vertical joints staggered
-    const off1 = (variantIdx % 2) * 10;
-    c.moveTo(30 + off1, w); c.lineTo(30 + off1, r1);
-    c.moveTo(72 - off1, w); c.lineTo(72 - off1, r1);
-    c.moveTo(16 + off1, r1); c.lineTo(16 + off1, r2);
-    c.moveTo(54, r1); c.lineTo(54, r2);
-    c.moveTo(38 - off1, r2); c.lineTo(38 - off1, totalH);
-    c.moveTo(80 - off1, r2); c.lineTo(80 - off1, totalH);
-    c.stroke();
+    // Chiseled cornice shadow line between cap and vertical wall face + deep base AO
+    c.fillStyle = 'rgba(255, 244, 220, 0.20)';
+    c.fillRect(0, w - 3, w, 1.5);
+    c.fillStyle = 'rgba(0, 0, 0, 0.68)';
+    c.fillRect(0, w - 1, w, 2);
 
-    // Top bevel on each course + base AO gradient
-    c.strokeStyle = 'rgba(255, 245, 225, 0.14)';
-    c.lineWidth = 1.2;
-    c.beginPath();
-    c.moveTo(0, r1 + 1.5); c.lineTo(w, r1 + 1.5);
-    c.moveTo(0, r2 + 1.5); c.lineTo(w, r2 + 1.5);
-    c.stroke();
-
-    const baseAo = c.createLinearGradient(0, totalH - 14, 0, totalH);
+    const baseAo = c.createLinearGradient(0, totalH - 16, 0, totalH);
     baseAo.addColorStop(0, 'rgba(0,0,0,0)');
-    baseAo.addColorStop(1, 'rgba(0,0,0,0.74)');
+    baseAo.addColorStop(1, 'rgba(0,0,0,0.80)');
     c.fillStyle = baseAo;
-    c.fillRect(0, totalH - 14, w, 14);
+    c.fillRect(0, totalH - 16, w, 16);
 
-    // Biome-specific architectural weathering on 3D front masonry face
     if (!isCracked) {
         if (biomeId === 'crypt' && variantIdx === 1) {
-            // Hanging rusted iron shackle ring on dungeon wall
-            c.strokeStyle = '#24292e';
+            c.strokeStyle = '#1f2428';
             c.lineWidth = 2.2;
             c.beginPath(); c.arc(48, w + 18, 5.5, 0, Math.PI * 2); c.stroke();
-            c.fillStyle = '#14171a';
+            c.fillStyle = '#111417';
             c.fillRect(46, w + 10, 4, 4);
         } else if (biomeId === 'crypt' && variantIdx === 3) {
-            // Damp moss & water seepage streak down masonry
-            c.fillStyle = 'rgba(46, 98, 52, 0.36)';
+            c.fillStyle = 'rgba(44, 92, 48, 0.42)';
             c.beginPath();
-            c.ellipse(26, totalH - 5, 11, 4, 0, 0, Math.PI * 2);
+            c.ellipse(26, totalH - 5, 12, 4.5, 0, 0, Math.PI * 2);
             c.fill();
         } else if (biomeId === 'ice') {
-            // Hanging translucent icicles from top cornice lip
-            c.fillStyle = 'rgba(205, 244, 255, 0.58)';
-            const icX = [14, 28, 58, 78];
-            icX.forEach((ix, ii) => {
+            c.fillStyle = 'rgba(210, 246, 255, 0.62)';
+            [14, 28, 58, 78].forEach((ix, ii) => {
                 const ih = 8 + ((variantIdx + ii) % 3) * 5;
                 c.beginPath();
                 c.moveTo(ix - 3, w - 1);
@@ -376,20 +372,15 @@ function bakeWallVariant(biomeId, variantIdx, isCracked = false) {
                 c.fill();
             });
         } else if (biomeId === 'lava' && variantIdx % 2 === 0) {
-            // Glowing ember seam between basalt blocks
-            c.strokeStyle = 'rgba(255, 105, 25, 0.55)';
-            c.lineWidth = 1.4;
+            c.strokeStyle = 'rgba(255, 110, 28, 0.62)';
+            c.lineWidth = 1.5;
             c.beginPath();
-            c.moveTo(20, r2); c.lineTo(54, r2);
+            c.moveTo(20, w + 27); c.lineTo(56, w + 27);
             c.stroke();
         }
-    }
-
-    // Cracked Secret Wall: realistic structural fracture + warm golden vault glimmer
-    if (isCracked) {
+    } else {
         c.save();
-        // Dark deep fissure
-        c.strokeStyle = '#070504';
+        c.strokeStyle = '#060403';
         c.lineWidth = 5;
         c.lineCap = 'round';
         c.lineJoin = 'round';
@@ -404,10 +395,9 @@ function bakeWallVariant(biomeId, variantIdx, isCracked = false) {
         c.moveTo(50, 98); c.lineTo(68, 110);
         c.stroke();
 
-        // Glowing golden secret draft seeping out of fissure
         c.shadowColor = '#f1c40f';
         c.shadowBlur = 10;
-        c.strokeStyle = 'rgba(255, 210, 85, 0.88)';
+        c.strokeStyle = 'rgba(255, 212, 92, 0.88)';
         c.lineWidth = 1.8;
         c.stroke();
         c.restore();
@@ -740,13 +730,13 @@ function drawRealisticWall(c, tileX, tileY, tileType, biomeId, phase, dynamicLig
 }
 
 // ============================================================================
-// 3. REALISTIC SHADED 2.5D CHARACTER, MONSTER & PROP MINIATURES
+// 3. REALISTIC ANATOMICAL 2.5D MINIATURES, PROJECTED SHADOWS & RIM-LIGHTING
 // ============================================================================
 function drawSoftGroundShadow(c, cx, cy, rx = 16, ry = 6.5) {
     c.save();
     const sGrad = c.createRadialGradient(cx, cy, 1, cx, cy, rx);
-    sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.72)');
-    sGrad.addColorStop(0.65, 'rgba(0, 0, 0, 0.38)');
+    sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.82)');
+    sGrad.addColorStop(0.55, 'rgba(0, 0, 0, 0.44)');
     sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     c.fillStyle = sGrad;
     c.beginPath();
@@ -755,12 +745,48 @@ function drawSoftGroundShadow(c, cx, cy, rx = 16, ry = 6.5) {
     c.restore();
 }
 
-function drawHeroFigure(c, role, cx, baseY, phase = 0, scale = 1.0, flashColor = null, facing = 1) {
+// Dynamic Torch-Projected Silhouette Cast Shadow across Dungeon Floor
+function drawProjectedCastShadow(c, cx, cy, lightX, lightY, heightPx = 38, baseRx = 14) {
+    const dx = cx - lightX;
+    const dy = cy - lightY;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 6 && dist < 340) {
+        const stretch = Math.min(1.65, 0.28 + dist / 185);
+        const projLen = heightPx * stretch;
+        const ang = Math.atan2(dy, dx);
+        const endX = cx + Math.cos(ang) * projLen;
+        const endY = cy + Math.sin(ang) * projLen * 0.62;
+        const alpha = Math.max(0.12, (1 - dist / 340) * 0.48);
+
+        c.save();
+        const g = c.createLinearGradient(cx, cy, endX, endY);
+        g.addColorStop(0, `rgba(0, 0, 0, ${alpha})`);
+        g.addColorStop(0.65, `rgba(0, 0, 0, ${alpha * 0.45})`);
+        g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        c.fillStyle = g;
+
+        const px = -Math.sin(ang) * (baseRx * 0.58);
+        const py = Math.cos(ang) * (baseRx * 0.32);
+        c.beginPath();
+        c.moveTo(cx + px, cy + py);
+        c.lineTo(endX + px * 1.45, endY + py * 1.45);
+        c.arc(endX, endY, baseRx * 0.72, ang + Math.PI * 0.5, ang - Math.PI * 0.5, true);
+        c.lineTo(cx - px, cy - py);
+        c.closePath();
+        c.fill();
+        c.restore();
+    }
+    drawSoftGroundShadow(c, cx, cy + 1, baseRx, baseRx * 0.38);
+}
+
+function drawHeroFigure(c, role, cx, baseY, phase = 0, scale = 1.0, flashColor = null, facing = 1, strideAmt = 0) {
     c.save();
     c.translate(cx, baseY);
-    const breathY = 1 + Math.sin(phase * 1.6) * 0.018;
-    const breathX = 1 - Math.sin(phase * 1.6) * 0.012;
+    const breathY = 1 + Math.sin(phase * 1.6) * 0.016;
+    const breathX = 1 - Math.sin(phase * 1.6) * 0.010;
     c.scale(scale * (facing < 0 ? -1 : 1) * breathX, scale * breathY);
+
+    const stride = Math.sin(phase * 5.6) * 4.5 * strideAmt;
 
     if (flashColor) {
         c.shadowColor = flashColor;
@@ -768,348 +794,393 @@ function drawHeroFigure(c, role, cx, baseY, phase = 0, scale = 1.0, flashColor =
     }
 
     if (role === 'Warrior') {
-        // Flowing crimson battle cloak behind armor
-        const cloakGrad = c.createLinearGradient(-12, -32, 12, -4);
-        cloakGrad.addColorStop(0, '#8f1d24');
-        cloakGrad.addColorStop(1, '#420a0e');
+        // Billowing weathered crimson battle cloak with deep fold creases
+        const cloakGrad = c.createLinearGradient(-14, -36, 11, -2);
+        cloakGrad.addColorStop(0, '#78171d');
+        cloakGrad.addColorStop(0.55, '#4c0d12');
+        cloakGrad.addColorStop(1, '#210507');
         c.fillStyle = flashColor || cloakGrad;
         c.beginPath();
-        c.moveTo(-9, -30);
-        c.quadraticCurveTo(-15, -14, -12 + Math.sin(phase) * 1.2, -3);
-        c.lineTo(10, -3);
-        c.quadraticCurveTo(13, -16, 9, -30);
+        c.moveTo(-9, -33);
+        c.quadraticCurveTo(-16, -18, -13 + Math.sin(phase * 1.3) * 1.6 - stride * 0.4, -2);
+        c.lineTo(8, -3);
+        c.quadraticCurveTo(12, -18, 8, -33);
         c.closePath();
         c.fill();
 
-        // Steel armored sabatons / legs
-        c.fillStyle = flashColor || '#485460';
-        c.fillRect(-7, -10, 5, 9);
-        c.fillRect(2, -10, 5, 9);
-        c.fillStyle = flashColor || '#95a5a6';
-        c.fillRect(-6, -10, 2, 7);
-        c.fillRect(3, -10, 2, 7);
+        // Articulated steel cuisses, poleyns (knee cops), greaves & sabatons
+        c.fillStyle = flashColor || '#38414a';
+        c.beginPath();
+        c.roundRect(-7.5 + stride * 0.5, -15, 5.2, 14, 2);
+        c.roundRect(1.8 - stride * 0.5, -15, 5.2, 14, 2);
+        c.fill();
+        // Specular steel shin ridge & knee plates
+        c.fillStyle = flashColor || '#b8c6d1';
+        c.fillRect(-6.2 + stride * 0.5, -13, 1.8, 9);
+        c.fillRect(3.1 - stride * 0.5, -13, 1.8, 9);
+        c.fillStyle = flashColor || '#262d34';
+        c.beginPath();
+        c.ellipse(-4.8 + stride * 0.5, -1.5, 3.6, 1.8, 0, 0, Math.PI * 2);
+        c.ellipse(4.6 - stride * 0.5, -1.5, 3.6, 1.8, 0, 0, Math.PI * 2);
+        c.fill();
 
-        // Brushed steel plate cuirass & crimson surcoat
-        const plateGrad = c.createLinearGradient(-10, -28, 10, -10);
-        plateGrad.addColorStop(0, '#dfe6e9');
-        plateGrad.addColorStop(0.45, '#7f8fa6');
-        plateGrad.addColorStop(1, '#2f3640');
+        // Tapered V-shaped Gothic fluted steel cuirass & tassets
+        const plateGrad = c.createLinearGradient(-11, -33, 11, -13);
+        plateGrad.addColorStop(0, '#eef2f5');
+        plateGrad.addColorStop(0.32, '#8e9eab');
+        plateGrad.addColorStop(0.72, '#434d59');
+        plateGrad.addColorStop(1, '#1e242b');
         c.fillStyle = flashColor || plateGrad;
         c.beginPath();
-        c.roundRect(-10, -29, 20, 20, 4);
+        c.moveTo(-10.5, -32);
+        c.lineTo(10.5, -32);
+        c.lineTo(7.8, -19);
+        c.lineTo(9.5, -13);
+        c.lineTo(-9.5, -13);
+        c.lineTo(-7.8, -19);
+        c.closePath();
         c.fill();
 
-        // Crimson tabard & golden cross heraldry
-        c.fillStyle = flashColor || '#b32428';
-        c.fillRect(-5, -25, 10, 15);
-        c.fillStyle = flashColor || '#f1c40f';
-        c.fillRect(-1, -24, 2, 12);
-        c.fillRect(-4, -20, 8, 2);
+        // Weathered crimson heraldic surcoat & tarnished brass cross
+        c.fillStyle = flashColor || '#8f1d22';
+        c.beginPath();
+        c.moveTo(-4.5, -29); c.lineTo(4.5, -29); c.lineTo(5.5, -11); c.lineTo(-5.5, -11);
+        c.closePath();
+        c.fill();
+        c.fillStyle = flashColor || '#d4ae52';
+        c.fillRect(-0.9, -27, 1.8, 13);
+        c.fillRect(-3.5, -23, 7, 1.6);
+        // Leather sword belt & iron buckle
+        c.fillStyle = '#2b180c';
+        c.fillRect(-8.5, -19, 17, 2.4);
+        c.strokeStyle = '#d4ae52';
+        c.lineWidth = 1;
+        c.strokeRect(-2, -19.2, 4, 2.8);
 
-        // Layered steel pauldrons
-        c.fillStyle = flashColor || '#b2bec3';
-        c.beginPath(); c.arc(-10, -26, 5, 0, Math.PI * 2); c.fill();
-        c.beginPath(); c.arc(10, -26, 5, 0, Math.PI * 2); c.fill();
+        // Segmented steel pauldrons with rim highlight
+        const pldGrad = c.createRadialGradient(-9, -31, 1, -9, -29, 7);
+        pldGrad.addColorStop(0, '#f5f8fa');
+        pldGrad.addColorStop(0.5, '#778696');
+        pldGrad.addColorStop(1, '#252c34');
+        c.fillStyle = flashColor || pldGrad;
+        c.beginPath(); c.ellipse(-10.5, -29.5, 5.5, 4.5, -0.25, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.ellipse(10.5, -29.5, 5.5, 4.5, 0.25, 0, Math.PI * 2); c.fill();
 
-        // Crusader Greathelm with brass cross & glowing visor slit
-        const helmGrad = c.createLinearGradient(-7, -42, 7, -28);
-        helmGrad.addColorStop(0, '#f5f6fa');
-        helmGrad.addColorStop(0.5, '#8395a7');
-        helmGrad.addColorStop(1, '#353b48');
+        // Sculpted Crusader Greathelm with beveled crown, breathing vents & visor slit
+        const helmGrad = c.createLinearGradient(-7, -45, 7, -31);
+        helmGrad.addColorStop(0, '#f5f7fa');
+        helmGrad.addColorStop(0.4, '#92a2b0');
+        helmGrad.addColorStop(0.82, '#3d4652');
+        helmGrad.addColorStop(1, '#1b2026');
         c.fillStyle = flashColor || helmGrad;
         c.beginPath();
-        c.roundRect(-7, -42, 14, 14, [6, 6, 3, 3]);
+        c.moveTo(-6.5, -32);
+        c.lineTo(-7, -41);
+        c.quadraticCurveTo(0, -46.5, 7, -41);
+        c.lineTo(6.5, -32);
+        c.quadraticCurveTo(0, -30.5, -6.5, -32);
+        c.closePath();
         c.fill();
-        c.strokeStyle = '#1e272e';
-        c.lineWidth = 1;
-        c.stroke();
 
-        // Brass cross & visor eye slit
-        c.fillStyle = flashColor || '#d4af37';
-        c.fillRect(-1, -41, 2, 12);
-        c.fillRect(-6, -36, 12, 2);
-        c.fillStyle = '#0f1419';
-        c.fillRect(-5, -36, 10, 1.8);
-        c.fillStyle = '#70d6ff';
-        c.fillRect(-4, -35.8, 3, 1.3);
-        c.fillRect(1, -35.8, 3, 1.3);
+        // Brass reinforce cross & shadowed ocular slit
+        c.fillStyle = flashColor || '#cfa649';
+        c.fillRect(-0.9, -43.5, 1.8, 11.5);
+        c.fillRect(-6.2, -38.2, 12.4, 1.8);
+        c.fillStyle = '#090b0e';
+        c.fillRect(-5.2, -38, 10.4, 1.5);
+        c.fillStyle = '#9be2ff';
+        c.fillRect(-3.8, -37.8, 2.4, 1.1);
+        c.fillRect(1.4, -37.8, 2.4, 1.1);
 
-        // Broadsword (right hand, raised steel blade catching light)
+        // Longsword with fuller blood-groove & metallic sheen
         c.save();
-        c.translate(12, -22);
-        c.rotate(0.18 + Math.sin(phase * 0.8) * 0.04);
-        const bladeGrad = c.createLinearGradient(-2, -22, 3, 0);
+        c.translate(12.5, -23);
+        c.rotate(0.16 + Math.sin(phase * 0.9) * 0.04);
+        const bladeGrad = c.createLinearGradient(-2.5, -26, 2.5, 0);
         bladeGrad.addColorStop(0, '#ffffff');
-        bladeGrad.addColorStop(0.5, '#c8d6e5');
-        bladeGrad.addColorStop(1, '#576574');
+        bladeGrad.addColorStop(0.45, '#cfd9e2');
+        bladeGrad.addColorStop(1, '#536170');
         c.fillStyle = flashColor || bladeGrad;
         c.beginPath();
-        c.moveTo(0, -23);
-        c.lineTo(3, -18);
-        c.lineTo(2.5, 0);
-        c.lineTo(-2.5, 0);
-        c.lineTo(-3, -18);
+        c.moveTo(0, -27);
+        c.lineTo(2.4, -21);
+        c.lineTo(2.1, 0);
+        c.lineTo(-2.1, 0);
+        c.lineTo(-2.4, -21);
         c.closePath();
         c.fill();
-        // Golden crossguard & pommel
-        c.fillStyle = flashColor || '#d4af37';
-        c.fillRect(-5.5, -1, 11, 2.5);
-        c.fillRect(-1.5, 1.5, 3, 4);
+        c.strokeStyle = 'rgba(45, 55, 68, 0.65)';
+        c.lineWidth = 0.8;
+        c.beginPath(); c.moveTo(0, -19); c.lineTo(0, -2); c.stroke();
+        // Curved steel/brass crossguard & leather-wrapped grip
+        c.fillStyle = flashColor || '#cfa649';
+        c.fillRect(-5.5, -1, 11, 2.2);
+        c.fillStyle = '#3b2110';
+        c.fillRect(-1.2, 1.2, 2.4, 4);
+        c.fillStyle = '#cfa649';
+        c.beginPath(); c.arc(0, 6, 1.8, 0, Math.PI * 2); c.fill();
         c.restore();
 
-        // Heavy Kite Shield (left arm)
-        const shGrad = c.createLinearGradient(-17, -27, -5, -8);
-        shGrad.addColorStop(0, '#d4af37');
-        shGrad.addColorStop(0.2, '#2980b9');
-        shGrad.addColorStop(0.85, '#192a56');
-        shGrad.addColorStop(1, '#0c1630');
+        // Battle-worn Heater Shield with beveled steel rim
+        const shGrad = c.createLinearGradient(-17, -29, -4, -8);
+        shGrad.addColorStop(0, '#3a5878');
+        shGrad.addColorStop(0.55, '#1d3147');
+        shGrad.addColorStop(1, '#0d1724');
         c.fillStyle = flashColor || shGrad;
         c.beginPath();
-        c.moveTo(-16, -26);
-        c.lineTo(-5, -26);
-        c.lineTo(-5, -16);
-        c.quadraticCurveTo(-10.5, -7, -10.5, -7);
-        c.quadraticCurveTo(-16, -16, -16, -16);
+        c.moveTo(-16.5, -28);
+        c.lineTo(-5, -28);
+        c.lineTo(-5, -17);
+        c.quadraticCurveTo(-10.8, -7.5, -10.8, -7.5);
+        c.quadraticCurveTo(-16.5, -17, -16.5, -17);
         c.closePath();
         c.fill();
-        c.strokeStyle = flashColor || '#f1c40f';
-        c.lineWidth = 1.5;
+        c.strokeStyle = flashColor || '#c9a654';
+        c.lineWidth = 1.4;
         c.stroke();
+        c.fillStyle = flashColor || '#d9b86c';
+        c.beginPath(); c.arc(-10.8, -19, 2.2, 0, Math.PI * 2); c.fill();
     } else if (role === 'Ranger') {
-        // Quiver of arrows on back
-        c.fillStyle = flashColor || '#5c3416';
+        // Fletched arrows & weathered leather quiver
         c.save();
-        c.translate(-7, -30);
-        c.rotate(-0.28);
-        c.fillRect(-2.5, -8, 5, 14);
-        c.fillStyle = flashColor || '#ecf0f1';
-        c.fillRect(-2, -12, 1.4, 5);
-        c.fillRect(0.8, -13, 1.4, 6);
+        c.translate(-7.5, -32);
+        c.rotate(-0.26);
+        c.fillStyle = flashColor || '#4a2912';
+        c.fillRect(-2.5, -8, 5, 15);
+        c.strokeStyle = '#d9d2c5';
+        c.lineWidth = 1.2;
+        c.beginPath();
+        c.moveTo(-1.5, -8); c.lineTo(-2.2, -14);
+        c.moveTo(0.8, -8);  c.lineTo(0.6, -15);
+        c.moveTo(2.0, -8);  c.lineTo(2.4, -13);
+        c.stroke();
         c.restore();
 
-        // Forest ranger cloak
-        const cloakGrad = c.createLinearGradient(-11, -34, 11, -3);
-        cloakGrad.addColorStop(0, '#1e6f50');
-        cloakGrad.addColorStop(1, '#0c3324');
+        // Tattered deep-moss stalker cloak
+        const cloakGrad = c.createLinearGradient(-12, -35, 11, -2);
+        cloakGrad.addColorStop(0, '#234a38');
+        cloakGrad.addColorStop(0.6, '#142e22');
+        cloakGrad.addColorStop(1, '#091711');
         c.fillStyle = flashColor || cloakGrad;
         c.beginPath();
-        c.moveTo(-8, -30);
-        c.quadraticCurveTo(-14, -14, -11 + Math.sin(phase) * 1.5, -3);
-        c.lineTo(10, -3);
-        c.quadraticCurveTo(12, -16, 8, -30);
+        c.moveTo(-8.5, -32);
+        c.quadraticCurveTo(-15, -16, -12 + Math.sin(phase * 1.4) * 1.8 - stride * 0.4, -2);
+        c.lineTo(-5, -4);
+        c.lineTo(0, -2);
+        c.lineTo(6, -4);
+        c.lineTo(10, -2);
+        c.quadraticCurveTo(12, -17, 8.5, -32);
         c.closePath();
         c.fill();
 
-        // Leather boots
-        c.fillStyle = flashColor || '#4a2a12';
-        c.fillRect(-6, -10, 4.5, 9);
-        c.fillRect(1.5, -10, 4.5, 9);
+        // Articulated cuffed ranger boots
+        c.fillStyle = flashColor || '#382010';
+        c.beginPath();
+        c.roundRect(-6.5 + stride * 0.55, -14, 4.6, 13, 1.5);
+        c.roundRect(1.8 - stride * 0.55, -14, 4.6, 13, 1.5);
+        c.fill();
+        c.fillStyle = flashColor || '#59351c';
+        c.fillRect(-6.8 + stride * 0.55, -10, 5.2, 2.2);
+        c.fillRect(1.5 - stride * 0.55, -10, 5.2, 2.2);
 
-        // Studded leather brigandine & belt
-        const leatherGrad = c.createLinearGradient(-8, -28, 8, -10);
-        leatherGrad.addColorStop(0, '#8c5428');
-        leatherGrad.addColorStop(1, '#4a2810');
+        // Tailored studded leather brigandine jerkin & bandolier
+        const leatherGrad = c.createLinearGradient(-9, -31, 9, -12);
+        leatherGrad.addColorStop(0, '#784824');
+        leatherGrad.addColorStop(0.55, '#4d2c14');
+        leatherGrad.addColorStop(1, '#291609');
         c.fillStyle = flashColor || leatherGrad;
         c.beginPath();
-        c.roundRect(-8.5, -28, 17, 18, 3);
-        c.fill();
-        c.fillStyle = flashColor || '#d4af37';
-        c.fillRect(-8.5, -16, 17, 2.4);
-        c.strokeStyle = flashColor || '#b89456';
-        c.lineWidth = 1.2;
-        c.beginPath(); c.moveTo(-6, -27); c.lineTo(6, -13); c.stroke();
-
-        // Deep hooded head with shadowed face & keen emerald eyes
-        c.fillStyle = flashColor || '#1b6347';
-        c.beginPath();
-        c.arc(0, -35, 8, Math.PI * 0.85, Math.PI * 2.15);
-        c.lineTo(7, -28);
-        c.lineTo(-7, -28);
+        c.moveTo(-9, -31); c.lineTo(9, -31); c.lineTo(7, -13); c.lineTo(-7, -13);
         c.closePath();
         c.fill();
-        // Hood peak
-        c.beginPath();
-        c.moveTo(-6, -39); c.lineTo(0, -44); c.lineTo(6, -39);
-        c.fill();
-        // Shadowed face & glowing emerald eyes
-        c.fillStyle = flashColor || '#16120e';
-        c.beginPath(); c.arc(0, -34, 5, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#55efc4';
-        c.fillRect(-3.2, -35, 2.2, 1.5);
-        c.fillRect(1.0, -35, 2.2, 1.5);
+        c.strokeStyle = flashColor || '#a88448';
+        c.lineWidth = 1.4;
+        c.beginPath(); c.moveTo(-6.5, -30); c.lineTo(6.5, -14); c.stroke();
+        c.fillStyle = '#241409';
+        c.fillRect(-7.5, -17, 15, 2.4);
 
-        // Curved Recurve Bow & Nocked Steel Arrow (right side)
+        // Deep pointed cowl casting shadow over sharp eyes
+        c.fillStyle = flashColor || '#1e4231';
+        c.beginPath();
+        c.moveTo(-8, -30);
+        c.quadraticCurveTo(-8.5, -40, 0, -45.5);
+        c.quadraticCurveTo(8.5, -40, 8, -30);
+        c.closePath();
+        c.fill();
+        c.fillStyle = flashColor || '#0d0b09';
+        c.beginPath(); c.ellipse(0, -35.5, 4.8, 4.4, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#7ef5ce';
+        c.fillRect(-3.0, -36.2, 2.0, 1.2);
+        c.fillRect(1.0, -36.2, 2.0, 1.2);
+
+        // Ashwood Composite Recurve Bow & Nocked Bodkin Arrow
         c.save();
-        c.translate(11, -21);
-        c.strokeStyle = flashColor || '#b37436';
-        c.lineWidth = 2.4;
+        c.translate(11.5, -22);
+        c.strokeStyle = flashColor || '#9e6632';
+        c.lineWidth = 2.3;
         c.beginPath();
-        c.arc(-3, 0, 13, -Math.PI * 0.44, Math.PI * 0.44);
+        c.moveTo(-1, -14);
+        c.quadraticCurveTo(7, -7, 4, 0);
+        c.quadraticCurveTo(7, 7, -1, 14);
         c.stroke();
-        // Taut bowstring
-        c.strokeStyle = 'rgba(235, 240, 245, 0.75)';
-        c.lineWidth = 0.9;
+        c.strokeStyle = 'rgba(235, 240, 245, 0.72)';
+        c.lineWidth = 0.8;
         c.beginPath();
-        c.moveTo(-0.5, -12.5);
-        c.lineTo(-4, 0);
-        c.lineTo(-0.5, 12.5);
+        c.moveTo(-1, -14); c.lineTo(-4.5, 0); c.lineTo(-1, 14);
         c.stroke();
-        // Nocked arrow
-        c.strokeStyle = flashColor || '#dfe6e9';
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.moveTo(-4, 0); c.lineTo(12, 0);
-        c.stroke();
-        c.fillStyle = '#00cec9';
-        c.beginPath();
-        c.moveTo(14, 0); c.lineTo(10, -2.5); c.lineTo(10, 2.5);
-        c.closePath();
-        c.fill();
+        c.strokeStyle = flashColor || '#d8dfe5';
+        c.lineWidth = 1.3;
+        c.beginPath(); c.moveTo(-4.5, 0); c.lineTo(12, 0); c.stroke();
+        c.fillStyle = '#b8c6d1';
+        c.beginPath(); c.moveTo(14.5, 0); c.lineTo(10.5, -2.2); c.lineTo(10.5, 2.2); c.closePath(); c.fill();
         c.restore();
     } else if (role === 'Cleric') {
-        // Soft golden halo behind head
+        // Faint gilded iron halo behind head
         c.save();
-        c.strokeStyle = flashColor || 'rgba(248, 212, 72, 0.78)';
-        c.lineWidth = 1.8;
-        c.beginPath();
-        c.arc(0, -36, 10.5, 0, Math.PI * 2);
-        c.stroke();
+        c.strokeStyle = flashColor || 'rgba(232, 198, 104, 0.68)';
+        c.lineWidth = 1.4;
+        c.beginPath(); c.arc(0, -37.5, 10, 0, Math.PI * 2); c.stroke();
         c.restore();
 
-        // Flowing ivory & gold-trimmed vestments
-        const robeGrad = c.createLinearGradient(-11, -30, 11, -2);
-        robeGrad.addColorStop(0, '#f7f4eb');
-        robeGrad.addColorStop(0.65, '#d8d0be');
-        robeGrad.addColorStop(1, '#8f846e');
+        // Pleated ivory-linen chasuble with realistic vertical cloth shadow creases
+        const robeGrad = c.createLinearGradient(-12, -32, 12, -1);
+        robeGrad.addColorStop(0, '#efeae0');
+        robeGrad.addColorStop(0.55, '#c2b8a3');
+        robeGrad.addColorStop(1, '#6b6252');
         c.fillStyle = flashColor || robeGrad;
         c.beginPath();
-        c.moveTo(-8, -29);
-        c.lineTo(-12, -2);
-        c.lineTo(12, -2);
-        c.lineTo(8, -29);
+        c.moveTo(-8.5, -31);
+        c.lineTo(-12.5 - stride * 0.25, -1.5);
+        c.lineTo(12.5 + stride * 0.25, -1.5);
+        c.lineTo(8.5, -31);
         c.closePath();
         c.fill();
 
-        // Golden stole / tabard
-        c.fillStyle = flashColor || '#d4af37';
-        c.fillRect(-3.5, -28, 7, 25);
-        c.fillStyle = flashColor || '#2ecc71';
-        c.fillRect(-1.5, -25, 3, 18);
-
-        // Hooded head & serene face
-        c.fillStyle = flashColor || '#f5f2e8';
+        // Cloth fold shadow lines
+        c.strokeStyle = 'rgba(45, 38, 28, 0.36)';
+        c.lineWidth = 1;
         c.beginPath();
-        c.arc(0, -35, 7.5, 0, Math.PI * 2);
-        c.fill();
-        c.fillStyle = flashColor || '#f3cfa4';
-        c.beginPath();
-        c.arc(0, -34, 4.8, 0, Math.PI * 2);
-        c.fill();
-        c.fillStyle = '#2c3e50';
-        c.fillRect(-2.6, -35, 1.6, 1.6);
-        c.fillRect(1.0, -35, 1.6, 1.6);
-        // Golden circlet
-        c.strokeStyle = flashColor || '#f1c40f';
-        c.lineWidth = 1.8;
-        c.beginPath();
-        c.arc(0, -36, 5.5, Math.PI * 1.1, Math.PI * 1.9);
+        c.moveTo(-5, -26); c.lineTo(-7.5, -2);
+        c.moveTo(5, -26);  c.lineTo(7.5, -2);
         c.stroke();
 
-        // Ornate Sun-Staff with levitating emerald/cyan crystal
-        c.save();
-        c.translate(12, -18);
-        c.fillStyle = flashColor || '#c89b2b';
-        c.fillRect(-1.3, -18, 2.6, 34);
-        c.strokeStyle = flashColor || '#ffeaa7';
+        // Embroidered crimson & gold liturgical stole + steel shoulder mantle
+        c.fillStyle = flashColor || '#8c2228';
+        c.fillRect(-3.4, -30, 6.8, 26);
+        c.fillStyle = flashColor || '#d4ae52';
+        c.fillRect(-1.2, -28, 2.4, 22);
+        c.fillStyle = flashColor || '#b8b09c';
+        c.beginPath(); c.ellipse(0, -30, 9.5, 3.4, 0, 0, Math.PI * 2); c.fill();
+
+        // Cowl, shaded face, & gilded circlet
+        c.fillStyle = flashColor || '#e8e2d5';
+        c.beginPath(); c.arc(0, -36.5, 7.2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = flashColor || '#d9b18e';
+        c.beginPath(); c.arc(0, -35.5, 4.6, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#241e1a';
+        c.fillRect(-2.5, -36.2, 1.5, 1.3);
+        c.fillRect(1.0, -36.2, 1.5, 1.3);
+        c.strokeStyle = flashColor || '#d4ae52';
         c.lineWidth = 1.6;
-        c.beginPath();
-        c.arc(0, -21, 5, 0, Math.PI * 2);
-        c.stroke();
-        // Glowing jewel
-        const gemY = -21 + Math.sin(phase * 2) * 1.2;
-        c.fillStyle = '#55efc4';
-        c.shadowColor = '#00ffff';
+        c.beginPath(); c.arc(0, -37.5, 5.2, Math.PI * 1.08, Math.PI * 1.92); c.stroke();
+
+        // Wrought-Gold Sun Crosier with radiant sanctum crystal
+        c.save();
+        c.translate(12.5, -19);
+        c.fillStyle = flashColor || '#b58d38';
+        c.fillRect(-1.2, -19, 2.4, 36);
+        c.strokeStyle = flashColor || '#ebd086';
+        c.lineWidth = 1.5;
+        c.beginPath(); c.arc(0, -22.5, 5.2, 0, Math.PI * 2); c.stroke();
+        const gemY = -22.5 + Math.sin(phase * 2) * 1.1;
+        c.fillStyle = '#9ef7db';
+        c.shadowColor = '#6be8c8';
         c.shadowBlur = 8;
         c.beginPath();
-        c.moveTo(0, gemY - 3.5);
-        c.lineTo(3, gemY);
-        c.lineTo(0, gemY + 3.5);
-        c.lineTo(-3, gemY);
+        c.moveTo(0, gemY - 3.6); c.lineTo(2.8, gemY); c.lineTo(0, gemY + 3.6); c.lineTo(-2.8, gemY);
         c.closePath();
         c.fill();
         c.restore();
     } else {
-        // Control / Arcane Battlemage
-        const robeGrad = c.createLinearGradient(-12, -30, 12, -2);
-        robeGrad.addColorStop(0, '#6c42b8');
-        robeGrad.addColorStop(0.6, '#3b1f70');
-        robeGrad.addColorStop(1, '#1a0c36');
+        // Abyssal Battlemage: layered twilight velvet robes with deep folds & gold runes
+        const robeGrad = c.createLinearGradient(-13, -32, 13, -1);
+        robeGrad.addColorStop(0, '#4c2e85');
+        robeGrad.addColorStop(0.55, '#29164d');
+        robeGrad.addColorStop(1, '#110824');
         c.fillStyle = flashColor || robeGrad;
         c.beginPath();
-        c.moveTo(-8, -29);
-        c.lineTo(-13, -2);
-        c.lineTo(13, -2);
-        c.lineTo(8, -29);
+        c.moveTo(-8.5, -31);
+        c.lineTo(-13.5 - stride * 0.3, -1.5);
+        c.lineTo(13.5 + stride * 0.3, -1.5);
+        c.lineTo(8.5, -31);
         c.closePath();
         c.fill();
 
-        // Gold arcane trim & mantle
-        c.strokeStyle = flashColor || '#f1c40f';
-        c.lineWidth = 1.5;
+        // Mantle & embroidered gold trim
+        c.fillStyle = flashColor || '#381f66';
+        c.beginPath(); c.ellipse(0, -29.5, 10, 4, 0, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = flashColor || '#cfa649';
+        c.lineWidth = 1.3;
         c.beginPath();
-        c.moveTo(-4, -28); c.lineTo(-6, -3);
-        c.moveTo(4, -28); c.lineTo(6, -3);
+        c.moveTo(-3.8, -29); c.lineTo(-6.2, -2);
+        c.moveTo(3.8, -29);  c.lineTo(6.2, -2);
         c.stroke();
 
-        // Shadowed face with glowing cyan arcane eyes
-        c.fillStyle = flashColor || '#130924';
-        c.beginPath(); c.arc(0, -34, 5.5, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#00ffff';
-        c.shadowColor = '#00ffff';
+        // Deeply shadowed face beneath wizard hat brim + glowing arcane eyes
+        c.fillStyle = flashColor || '#0d061a';
+        c.beginPath(); c.arc(0, -35.5, 5.2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#7ee8ff';
+        c.shadowColor = '#38d9ff';
         c.shadowBlur = 6;
-        c.fillRect(-3.2, -34.5, 2.3, 1.6);
-        c.fillRect(0.9, -34.5, 2.3, 1.6);
+        c.fillRect(-3.0, -36, 2.1, 1.4);
+        c.fillRect(0.9, -36, 2.1, 1.4);
         c.shadowBlur = 0;
 
-        // Classic pointed Archmage Hat & wide curved brim
-        const hatGrad = c.createLinearGradient(-8, -50, 8, -35);
-        hatGrad.addColorStop(0, '#8c5ce6');
-        hatGrad.addColorStop(1, '#2d1657');
+        // Weathered pointed Archmage Hat with brass buckle & curved brim
+        const hatGrad = c.createLinearGradient(-9, -53, 9, -36);
+        hatGrad.addColorStop(0, '#623ca8');
+        hatGrad.addColorStop(1, '#1d0e38');
         c.fillStyle = flashColor || hatGrad;
         c.beginPath();
-        c.ellipse(0, -37, 12.5, 3.6, -0.05, 0, Math.PI * 2);
+        c.ellipse(0, -38, 13, 3.5, -0.06, 0, Math.PI * 2);
         c.fill();
         c.beginPath();
-        c.moveTo(-7.5, -37);
-        c.quadraticCurveTo(-2, -48, 4, -52);
-        c.quadraticCurveTo(5, -44, 7.5, -37);
+        c.moveTo(-7.5, -38);
+        c.quadraticCurveTo(-2.5, -49, 4.5, -53.5);
+        c.quadraticCurveTo(5.2, -45, 7.5, -38);
         c.closePath();
         c.fill();
-        // Hat gold band
-        c.fillStyle = flashColor || '#f1c40f';
-        c.fillRect(-7, -39, 14, 2.2);
+        c.fillStyle = flashColor || '#cfa649';
+        c.fillRect(-6.8, -40, 13.6, 2);
 
-        // Gnarled Staff & Floating Fire/Arcane Orb
+        // Twisted Ironwood Staff & Orbiting Arcane Catalyst
         c.save();
-        c.translate(12, -18);
-        c.strokeStyle = flashColor || '#5c3818';
-        c.lineWidth = 2.6;
+        c.translate(12.5, -19);
+        c.strokeStyle = flashColor || '#4d2e14';
+        c.lineWidth = 2.5;
         c.beginPath();
-        c.moveTo(0, 16);
-        c.lineTo(0, -14);
-        c.arc(-2, -18, 4.5, 0.2, Math.PI * 1.6);
+        c.moveTo(0, 17);
+        c.lineTo(0, -15);
+        c.arc(-2, -19.5, 4.8, 0.2, Math.PI * 1.65);
         c.stroke();
 
-        const orbY = -20 + Math.cos(phase * 2.2) * 1.5;
-        const orbGrad = c.createRadialGradient(-1, orbY, 1, -1, orbY, 6);
+        const orbY = -21 + Math.cos(phase * 2.2) * 1.4;
+        const orbGrad = c.createRadialGradient(-1, orbY, 0.8, -1, orbY, 6.5);
         orbGrad.addColorStop(0, '#ffffff');
-        orbGrad.addColorStop(0.45, '#e056fd');
+        orbGrad.addColorStop(0.42, '#d980fa');
         orbGrad.addColorStop(1, 'rgba(142, 68, 173, 0)');
         c.fillStyle = orbGrad;
-        c.beginPath();
-        c.arc(-1, orbY, 6, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.arc(-1, orbY, 6.5, 0, Math.PI * 2); c.fill();
         c.restore();
+    }
+
+    // Subtle warm golden torch rim-light along upper contour
+    if (!flashColor) {
+        c.strokeStyle = 'rgba(255, 214, 150, 0.22)';
+        c.lineWidth = 0.9;
+        c.beginPath();
+        c.arc(0, -36, 7.8, -Math.PI * 0.85, -Math.PI * 0.15);
+        c.stroke();
     }
 
     c.restore();
@@ -1152,14 +1223,21 @@ function drawEnemyFigure(c, enemy, cx, baseY, phase = 0, flashColor = null, faci
         c.lineWidth = 1.2;
         c.stroke();
 
-        // Hulking armored torso
-        const torsoGrad = c.createLinearGradient(-13, -38, 13, -6);
+        // Articulated Dread Sabatons & Sculpted V-Tapered Gothic Dread Cuirass
+        [[-7, -15], [2.5, -15]].forEach(([lx, ly]) => {
+            c.fillStyle = flashColor || '#15181d';
+            c.beginPath(); c.roundRect(lx, ly, 5.2, 14, 1.8); c.fill();
+            c.fillStyle = flashColor || palette.armor;
+            c.fillRect(lx + 1, ly + 2, 2, 9);
+        });
+        const torsoGrad = c.createLinearGradient(-13, -39, 13, -10);
         torsoGrad.addColorStop(0, palette.trim);
-        torsoGrad.addColorStop(0.25, palette.armor);
-        torsoGrad.addColorStop(1, '#0b0b0e');
+        torsoGrad.addColorStop(0.28, palette.armor);
+        torsoGrad.addColorStop(1, '#08080b');
         c.fillStyle = flashColor || torsoGrad;
         c.beginPath();
-        c.roundRect(-12, -36, 24, 30, 5);
+        c.moveTo(-13, -37); c.lineTo(13, -37); c.lineTo(9, -13); c.lineTo(0, -10.5); c.lineTo(-9, -13);
+        c.closePath();
         c.fill();
 
         // Blazing elemental chest core
@@ -1210,18 +1288,23 @@ function drawEnemyFigure(c, enemy, cx, baseY, phase = 0, flashColor = null, faci
         c.fillRect(-6, 5, 12, 2.8);
         c.restore();
     } else if (enemy.isBoss) {
-        // TIER 5 MINI-BOSS (Armored Warden / Wendigo / Magma Juggernaut / Void Executioner)
+        // TIER 5 MINI-BOSS (Sculpted Ironclad Warden / Executioner)
         const bColor = enemy.color || '#e67e22';
-        const bodyGrad = c.createLinearGradient(-12, -36, 12, -4);
-        bodyGrad.addColorStop(0, '#7f8fa6');
+        [[-6, -13], [2, -13]].forEach(([lx, ly]) => {
+            c.fillStyle = flashColor || '#1c2026';
+            c.beginPath(); c.roundRect(lx, ly, 4.6, 12, 1.5); c.fill();
+        });
+        const bodyGrad = c.createLinearGradient(-12, -36, 12, -10);
+        bodyGrad.addColorStop(0, '#95a5a6');
         bodyGrad.addColorStop(0.5, '#2f3640');
-        bodyGrad.addColorStop(1, '#14171c');
+        bodyGrad.addColorStop(1, '#12151a');
         c.fillStyle = flashColor || bodyGrad;
         c.beginPath();
-        c.roundRect(-11, -33, 22, 28, 5);
+        c.moveTo(-11.5, -34); c.lineTo(11.5, -34); c.lineTo(8.5, -12); c.lineTo(-8.5, -12);
+        c.closePath();
         c.fill();
         c.strokeStyle = flashColor || bColor;
-        c.lineWidth = 1.5;
+        c.lineWidth = 1.3;
         c.stroke();
 
         // Horns & Visor
@@ -1298,96 +1381,119 @@ function drawEnemyFigure(c, enemy, cx, baseY, phase = 0, flashColor = null, faci
         c.quadraticCurveTo(6, -12, 9 + Math.sin(phase * 3) * 3, -7);
         c.stroke();
     } else if (enemy.name && (enemy.name.includes('Skeleton') || enemy.name.includes('Guard'))) {
-        // FALLEN DARK SKELETON / UNDEAD HALBERDIER
+        // ANATOMICAL UNDEAD HALBERDIER / SKELETON GUARD
         const accent = enemy.affix ? (enemy.color || '#e84118') : '#e84118';
-        // Tattered burial shroud
-        c.fillStyle = flashColor || '#262b34';
+        // Tattered mail & burial rags
+        const ragGrad = c.createLinearGradient(-9, -30, 9, -4);
+        ragGrad.addColorStop(0, '#2e333b');
+        ragGrad.addColorStop(1, '#14171c');
+        c.fillStyle = flashColor || ragGrad;
         c.beginPath();
-        c.moveTo(-8, -28); c.lineTo(-11, -5); c.lineTo(9, -5); c.lineTo(8, -28);
+        c.moveTo(-8, -29); c.lineTo(-11, -5); c.lineTo(-5, -8); c.lineTo(0, -4); c.lineTo(6, -8); c.lineTo(10, -5); c.lineTo(8, -29);
         c.closePath();
         c.fill();
 
-        // Articulated ivory ribcage & spine
-        c.strokeStyle = flashColor || '#dcdde1';
-        c.lineWidth = 2;
+        // Anatomical femur/tibia leg bones, iliac pelvis & curved ribcage
+        c.strokeStyle = flashColor || '#d5d0c3';
+        c.lineWidth = 1.9;
+        c.lineCap = 'round';
         c.beginPath();
-        c.moveTo(0, -28); c.lineTo(0, -12);
-        c.moveTo(-5, -25); c.lineTo(5, -25);
-        c.moveTo(-6, -21); c.lineTo(6, -21);
-        c.moveTo(-4, -17); c.lineTo(4, -17);
-        // Skeletal legs
-        c.moveTo(-3, -12); c.lineTo(-4, -2);
-        c.moveTo(3, -12);  c.lineTo(4, -2);
+        c.moveTo(0, -29); c.lineTo(0, -13);
+        c.moveTo(-5.5, -26); c.quadraticCurveTo(0, -24, 5.5, -26);
+        c.moveTo(-6.2, -22.5); c.quadraticCurveTo(0, -20.5, 6.2, -22.5);
+        c.moveTo(-4.8, -19); c.quadraticCurveTo(0, -17.5, 4.8, -19);
+        c.moveTo(-4.5, -13.5); c.lineTo(4.5, -13.5);
+        c.moveTo(-3.6, -13); c.lineTo(-4.8, -7); c.lineTo(-3.8, -1.5);
+        c.moveTo(3.6, -13);  c.lineTo(4.8, -7);  c.lineTo(3.8, -1.5);
         c.stroke();
 
-        // Detailed Skull & Rusted Iron Helm
-        c.fillStyle = flashColor || '#ecf0f1';
-        c.beginPath(); c.arc(0, -34, 6, 0, Math.PI * 2); c.fill();
-        c.fillRect(-3, -30, 6, 3);
-        c.fillStyle = flashColor || '#485460';
-        c.beginPath(); c.arc(0, -36, 6.6, Math.PI, Math.PI * 2); c.fill();
+        // Sculpted cranium, cheekbones, jaw & corroded iron kettle-helm
+        c.fillStyle = flashColor || '#e2ddd0';
+        c.beginPath(); c.arc(0, -35.5, 5.8, 0, Math.PI * 2); c.fill();
+        c.fillRect(-3.2, -31.2, 6.4, 3.2);
+        c.fillStyle = '#181412';
+        c.beginPath(); c.moveTo(0, -33.5); c.lineTo(-1.1, -31.8); c.lineTo(1.1, -31.8); c.closePath(); c.fill();
 
-        // Blazing Undead Eye Sockets
+        const helmG = c.createLinearGradient(-7, -42, 7, -35);
+        helmG.addColorStop(0, '#78828c');
+        helmG.addColorStop(1, '#262b30');
+        c.fillStyle = flashColor || helmG;
+        c.beginPath(); c.arc(0, -36.8, 6.6, Math.PI * 0.96, Math.PI * 2.04); c.fill();
+
+        // Pinpoint burning undead eye sockets
         c.fillStyle = accent;
         c.shadowColor = accent;
-        c.shadowBlur = 5;
-        c.fillRect(-3.4, -35, 2.2, 2.0);
-        c.fillRect(1.2, -35, 2.2, 2.0);
+        c.shadowBlur = 6;
+        c.fillRect(-3.4, -35.6, 2.0, 1.6);
+        c.fillRect(1.4, -35.6, 2.0, 1.6);
         c.shadowBlur = 0;
 
-        // Steel Halberd
+        // Battered Iron Buckler (left arm) & Notched Steel Halberd (right arm)
+        c.fillStyle = flashColor || '#3c444d';
+        c.beginPath(); c.ellipse(-9.5, -20, 4.2, 6.5, -0.15, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = '#7f8c8d';
+        c.lineWidth = 1.1;
+        c.stroke();
+
         c.save();
-        c.translate(10, -18);
-        c.fillStyle = '#6e4720';
-        c.fillRect(-1, -20, 2.2, 34);
-        c.fillStyle = flashColor || '#bdc3c7';
+        c.translate(10.5, -19);
+        c.fillStyle = '#593818';
+        c.fillRect(-1, -22, 2.1, 37);
+        c.fillStyle = flashColor || '#b8c2cc';
         c.beginPath();
-        c.moveTo(0, -24); c.lineTo(6, -15); c.lineTo(1, -10); c.lineTo(0, -20);
+        c.moveTo(0, -27); c.lineTo(7, -17); c.lineTo(5, -11); c.lineTo(1, -13); c.lineTo(0, -23);
         c.closePath();
         c.fill();
         c.restore();
     } else {
-        // TRANSLUCENT GELATINOUS PLAGUE SLIME (with internal floating skull & glossy sheen!)
-        const baseCol = enemy.affix ? (enemy.color || '#e84118') : '#c23616';
-        const squishX = 1 + Math.sin(phase * 2.1) * 0.07;
-        const squishY = 1 - Math.sin(phase * 2.1) * 0.07;
+        // CAUSTIC TRANSLUCENT PLAGUE OOZE (with wet meniscus puddle, trapped bones & glossy refraction)
+        const baseCol = enemy.affix ? (enemy.color || '#d94526') : '#a82c18';
+        const squishX = 1 + Math.sin(phase * 2.1) * 0.065;
+        const squishY = 1 - Math.sin(phase * 2.1) * 0.065;
         c.scale(squishX, squishY);
 
-        // Internal digested skull silhouette inside translucent ooze!
-        c.fillStyle = 'rgba(235, 230, 210, 0.42)';
-        c.beginPath(); c.arc(-2, -14, 4.2, 0, Math.PI * 2); c.fill();
-        c.fillStyle = 'rgba(20, 10, 10, 0.5)';
-        c.fillRect(-3.8, -15, 1.4, 1.4);
-        c.fillRect(-1.4, -15, 1.4, 1.4);
+        // Wet slimy ground meniscus pool
+        c.fillStyle = 'rgba(55, 14, 12, 0.55)';
+        c.beginPath(); c.ellipse(0, -1.5, 16.5, 4.8, 0, 0, Math.PI * 2); c.fill();
 
-        // Translucent 3D dome body
-        const slimeGrad = c.createRadialGradient(-4, -18, 2, 0, -12, 16);
-        slimeGrad.addColorStop(0, '#ff9f7f');
-        slimeGrad.addColorStop(0.35, baseCol);
-        slimeGrad.addColorStop(1, 'rgba(65, 10, 8, 0.92)');
+        // Trapped digested skull & bone shard suspended inside translucent ooze
+        c.fillStyle = 'rgba(232, 224, 204, 0.48)';
+        c.beginPath(); c.arc(-2.5, -13.5, 4.0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(20, 8, 8, 0.58)';
+        c.fillRect(-4.1, -14.4, 1.3, 1.3);
+        c.fillRect(-1.8, -14.4, 1.3, 1.3);
+        c.strokeStyle = 'rgba(225, 218, 198, 0.42)';
+        c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(3, -9); c.lineTo(8, -14); c.stroke();
+
+        // Organic multi-lobed gelatinous body
+        const slimeGrad = c.createRadialGradient(-4, -18, 2, 0, -11, 17);
+        slimeGrad.addColorStop(0, 'rgba(255, 168, 140, 0.92)');
+        slimeGrad.addColorStop(0.38, baseCol);
+        slimeGrad.addColorStop(0.82, 'rgba(58, 9, 10, 0.92)');
+        slimeGrad.addColorStop(1, 'rgba(28, 4, 5, 0.95)');
         c.fillStyle = flashColor || slimeGrad;
         c.beginPath();
-        c.moveTo(-14, -4);
-        c.quadraticCurveTo(-15, -24, 0, -25);
-        c.quadraticCurveTo(15, -24, 14, -4);
-        c.quadraticCurveTo(7, -1, 0, -2.5);
-        c.quadraticCurveTo(-7, -1, -14, -4);
+        c.moveTo(-15, -3);
+        c.bezierCurveTo(-16, -15, -11, -25, 0, -25.5);
+        c.bezierCurveTo(11, -25, 16, -15, 15, -3);
+        c.quadraticCurveTo(7, -0.2, 0, -1.8);
+        c.quadraticCurveTo(-7, -0.2, -15, -3);
         c.closePath();
         c.fill();
 
-        // Predatory glowing eyes
-        c.fillStyle = '#fffa65';
+        // Surface gas blisters & glossy wet refractive highlights
+        c.fillStyle = 'rgba(255, 215, 195, 0.32)';
         c.beginPath();
-        c.arc(-4.5, -12, 2.0, 0, Math.PI * 2);
-        c.arc(4.5, -12, 2.0, 0, Math.PI * 2);
+        c.arc(5.5, -17, 2.2, 0, Math.PI * 2);
+        c.arc(-7.5, -10, 1.6, 0, Math.PI * 2);
         c.fill();
 
-        // Wet specular highlight arc
-        c.strokeStyle = 'rgba(255, 255, 255, 0.62)';
-        c.lineWidth = 2.0;
+        c.strokeStyle = 'rgba(255, 255, 255, 0.68)';
+        c.lineWidth = 1.8;
         c.lineCap = 'round';
         c.beginPath();
-        c.arc(-3, -15, 7.5, Math.PI * 1.12, Math.PI * 1.52);
+        c.arc(-3.2, -15.5, 7.8, Math.PI * 1.12, Math.PI * 1.50);
         c.stroke();
     }
 
@@ -1397,10 +1503,13 @@ function drawEnemyFigure(c, enemy, cx, baseY, phase = 0, flashColor = null, faci
 function drawPropMiniature(c, type, tileX, tileY, state = {}, phase = 0) {
     const cx = tileX * TILE_SIZE + TILE_SIZE / 2;
     const baseY = tileY * TILE_SIZE + TILE_SIZE - 8;
+    const ldr = (typeof getLeader === 'function') ? getLeader() : null;
+    const lx = ldr ? (ldr.x * TILE_SIZE + 24 + (ldr.stepOffsetX || 0)) : cx;
+    const ly = ldr ? (ldr.y * TILE_SIZE + 10 + (ldr.stepOffsetY || 0)) : baseY - 24;
 
     c.save();
     if (type === 'chest') {
-        drawSoftGroundShadow(c, cx, baseY + 2, 16, 6);
+        drawProjectedCastShadow(c, cx, baseY + 1, lx, ly, 24, 15);
         c.translate(cx, baseY);
 
         // Oak chest base
@@ -1489,7 +1598,7 @@ function drawPropMiniature(c, type, tileX, tileY, state = {}, phase = 0) {
         c.fillRect(-4.5, -16, 9, 2);
     } else if (type === 'merchant') {
         const bob = Math.sin(phase * 1.1) * 1.2;
-        drawSoftGroundShadow(c, cx, baseY + 2, 18, 7);
+        drawProjectedCastShadow(c, cx, baseY + 1, lx, ly, 38, 17);
         c.translate(cx, baseY + bob);
 
         // Woven rug beneath merchant
@@ -1535,7 +1644,7 @@ function drawPropMiniature(c, type, tileX, tileY, state = {}, phase = 0) {
         c.beginPath(); c.arc(16, -22, 3.8, 0, Math.PI * 2); c.fill();
         c.shadowBlur = 0;
     } else if (type === 'shrine') {
-        drawSoftGroundShadow(c, cx, baseY + 2, 17, 6.5);
+        drawProjectedCastShadow(c, cx, baseY + 1, lx, ly, 42, 16);
         c.translate(cx, baseY);
         if (state.used) c.globalAlpha = 0.45;
 
@@ -1883,6 +1992,22 @@ function drawFeatheredFogAndDynamicLighting(c, biomeId, currentLeader, torchPct,
         c.beginPath();
         c.ellipse(lx, ly + 14, 52, 26, 0, 0, Math.PI * 2);
         c.fill();
+
+        // Subtle volumetric torch god-rays radiating through underground dust
+        for (let ri = 0; ri < 5; ri++) {
+            const rayAng = ri * 1.256 + Math.sin(phase * 0.35 + ri) * 0.18;
+            const rayLen = r * 0.82;
+            const rg = c.createLinearGradient(lx, ly, lx + Math.cos(rayAng) * rayLen, ly + Math.sin(rayAng) * rayLen);
+            rg.addColorStop(0, 'rgba(255, 200, 120, 0.065)');
+            rg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            c.fillStyle = rg;
+            c.beginPath();
+            c.moveTo(lx, ly);
+            c.lineTo(lx + Math.cos(rayAng - 0.09) * rayLen, ly + Math.sin(rayAng - 0.09) * rayLen);
+            c.lineTo(lx + Math.cos(rayAng + 0.09) * rayLen, ly + Math.sin(rayAng + 0.09) * rayLen);
+            c.closePath();
+            c.fill();
+        }
         c.restore();
     }
     if (dynamicLights) {
@@ -1964,13 +2089,62 @@ function getHeroPortraitDataURL(role) {
     pc.fillStyle = bg;
     pc.fillRect(0, 0, 72, 72);
 
-    drawHeroFigure(pc, role, 35, 76, 0, 1.38, null);
+    drawHeroFigure(pc, role, 36, 74, 0, 1.32, null, 1, 0);
 
-    pc.strokeStyle = 'rgba(212, 175, 55, 0.65)';
-    pc.lineWidth = 2;
-    pc.strokeRect(1, 1, 70, 70);
+    const vig = pc.createRadialGradient(36, 36, 20, 36, 36, 36);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+    pc.fillStyle = vig;
+    pc.fillRect(0, 0, 72, 72);
 
     const url = pCanvas.toDataURL();
     portraitDataUrlCache[role] = url;
     return url;
+}
+
+// Pre-baked subtle 64x64 film-grain dither tile (eliminates dark 8-bit gradient banding)
+let filmGrainCanvasCache = null;
+function getFilmGrainTile() {
+    if (filmGrainCanvasCache) return filmGrainCanvasCache;
+    const gc = document.createElement('canvas');
+    gc.width = 64;
+    gc.height = 64;
+    const gctx = gc.getContext('2d');
+    const img = gctx.createImageData(64, 64);
+    for (let i = 0; i < 64 * 64; i++) {
+        const v = (seededNoise(i % 64, Math.floor(i / 64), 911) * 255) | 0;
+        img.data[i * 4]     = v;
+        img.data[i * 4 + 1] = v;
+        img.data[i * 4 + 2] = v;
+        img.data[i * 4 + 3] = 9; // ultra-subtle ~3.5% grain
+    }
+    gctx.putImageData(img, 0, 0);
+    filmGrainCanvasCache = gc;
+    return gc;
+}
+
+// Pre-baked organic monochrome film-grain texture (prevents 8-bit shadow banding)
+let filmGrainCanvas = null;
+function drawCinematicFilmGrain(c, vx, vy, vw, vh, phase = 0) {
+    if (!filmGrainCanvas) {
+        filmGrainCanvas = document.createElement('canvas');
+        filmGrainCanvas.width = 160;
+        filmGrainCanvas.height = 100;
+        const gc = filmGrainCanvas.getContext('2d');
+        const img = gc.createImageData(160, 100);
+        for (let i = 0; i < img.data.length; i += 4) {
+            const v = Math.floor(seededNoise(i, (i >> 3), 777) * 255);
+            img.data[i] = v;
+            img.data[i + 1] = v;
+            img.data[i + 2] = v;
+            img.data[i + 3] = 16;
+        }
+        gc.putImageData(img, 0, 0);
+    }
+    const jx = ((Math.floor(phase * 10) * 13) % 24) - 12;
+    const jy = ((Math.floor(phase * 10) * 7) % 16) - 8;
+    c.save();
+    c.globalCompositeOperation = 'overlay';
+    c.drawImage(filmGrainCanvas, vx + jx, vy + jy, vw + 24, vh + 16);
+    c.restore();
 }

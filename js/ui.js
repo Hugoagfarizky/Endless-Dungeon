@@ -410,16 +410,17 @@ function triggerAttackVFX(fromX, fromY, toX, toY, style = 'slash', color = '#fff
         progress: 0
     });
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 14; i++) {
         const ang = Math.random() * Math.PI * 2;
-        const spdVal = 1.4 + Math.random() * 3.4;
+        const spdVal = 1.5 + Math.random() * 3.8;
         sparkParticles.push({
             x: tx, y: ty,
             vx: Math.cos(ang) * spdVal,
-            vy: Math.sin(ang) * spdVal - 0.8,
-            color: i % 2 === 0 ? '#e8d5ba' : color,
+            vy: Math.sin(ang) * spdVal - 1.4,
+            floorY: toY * TILE_SIZE + TILE_SIZE - 5 + (Math.random() - 0.5) * 8,
+            color: i % 3 === 0 ? '#fff6d6' : (i % 2 === 0 ? '#ffad42' : color),
             alpha: 1.0,
-            size: 1.5 + Math.random() * 2.0
+            size: 1.2 + Math.random() * 1.8
         });
     }
 }
@@ -643,9 +644,14 @@ function masterRenderLoop(now) {
     sparkParticles.forEach(sp => {
         sp.x += sp.vx * dt;
         sp.y += sp.vy * dt;
-        sp.vy += (sp.isDust ? -0.01 : 0.12) * dt;
+        sp.vy += (sp.isDust ? -0.01 : 0.16) * dt;
+        if (!sp.isDust && sp.floorY && sp.y > sp.floorY) {
+            sp.y = sp.floorY;
+            sp.vy *= -0.42;
+            sp.vx *= 0.72;
+        }
         if (sp.isDust) sp.size += 0.05 * dt;
-        sp.alpha -= (sp.isDust ? 0.032 : 0.055) * dt;
+        sp.alpha -= (sp.isDust ? 0.032 : 0.048) * dt;
     });
     sparkParticles = sparkParticles.filter(sp => sp.alpha > 0);
 
@@ -2030,18 +2036,23 @@ function drawAttackVFX(dynamicLights) {
         const currY = v.sy + (v.ty - v.sy) * v.progress;
 
         if (v.style === 'slash') {
-            ctx.globalAlpha = Math.max(0, 1 - v.progress * 0.75);
-            ctx.shadowColor = v.color;
-            ctx.shadowBlur = 12;
-            ctx.strokeStyle = v.color;
-            ctx.lineWidth = 6;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.arc(v.tx, v.ty, 24, -Math.PI * 0.72 + v.progress * 1.5, Math.PI * 0.22 + v.progress * 1.5);
-            ctx.stroke();
-
+            ctx.globalAlpha = Math.max(0, 1 - v.progress * 0.72);
+            const startA = -Math.PI * 0.78 + v.progress * 1.55;
+            const endA = Math.PI * 0.24 + v.progress * 1.55;
+            for (let seg = 0; seg < 6; seg++) {
+                const t0 = startA + (endA - startA) * (seg / 6);
+                const t1 = startA + (endA - startA) * ((seg + 1) / 6);
+                ctx.strokeStyle = v.color;
+                ctx.lineWidth = 1.2 + (seg / 6) * 6.2;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.arc(v.tx, v.ty, 24, t0, t1);
+                ctx.stroke();
+            }
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2.2;
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.arc(v.tx, v.ty, 24, startA + 0.35, endA);
             ctx.stroke();
         } else if (v.style === 'arrow') {
             const angle = Math.atan2(v.ty - v.sy, v.tx - v.sx);
@@ -2115,13 +2126,25 @@ function drawScreenSpaceOverlays() {
     const vcy = vy + vh * 0.5;
 
     const edgeVig = ctx.createRadialGradient(
-        vcx, vcy, vh * 0.42,
-        vcx, vcy, vw * 0.62
+        vcx, vcy, vh * 0.40,
+        vcx, vcy, vw * 0.64
     );
     edgeVig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.52)');
+    edgeVig.addColorStop(1, 'rgba(0, 0, 0, 0.58)');
     ctx.fillStyle = edgeVig;
     ctx.fillRect(vx, vy, vw, vh);
+
+    // Subtle film-grain dither tile to prevent 8-bit gradient banding in dark stone shadows
+    if (typeof getFilmGrainTile === 'function') {
+        const grain = getFilmGrainTile();
+        const ox = ((Math.floor(torchFlickerPhase * 17) % 64) + 64) % 64;
+        const oy = ((Math.floor(torchFlickerPhase * 11) % 64) + 64) % 64;
+        for (let gx = vx - ox; gx < vx + vw; gx += 64) {
+            for (let gy = vy - oy; gy < vy + vh; gy += 64) {
+                ctx.drawImage(grain, gx, gy, 64, 64);
+            }
+        }
+    }
 
     const alive = party.filter(p => p.hp > 0);
     if (alive.length > 0) {
@@ -2451,15 +2474,26 @@ function drawGame() {
             ctx.restore();
         }
 
+        const lightOriginX = currentLeader
+            ? (currentLeader.x * TILE_SIZE + TILE_SIZE / 2 + (currentLeader.stepOffsetX || 0))
+            : WORLD_WIDTH / 2;
+        const lightOriginY = currentLeader
+            ? (currentLeader.y * TILE_SIZE + TILE_SIZE / 2 - 14 + (currentLeader.stepOffsetY || 0))
+            : WORLD_HEIGHT / 2;
+
         enemies.forEach((e, eIdx) => {
             if (e.y !== y || !revealed[e.y] || !revealed[e.y][e.x]) return;
             const inCurrentBattle = (gameMode === 'COMBAT' && typeof activeEnemies !== 'undefined' && activeEnemies.includes(e));
             const cx = e.x * TILE_SIZE + TILE_SIZE / 2 + (e.stepOffsetX || 0) + (e.animOffsetX || 0);
             const baseY = e.y * TILE_SIZE + TILE_SIZE - 6 + (e.stepOffsetY || 0) + (e.animOffsetY || 0);
-            const bobY = Math.sin(torchFlickerPhase * 1.3 + eIdx * 1.7) * 1.5 + (e.stepBounceY || 0);
+            const bobY = Math.sin(torchFlickerPhase * 1.3 + eIdx * 1.7) * 1.2 + (e.stepBounceY || 0);
             const eFacing = (currentLeader && e.x > currentLeader.x) ? -1 : 1;
 
-            drawSoftGroundShadow(ctx, cx, baseY + 1, e.isBoss ? 21 : 15, e.isBoss ? 8 : 6);
+            if (typeof drawProjectedCastShadow === 'function') {
+                drawProjectedCastShadow(ctx, cx, baseY, lightOriginX, lightOriginY, e.isBoss ? 52 : 34, e.isBoss ? 20 : 14);
+            } else {
+                drawSoftGroundShadow(ctx, cx, baseY + 1, e.isBoss ? 21 : 15, e.isBoss ? 8 : 6);
+            }
 
             if (e.isBoss || e.affix) {
                 ctx.save();
@@ -2546,19 +2580,24 @@ function drawGame() {
                 ? (activeEnemy.x < p.x ? -1 : 1)
                 : (p.facing || 1);
 
-            drawSoftGroundShadow(ctx, cx, baseY + 1, 16, 6);
+            const strideAmt = (p.walkProgress && p.walkProgress > 0) ? Math.sin(p.walkProgress * Math.PI) : 0;
+            if (typeof drawProjectedCastShadow === 'function' && p !== currentLeader) {
+                drawProjectedCastShadow(ctx, cx, baseY, lightOriginX, lightOriginY, 38, 14);
+            } else {
+                drawSoftGroundShadow(ctx, cx, baseY + 1, 15, 5.8);
+            }
 
             if (gameMode === 'COMBAT' && activeActor === p) {
                 ctx.save();
-                ctx.strokeStyle = '#e2ceb4';
-                ctx.lineWidth = 2.2;
+                ctx.strokeStyle = 'rgba(230, 212, 188, 0.78)';
+                ctx.lineWidth = 1.8;
                 ctx.beginPath();
-                ctx.ellipse(cx, baseY, 20, 7.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(cx, baseY, 19, 7, 0, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
             }
 
-            drawHeroFigure(ctx, p.role, cx, baseY + bobY, torchFlickerPhase + i, 1.0, p.hitFlash || null, hFacing);
+            drawHeroFigure(ctx, p.role, cx, baseY + bobY, torchFlickerPhase + i, 1.0, p.hitFlash || null, hFacing, strideAmt);
 
             if (p === currentLeader && typeof drawHeldTorch === 'function') {
                 drawHeldTorch(ctx, cx, baseY + bobY, hFacing, torchLight, torchFlickerPhase);
@@ -2620,6 +2659,9 @@ function drawGame() {
 
     drawHoverCursor();
     drawScreenSpaceOverlays();
+    if (typeof drawCinematicFilmGrain === 'function') {
+        drawCinematicFilmGrain(ctx, cameraView.x, cameraView.y, cameraView.w, cameraView.h, torchFlickerPhase);
+    }
     ctx.restore();
 
     drawMiniMapRadar();
