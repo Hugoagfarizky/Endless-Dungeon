@@ -752,6 +752,8 @@ body {
     background-color: #060504;
     padding: 0;
     overflow: clip;
+    content-visibility: auto;
+    contain-intrinsic-size: auto none auto 100dvh;
 }
 
 #canvas-container::after {

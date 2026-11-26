@@ -360,9 +360,28 @@ function syncDynamicBGM(forceRestart = false) {
 const SFX = {
     step: () => {
         syncDynamicBGM();
+        const biomeId = (typeof getCurrentBiome === 'function') ? getCurrentBiome().id : 'crypt';
         const jitter = 0.92 + Math.random() * 0.16;
-        playNoiseBurst(0.042, 0.032, 'bandpass', 620 * jitter, 1.8);
-        playTone(115 * jitter, 'sine', 0.045, 0.035, 58, 450, 0.25);
+        if (biomeId === 'ice') {
+            // Crisp crystalline frost crunch + boot heel
+            playNoiseBurst(0.055, 0.036, 'highpass', 2400 * jitter, 1.6);
+            playTone(150 * jitter, 'sine', 0.04, 0.028, 72, 900, 0.35);
+        } else if (biomeId === 'lava') {
+            // Gritty volcanic scoria crunch + low heat rumble
+            playNoiseBurst(0.06, 0.04, 'bandpass', 520 * jitter, 1.2, 240);
+            playTone(92 * jitter, 'triangle', 0.05, 0.036, 44, 420, 0.25);
+        } else if (biomeId === 'void') {
+            // Hollow resonant obsidian step
+            playNoiseBurst(0.04, 0.026, 'bandpass', 980 * jitter, 2.2);
+            playTone(165 * jitter, 'sine', 0.065, 0.032, 82, 1100, 0.55);
+        } else {
+            // Heavy armored sabaton on damp flagstone + occasional cavern water drip
+            playNoiseBurst(0.048, 0.034, 'bandpass', 680 * jitter, 1.8);
+            playTone(112 * jitter, 'sine', 0.048, 0.038, 54, 460, 0.32);
+            if (Math.random() < 0.16) {
+                setTimeout(() => playTone(1180 + Math.random() * 420, 'sine', 0.09, 0.016, 1520, 3200, 0.75), 140);
+            }
+        }
     },
     bump: () => {
         playTone(82, 'triangle', 0.08, 0.07, 42, 500, 0.2);

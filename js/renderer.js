@@ -156,31 +156,52 @@ function bakeFloorVariant(biomeId, variantIdx) {
 
     if (biomeId === 'crypt') {
         if (variantIdx % 3 === 0) {
-            // Creeping damp moss in mortar joints
+            // Creeping damp moss & tiny pebbles in mortar joints
             c.fillStyle = spec.moss;
             c.beginPath();
-            c.arc(splitX1, splitY, 8, 0, Math.PI * 2);
+            c.arc(splitX1, splitY, 8.5, 0, Math.PI * 2);
             c.arc(splitX1 + 7, splitY + 1, 5, 0, Math.PI * 2);
+            c.arc(splitX2 - 5, splitY, 4, 0, Math.PI * 2);
             c.fill();
+        } else if (variantIdx === 2) {
+            // Recessed iron drainage grate in flagstone floor
+            c.fillStyle = '#070606';
+            c.fillRect(28, 28, 36, 36);
+            c.strokeStyle = '#3a3f44';
+            c.lineWidth = 2.4;
+            c.strokeRect(28, 28, 36, 36);
+            for (let gx = 35; gx <= 57; gx += 7) {
+                c.beginPath(); c.moveTo(gx, 29); c.lineTo(gx, 63); c.stroke();
+            }
+            c.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+            c.lineWidth = 1;
+            c.strokeRect(27, 27, 38, 38);
         } else if (variantIdx === 5) {
-            // Shallow damp water puddle with reflection
-            const pGrad = c.createRadialGradient(54, 56, 2, 54, 56, 20);
-            pGrad.addColorStop(0, 'rgba(90, 125, 150, 0.24)');
-            pGrad.addColorStop(0.75, 'rgba(20, 32, 42, 0.35)');
+            // Shallow damp water puddle with realistic sky/torch sheen
+            const pGrad = c.createRadialGradient(52, 56, 2, 54, 56, 23);
+            pGrad.addColorStop(0, 'rgba(115, 150, 175, 0.30)');
+            pGrad.addColorStop(0.68, 'rgba(20, 32, 42, 0.44)');
             pGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
             c.fillStyle = pGrad;
             c.beginPath();
-            c.ellipse(54, 56, 20, 13, 0.2, 0, Math.PI * 2);
+            c.ellipse(54, 56, 22, 14, 0.2, 0, Math.PI * 2);
             c.fill();
-            c.strokeStyle = 'rgba(210, 235, 255, 0.16)';
-            c.lineWidth = 1;
+            c.strokeStyle = 'rgba(225, 242, 255, 0.22)';
+            c.lineWidth = 1.1;
             c.beginPath();
-            c.arc(49, 52, 7, -Math.PI * 0.8, -Math.PI * 0.2);
+            c.arc(48, 52, 8, -Math.PI * 0.82, -Math.PI * 0.18);
             c.stroke();
         }
     } else if (biomeId === 'ice') {
-        // Crystalline frost veins & specular ice glint
-        c.strokeStyle = 'rgba(175, 235, 255, 0.26)';
+        // Crystalline frost veins & mirror-like frozen specular sheen
+        const sheen = c.createLinearGradient(0, 0, size, size);
+        sheen.addColorStop(0, 'rgba(200, 242, 255, 0.08)');
+        sheen.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+        sheen.addColorStop(1, 'rgba(120, 190, 230, 0.04)');
+        c.fillStyle = sheen;
+        c.fillRect(2, 2, size - 4, size - 4);
+
+        c.strokeStyle = 'rgba(195, 242, 255, 0.32)';
         c.lineWidth = 1.2;
         c.beginPath();
         c.moveTo(12 + variantIdx * 6, 14);
@@ -189,19 +210,19 @@ function bakeFloorVariant(biomeId, variantIdx) {
         c.stroke();
     } else if (biomeId === 'lava') {
         if (variantIdx % 2 === 1) {
-            // Subsurface glowing magma fissure
+            // Subsurface glowing magma fissure + cooled basalt crust
             c.save();
             c.shadowColor = '#ff5e00';
-            c.shadowBlur = 8;
-            c.strokeStyle = 'rgba(255, 115, 25, 0.65)';
-            c.lineWidth = 2.0;
+            c.shadowBlur = 10;
+            c.strokeStyle = 'rgba(255, 115, 25, 0.72)';
+            c.lineWidth = 2.4;
             c.beginPath();
             c.moveTo(splitX2, splitY);
             c.lineTo(splitX2 - 8, splitY + 18);
             c.lineTo(splitX2 + 4, splitY + 30);
             c.stroke();
-            c.strokeStyle = 'rgba(255, 230, 120, 0.6)';
-            c.lineWidth = 0.9;
+            c.strokeStyle = 'rgba(255, 238, 140, 0.75)';
+            c.lineWidth = 1.0;
             c.stroke();
             c.restore();
         }
@@ -210,9 +231,9 @@ function bakeFloorVariant(biomeId, variantIdx) {
             // Faint arcane obsidian crystal vein
             c.save();
             c.shadowColor = '#c56cf0';
-            c.shadowBlur = 6;
-            c.strokeStyle = 'rgba(198, 110, 255, 0.38)';
-            c.lineWidth = 1.4;
+            c.shadowBlur = 8;
+            c.strokeStyle = 'rgba(198, 110, 255, 0.44)';
+            c.lineWidth = 1.5;
             c.beginPath();
             c.moveTo(splitX1, splitY - 12);
             c.lineTo(splitX1, splitY + 12);
@@ -222,6 +243,13 @@ function bakeFloorVariant(biomeId, variantIdx) {
             c.restore();
         }
     }
+
+    // Fine pebble scatter & micro-ao vignette around tile mortar perimeter
+    const edgeAo = c.createRadialGradient(size * 0.5, size * 0.5, size * 0.28, size * 0.5, size * 0.5, size * 0.72);
+    edgeAo.addColorStop(0, 'rgba(0,0,0,0)');
+    edgeAo.addColorStop(1, 'rgba(0,0,0,0.22)');
+    c.fillStyle = edgeAo;
+    c.fillRect(0, 0, size, size);
 
     return off;
 }
@@ -313,11 +341,49 @@ function bakeWallVariant(biomeId, variantIdx, isCracked = false) {
     c.moveTo(0, r2 + 1.5); c.lineTo(w, r2 + 1.5);
     c.stroke();
 
-    const baseAo = c.createLinearGradient(0, totalH - 12, 0, totalH);
+    const baseAo = c.createLinearGradient(0, totalH - 14, 0, totalH);
     baseAo.addColorStop(0, 'rgba(0,0,0,0)');
-    baseAo.addColorStop(1, 'rgba(0,0,0,0.65)');
+    baseAo.addColorStop(1, 'rgba(0,0,0,0.74)');
     c.fillStyle = baseAo;
-    c.fillRect(0, totalH - 12, w, 12);
+    c.fillRect(0, totalH - 14, w, 14);
+
+    // Biome-specific architectural weathering on 3D front masonry face
+    if (!isCracked) {
+        if (biomeId === 'crypt' && variantIdx === 1) {
+            // Hanging rusted iron shackle ring on dungeon wall
+            c.strokeStyle = '#24292e';
+            c.lineWidth = 2.2;
+            c.beginPath(); c.arc(48, w + 18, 5.5, 0, Math.PI * 2); c.stroke();
+            c.fillStyle = '#14171a';
+            c.fillRect(46, w + 10, 4, 4);
+        } else if (biomeId === 'crypt' && variantIdx === 3) {
+            // Damp moss & water seepage streak down masonry
+            c.fillStyle = 'rgba(46, 98, 52, 0.36)';
+            c.beginPath();
+            c.ellipse(26, totalH - 5, 11, 4, 0, 0, Math.PI * 2);
+            c.fill();
+        } else if (biomeId === 'ice') {
+            // Hanging translucent icicles from top cornice lip
+            c.fillStyle = 'rgba(205, 244, 255, 0.58)';
+            const icX = [14, 28, 58, 78];
+            icX.forEach((ix, ii) => {
+                const ih = 8 + ((variantIdx + ii) % 3) * 5;
+                c.beginPath();
+                c.moveTo(ix - 3, w - 1);
+                c.lineTo(ix, w + ih);
+                c.lineTo(ix + 3, w - 1);
+                c.closePath();
+                c.fill();
+            });
+        } else if (biomeId === 'lava' && variantIdx % 2 === 0) {
+            // Glowing ember seam between basalt blocks
+            c.strokeStyle = 'rgba(255, 105, 25, 0.55)';
+            c.lineWidth = 1.4;
+            c.beginPath();
+            c.moveTo(20, r2); c.lineTo(54, r2);
+            c.stroke();
+        }
+    }
 
     // Cracked Secret Wall: realistic structural fracture + warm golden vault glimmer
     if (isCracked) {
@@ -648,6 +714,17 @@ function drawRealisticWall(c, tileX, tileY, tileType, biomeId, phase, dynamicLig
         c.quadraticCurveTo(tx + 2, ty - 3, tx + 1.8, ty + 1);
         c.closePath();
         c.fill();
+
+        // Rising volumetric smoke wisps above wall torch
+        for (let si = 0; si < 3; si++) {
+            const prog = ((phase * 0.55 + si * 0.33 + tileX * 0.17) % 1);
+            const sx = tx + Math.sin(phase * 1.4 + si * 2.1) * (2.5 + prog * 4);
+            const sy = ty - 11 - prog * 18;
+            c.fillStyle = `rgba(28, 26, 26, ${(1 - prog) * 0.28})`;
+            c.beginPath();
+            c.arc(sx, sy, 2.2 + prog * 3.8, 0, Math.PI * 2);
+            c.fill();
+        }
         c.restore();
 
         if (dynamicLights) {
@@ -678,10 +755,12 @@ function drawSoftGroundShadow(c, cx, cy, rx = 16, ry = 6.5) {
     c.restore();
 }
 
-function drawHeroFigure(c, role, cx, baseY, phase = 0, scale = 1.0, flashColor = null) {
+function drawHeroFigure(c, role, cx, baseY, phase = 0, scale = 1.0, flashColor = null, facing = 1) {
     c.save();
     c.translate(cx, baseY);
-    c.scale(scale, scale);
+    const breathY = 1 + Math.sin(phase * 1.6) * 0.018;
+    const breathX = 1 - Math.sin(phase * 1.6) * 0.012;
+    c.scale(scale * (facing < 0 ? -1 : 1) * breathX, scale * breathY);
 
     if (flashColor) {
         c.shadowColor = flashColor;
@@ -1036,9 +1115,11 @@ function drawHeroFigure(c, role, cx, baseY, phase = 0, scale = 1.0, flashColor =
     c.restore();
 }
 
-function drawEnemyFigure(c, enemy, cx, baseY, phase = 0, flashColor = null) {
+function drawEnemyFigure(c, enemy, cx, baseY, phase = 0, flashColor = null, facing = 1) {
     c.save();
     c.translate(cx, baseY);
+    const breathY = 1 + Math.sin(phase * 1.8) * 0.022;
+    c.scale((facing < 0 ? -1 : 1), breathY);
 
     if (flashColor) {
         c.shadowColor = flashColor;
@@ -1546,6 +1627,23 @@ function drawPropMiniature(c, type, tileX, tileY, state = {}, phase = 0) {
             c.closePath();
             c.fill();
             c.shadowBlur = 0;
+
+            // Rising campfire smoke & glowing embers
+            for (let si = 0; si < 4; si++) {
+                const prog = ((phase * 0.48 + si * 0.25) % 1);
+                const sx = Math.sin(phase * 1.6 + si * 1.9) * (3 + prog * 6);
+                const sy = -24 - prog * 26;
+                c.fillStyle = `rgba(36, 32, 30, ${(1 - prog) * 0.30})`;
+                c.beginPath();
+                c.arc(sx, sy, 3 + prog * 5, 0, Math.PI * 2);
+                c.fill();
+                if (si % 2 === 0) {
+                    c.fillStyle = `rgba(255, 190, 75, ${(1 - prog) * 0.85})`;
+                    c.beginPath();
+                    c.arc(-sx * 0.8, -16 - prog * 22, 1.1, 0, Math.PI * 2);
+                    c.fill();
+                }
+            }
         } else {
             // Smoldering ash
             c.fillStyle = 'rgba(130, 130, 135, 0.55)';
@@ -1585,12 +1683,113 @@ function drawPropMiniature(c, type, tileX, tileY, state = {}, phase = 0) {
 }
 
 // ============================================================================
-// 4. OFFSCREEN DYNAMIC VOLUMETRIC LIGHTING & FEATHERED FOG OF WAR
+// 4. REAL-TIME RAYCAST SHADOW-CASTING, SPECULAR FLOOR GLINT & VOLUMETRIC FOG
 // ============================================================================
+function drawHeldTorch(c, cx, baseY, facing = 1, torchPct = 100, phase = 0) {
+    if (torchPct <= 0) return;
+    const dir = facing < 0 ? -1 : 1;
+    const tx = cx - dir * 13;
+    const ty = baseY - 24;
+    const sway = Math.sin(phase * 2.8) * 1.3;
+    const scaleFlame = torchPct > 50 ? 1.0 : (torchPct > 15 ? 0.72 : 0.42);
+
+    c.save();
+    // Charred wooden torch shaft
+    c.strokeStyle = '#4a2b13';
+    c.lineWidth = 2.4;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(tx + dir * 3, ty + 8);
+    c.lineTo(tx - dir * 2, ty - 3);
+    c.stroke();
+
+    const fx = tx - dir * 2;
+    const fy = ty - 4;
+    const halo = c.createRadialGradient(fx, fy - 2, 1, fx, fy - 2, 12 * scaleFlame);
+    halo.addColorStop(0, 'rgba(255, 242, 165, 0.92)');
+    halo.addColorStop(0.45, 'rgba(255, 130, 30, 0.62)');
+    halo.addColorStop(1, 'rgba(255, 60, 0, 0)');
+    c.fillStyle = halo;
+    c.beginPath();
+    c.arc(fx, fy - 2, 12 * scaleFlame, 0, Math.PI * 2);
+    c.fill();
+
+    c.fillStyle = '#ff731d';
+    c.beginPath();
+    c.moveTo(fx - 3 * scaleFlame, fy + 1);
+    c.quadraticCurveTo(fx - 3.5 * scaleFlame, fy - 4 * scaleFlame, fx + sway, fy - 9.5 * scaleFlame);
+    c.quadraticCurveTo(fx + 3.5 * scaleFlame, fy - 4 * scaleFlame, fx + 3 * scaleFlame, fy + 1);
+    c.closePath();
+    c.fill();
+
+    c.fillStyle = '#fff7c2';
+    c.beginPath();
+    c.arc(fx + sway * 0.3, fy - 2.5 * scaleFlame, 1.7 * scaleFlame, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+}
+
+function traceTorchVisibilityPolygon(ox, oy, maxRadius) {
+    const rays = 108;
+    const stepSize = 6;
+    const pts = [];
+    for (let i = 0; i < rays; i++) {
+        const ang = (i / rays) * Math.PI * 2;
+        const dx = Math.cos(ang);
+        const dy = Math.sin(ang);
+        let dist = 12;
+        while (dist < maxRadius) {
+            const wx = ox + dx * dist;
+            const wy = oy + dy * dist;
+            const tx = Math.floor(wx / TILE_SIZE);
+            const ty = Math.floor(wy / TILE_SIZE);
+            if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) {
+                break;
+            }
+            if (typeof map !== 'undefined' && map[ty] && map[ty][tx] >= 1) {
+                // Illuminate ~18px onto the 3D stone wall face before casting dark shadow behind it
+                dist = Math.min(maxRadius, dist + 18);
+                break;
+            }
+            dist += stepSize;
+        }
+        pts.push({ x: ox + dx * dist, y: oy + dy * dist });
+    }
+    return pts;
+}
+
+function drawSubterraneanGroundMist(c, biomeId, phase) {
+    const mistTint = {
+        crypt: 'rgba(165, 185, 195, 0.055)',
+        ice:   'rgba(200, 238, 255, 0.075)',
+        lava:  'rgba(255, 130, 65, 0.05)',
+        void:  'rgba(175, 115, 245, 0.065)'
+    }[biomeId] || 'rgba(170, 180, 190, 0.05)';
+
+    c.save();
+    for (let i = 0; i < 7; i++) {
+        const mx = ((i * 217 + phase * (5.5 + (i % 3) * 2.2)) % (WORLD_WIDTH + 320)) - 160;
+        const my = ((i * 139 + Math.sin(phase * 0.25 + i) * 28) % WORLD_HEIGHT + WORLD_HEIGHT) % WORLD_HEIGHT;
+        const rx = 135 + (i % 3) * 45;
+        const ry = 58 + (i % 2) * 24;
+        const mg = c.createRadialGradient(mx, my, 8, mx, my, rx);
+        mg.addColorStop(0, mistTint);
+        mg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        c.fillStyle = mg;
+        c.beginPath();
+        c.ellipse(mx, my, rx, ry, 0, 0, Math.PI * 2);
+        c.fill();
+    }
+    c.restore();
+}
+
 function drawFeatheredFogAndDynamicLighting(c, biomeId, currentLeader, torchPct, phase, dynamicLights) {
     const spec = BIOME_MATERIAL_SPECS[biomeId] || BIOME_MATERIAL_SPECS.crypt;
 
-    // 1. Compose ambient darkness + point light cutouts on offscreen lightCanvas
+    // 0. Drifting subterranean ground mist across stone floor
+    drawSubterraneanGroundMist(c, biomeId, phase);
+
+    // 1. Compose ambient darkness + raycast wall-occluded torchlight on offscreen lightCanvas
     lightCtx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     lightCtx.globalCompositeOperation = 'source-over';
     lightCtx.fillStyle = spec.ambientDark;
@@ -1598,21 +1797,40 @@ function drawFeatheredFogAndDynamicLighting(c, biomeId, currentLeader, torchPct,
 
     lightCtx.globalCompositeOperation = 'destination-out';
 
-    // Party Torch Primary Light Source
+    let visPoly = null;
     if (currentLeader) {
-        const lx = currentLeader.x * TILE_SIZE + TILE_SIZE / 2;
-        const ly = currentLeader.y * TILE_SIZE + TILE_SIZE / 2;
-        const baseR = torchPct > 50 ? 275 : (torchPct > 15 ? 185 : 108);
+        const lx = currentLeader.x * TILE_SIZE + TILE_SIZE / 2 + (currentLeader.stepOffsetX || 0);
+        const ly = currentLeader.y * TILE_SIZE + TILE_SIZE / 2 + (currentLeader.stepOffsetY || 0);
+        const baseR = torchPct > 50 ? 290 : (torchPct > 15 ? 195 : 112);
         const flick = Math.sin(phase * 1.8) * 7 + Math.cos(phase * 3.1) * 3.5;
-        const r = Math.max(82, baseR + flick);
+        const r = Math.max(84, baseR + flick);
 
-        const pCut = lightCtx.createRadialGradient(lx, ly, 16, lx, ly, r);
-        pCut.addColorStop(0, 'rgba(0, 0, 0, 0.96)');
-        pCut.addColorStop(0.55, 'rgba(0, 0, 0, 0.65)');
+        visPoly = traceTorchVisibilityPolygon(lx, ly, r);
+
+        lightCtx.save();
+        lightCtx.beginPath();
+        visPoly.forEach((pt, idx) => {
+            if (idx === 0) lightCtx.moveTo(pt.x, pt.y);
+            else lightCtx.lineTo(pt.x, pt.y);
+        });
+        lightCtx.closePath();
+        lightCtx.clip();
+
+        const pCut = lightCtx.createRadialGradient(lx, ly, 14, lx, ly, r);
+        pCut.addColorStop(0, 'rgba(0, 0, 0, 0.97)');
+        pCut.addColorStop(0.52, 'rgba(0, 0, 0, 0.68)');
         pCut.addColorStop(1, 'rgba(0, 0, 0, 0)');
         lightCtx.fillStyle = pCut;
+        lightCtx.fillRect(lx - r, ly - r, r * 2, r * 2);
+        lightCtx.restore();
+
+        // Soft local bounce light so nearby wall edges retain realistic penumbra
+        const softBounce = lightCtx.createRadialGradient(lx, ly, 8, lx, ly, Math.min(104, r * 0.42));
+        softBounce.addColorStop(0, 'rgba(0, 0, 0, 0.52)');
+        softBounce.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        lightCtx.fillStyle = softBounce;
         lightCtx.beginPath();
-        lightCtx.arc(lx, ly, r, 0, Math.PI * 2);
+        lightCtx.arc(lx, ly, Math.min(104, r * 0.42), 0, Math.PI * 2);
         lightCtx.fill();
     }
 
@@ -1633,20 +1851,39 @@ function drawFeatheredFogAndDynamicLighting(c, biomeId, currentLeader, torchPct,
     lightCtx.globalCompositeOperation = 'source-over';
     c.drawImage(lightCanvas, 0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-    // 2. Additive Warm Color Bloom for Light Sources
+    // 2. Additive Warm Color Bloom + Wet Flagstone Specular Glints
     c.save();
     c.globalCompositeOperation = 'screen';
     if (currentLeader && torchPct > 0) {
-        const lx = currentLeader.x * TILE_SIZE + TILE_SIZE / 2;
-        const ly = currentLeader.y * TILE_SIZE + TILE_SIZE / 2;
-        const r = (torchPct > 50 ? 210 : 135) + Math.sin(phase * 2) * 6;
+        const lx = currentLeader.x * TILE_SIZE + TILE_SIZE / 2 + (currentLeader.stepOffsetX || 0);
+        const ly = currentLeader.y * TILE_SIZE + TILE_SIZE / 2 + (currentLeader.stepOffsetY || 0);
+        const r = (torchPct > 50 ? 225 : 142) + Math.sin(phase * 2) * 6;
+
+        c.save();
+        if (visPoly) {
+            c.beginPath();
+            visPoly.forEach((pt, idx) => {
+                if (idx === 0) c.moveTo(pt.x, pt.y);
+                else c.lineTo(pt.x, pt.y);
+            });
+            c.closePath();
+            c.clip();
+        }
         const warm = c.createRadialGradient(lx, ly, 6, lx, ly, r);
         warm.addColorStop(0, spec.torchTint);
         warm.addColorStop(1, 'rgba(0, 0, 0, 0)');
         c.fillStyle = warm;
+        c.fillRect(lx - r, ly - r, r * 2, r * 2);
+
+        // Specular wet-stone / ice floor reflection hotspot beneath torch
+        const specFloor = c.createRadialGradient(lx, ly + 14, 1, lx, ly + 14, 52);
+        specFloor.addColorStop(0, biomeId === 'ice' ? 'rgba(210, 245, 255, 0.22)' : 'rgba(255, 212, 145, 0.14)');
+        specFloor.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        c.fillStyle = specFloor;
         c.beginPath();
-        c.arc(lx, ly, r, 0, Math.PI * 2);
+        c.ellipse(lx, ly + 14, 52, 26, 0, 0, Math.PI * 2);
         c.fill();
+        c.restore();
     }
     if (dynamicLights) {
         for (let i = 0; i < dynamicLights.length; i++) {

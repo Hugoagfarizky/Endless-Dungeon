@@ -297,8 +297,8 @@ function updateCameraFollow() {
         focusX = ((ldr.x + foe.x) * 0.5) * TILE_SIZE + TILE_SIZE * 0.5;
         focusY = ((ldr.y + foe.y) * 0.5) * TILE_SIZE + TILE_SIZE * 0.5;
     } else if (ldr) {
-        focusX = ldr.x * TILE_SIZE + TILE_SIZE * 0.5;
-        focusY = ldr.y * TILE_SIZE + TILE_SIZE * 0.5;
+        focusX = ldr.x * TILE_SIZE + TILE_SIZE * 0.5 + (ldr.stepOffsetX || 0);
+        focusY = ldr.y * TILE_SIZE + TILE_SIZE * 0.5 + (ldr.stepOffsetY || 0);
     }
 
     const minCamX = -CAM_MARGIN_LEFT;
@@ -370,6 +370,25 @@ canvas.addEventListener('mouseleave', () => {
     const el = document.getElementById('hover-tooltip');
     if (el) { el.classList.remove('visible'); el.innerHTML = ''; }
 });
+
+function spawnFootstepDust(tileX, tileY, dx = 0, dy = 0) {
+    const biomeId = (typeof getCurrentBiome === 'function') ? getCurrentBiome().id : 'crypt';
+    const bx = tileX * TILE_SIZE + TILE_SIZE * 0.5;
+    const by = tileY * TILE_SIZE + TILE_SIZE - 5;
+    const dustColor = biomeId === 'ice' ? '#dff5ff' : (biomeId === 'lava' ? '#ff944d' : (biomeId === 'void' ? '#c58af9' : '#c8bda8'));
+    for (let i = 0; i < 6; i++) {
+        sparkParticles.push({
+            x: bx + (Math.random() - 0.5) * 10,
+            y: by + (Math.random() - 0.5) * 4,
+            vx: -dx * (0.5 + Math.random() * 0.9) + (Math.random() - 0.5) * 0.8,
+            vy: -0.35 - Math.random() * 0.65 - dy * 0.25,
+            color: dustColor,
+            alpha: 0.52,
+            size: 1.4 + Math.random() * 1.6,
+            isDust: true
+        });
+    }
+}
 
 function addFloorDecal(tileX, tileY, type = 'blood') {
     if (typeof floorDecals === 'undefined') return;
@@ -590,6 +609,19 @@ function masterRenderLoop(now) {
     const allUnits = [...(typeof party !== 'undefined' ? party : []), ...(typeof enemies !== 'undefined' ? enemies : [])];
     allUnits.forEach(u => {
         if (!u) return;
+        // Smooth physical walking stride interpolation + parabolic footstep bounce
+        if (u.walkProgress > 0) {
+            u.walkProgress = Math.max(0, u.walkProgress - 0.14 * dt);
+            const ease = u.walkProgress * u.walkProgress;
+            u.stepOffsetX = ((u.walkFromX ?? u.x) - u.x) * TILE_SIZE * ease;
+            u.stepOffsetY = ((u.walkFromY ?? u.y) - u.y) * TILE_SIZE * ease;
+            u.stepBounceY = -Math.sin(u.walkProgress * Math.PI) * 4.2;
+        } else {
+            u.stepOffsetX = 0;
+            u.stepOffsetY = 0;
+            u.stepBounceY = 0;
+        }
+
         if (u.lungeProgress > 0) {
             u.lungeProgress = Math.max(0, u.lungeProgress - 0.11 * dt);
             const curve = Math.sin(u.lungeProgress * Math.PI);
@@ -611,8 +643,9 @@ function masterRenderLoop(now) {
     sparkParticles.forEach(sp => {
         sp.x += sp.vx * dt;
         sp.y += sp.vy * dt;
-        sp.vy += 0.12 * dt;
-        sp.alpha -= 0.055 * dt;
+        sp.vy += (sp.isDust ? -0.01 : 0.12) * dt;
+        if (sp.isDust) sp.size += 0.05 * dt;
+        sp.alpha -= (sp.isDust ? 0.032 : 0.055) * dt;
     });
     sparkParticles = sparkParticles.filter(sp => sp.alpha > 0);
 
@@ -2421,9 +2454,10 @@ function drawGame() {
         enemies.forEach((e, eIdx) => {
             if (e.y !== y || !revealed[e.y] || !revealed[e.y][e.x]) return;
             const inCurrentBattle = (gameMode === 'COMBAT' && typeof activeEnemies !== 'undefined' && activeEnemies.includes(e));
-            const cx = e.x * TILE_SIZE + TILE_SIZE / 2 + (e.animOffsetX || 0);
-            const baseY = e.y * TILE_SIZE + TILE_SIZE - 6 + (e.animOffsetY || 0);
-            const bobY = Math.sin(torchFlickerPhase * 1.3 + eIdx * 1.7) * 1.5;
+            const cx = e.x * TILE_SIZE + TILE_SIZE / 2 + (e.stepOffsetX || 0) + (e.animOffsetX || 0);
+            const baseY = e.y * TILE_SIZE + TILE_SIZE - 6 + (e.stepOffsetY || 0) + (e.animOffsetY || 0);
+            const bobY = Math.sin(torchFlickerPhase * 1.3 + eIdx * 1.7) * 1.5 + (e.stepBounceY || 0);
+            const eFacing = (currentLeader && e.x > currentLeader.x) ? -1 : 1;
 
             drawSoftGroundShadow(ctx, cx, baseY + 1, e.isBoss ? 21 : 15, e.isBoss ? 8 : 6);
 
@@ -2461,29 +2495,42 @@ function drawGame() {
                 ctx.restore();
             }
 
-            drawEnemyFigure(ctx, e, cx, baseY + bobY, torchFlickerPhase + eIdx, e.hitFlash || null);
+            drawEnemyFigure(ctx, e, cx, baseY + bobY, torchFlickerPhase + eIdx, e.hitFlash || null, eFacing);
 
             if (e.isBoss || e.affix || e.hp < e.maxHp || inCurrentBattle) {
-                const barW = e.isBoss ? 46 : 38;
+                const barW = e.isBoss ? 48 : 36;
                 const barX = cx - barW / 2;
-                const barY = e.y * TILE_SIZE - (e.isBoss ? 22 : 12) + (e.animOffsetY || 0) + bobY;
+                const barY = baseY - (e.isBoss ? 66 : 52) + bobY;
                 const hpPercent = Math.max(0, e.hp / e.maxHp);
 
-                ctx.fillStyle = 'rgba(14, 12, 14, 0.92)';
-                ctx.fillRect(barX - 1, barY - 1, barW + 2, 6);
-                ctx.strokeStyle = 'rgba(142, 118, 96, 0.65)';
-                ctx.lineWidth = 0.8;
-                ctx.strokeRect(barX - 1, barY - 1, barW + 2, 6);
+                // Sleek spear-pointed diegetic enemy health bar
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(barX, barY);
+                ctx.lineTo(barX + barW - 3, barY);
+                ctx.lineTo(barX + barW, barY + 2);
+                ctx.lineTo(barX + barW - 3, barY + 4);
+                ctx.lineTo(barX, barY + 4);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(10, 8, 10, 0.85)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(199, 174, 145, 0.48)';
+                ctx.lineWidth = 0.7;
+                ctx.stroke();
 
-                ctx.fillStyle = e.isBoss ? '#c7ae91' : '#a8383b';
-                ctx.fillRect(barX, barY, Math.max(0, barW * hpPercent), 4);
+                if (hpPercent > 0) {
+                    const fw = Math.max(2, (barW - 1) * hpPercent);
+                    ctx.fillStyle = e.isBoss ? '#d4af5f' : '#b8373a';
+                    ctx.fillRect(barX + 0.5, barY + 0.5, fw, 3);
+                }
+                ctx.restore();
             }
 
             if (typeof hasBestiaryMastery === 'function' && hasBestiaryMastery(e)) {
                 ctx.save();
                 ctx.fillStyle = '#e2ceb4';
                 ctx.font = 'bold 9px Almendra, Cinzel, serif';
-                ctx.fillText('◆', cx + 14, e.y * TILE_SIZE + 6);
+                ctx.fillText('◆', cx + 14, baseY - 40);
                 ctx.restore();
             }
         });
@@ -2492,9 +2539,12 @@ function drawGame() {
             const p = party[i];
             if (p.hp <= 0 || p.y !== y) continue;
 
-            const cx = p.x * TILE_SIZE + TILE_SIZE / 2 + (p.animOffsetX || 0);
-            const baseY = p.y * TILE_SIZE + TILE_SIZE - 6 + (p.animOffsetY || 0);
-            const bobY = Math.sin(torchFlickerPhase * 1.2 + i * 1.3) * 1.3;
+            const cx = p.x * TILE_SIZE + TILE_SIZE / 2 + (p.stepOffsetX || 0) + (p.animOffsetX || 0);
+            const baseY = p.y * TILE_SIZE + TILE_SIZE - 6 + (p.stepOffsetY || 0) + (p.animOffsetY || 0);
+            const bobY = Math.sin(torchFlickerPhase * 1.2 + i * 1.3) * 1.1 + (p.stepBounceY || 0);
+            const hFacing = (gameMode === 'COMBAT' && activeEnemy)
+                ? (activeEnemy.x < p.x ? -1 : 1)
+                : (p.facing || 1);
 
             drawSoftGroundShadow(ctx, cx, baseY + 1, 16, 6);
 
@@ -2508,15 +2558,19 @@ function drawGame() {
                 ctx.restore();
             }
 
-            drawHeroFigure(ctx, p.role, cx, baseY + bobY, torchFlickerPhase + i, 1.0, p.hitFlash || null);
+            drawHeroFigure(ctx, p.role, cx, baseY + bobY, torchFlickerPhase + i, 1.0, p.hitFlash || null, hFacing);
+
+            if (p === currentLeader && typeof drawHeldTorch === 'function') {
+                drawHeldTorch(ctx, cx, baseY + bobY, hFacing, torchLight, torchFlickerPhase);
+            }
 
             if (p === currentLeader) {
                 ctx.save();
                 ctx.fillStyle = '#e2ceb4';
                 ctx.beginPath();
                 ctx.moveTo(cx, baseY - 49 + bobY);
-                ctx.lineTo(cx - 4, baseY - 54 + bobY);
-                ctx.lineTo(cx + 4, baseY - 54 + bobY);
+                ctx.lineTo(cx - 3.5, baseY - 53 + bobY);
+                ctx.lineTo(cx + 3.5, baseY - 53 + bobY);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();

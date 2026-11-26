@@ -1473,12 +1473,27 @@ function moveParty(dx, dy) {
         return false;
     }
 
+    // Record smooth walking interpolation & facing direction for realistic stride physics
     for (let i = aliveMembers.length - 1; i > 0; i--) {
-        aliveMembers[i].x = aliveMembers[i - 1].x;
-        aliveMembers[i].y = aliveMembers[i - 1].y;
+        const m = aliveMembers[i];
+        const prev = aliveMembers[i - 1];
+        m.walkFromX = m.x;
+        m.walkFromY = m.y;
+        if (prev.x !== m.x) m.facing = prev.x > m.x ? 1 : -1;
+        m.x = prev.x;
+        m.y = prev.y;
+        m.walkProgress = 1.0;
     }
+    leader.walkFromX = leader.x;
+    leader.walkFromY = leader.y;
+    if (dx !== 0) leader.facing = dx > 0 ? 1 : -1;
     leader.x = nx;
     leader.y = ny;
+    leader.walkProgress = 1.0;
+
+    if (typeof spawnFootstepDust === 'function') {
+        spawnFootstepDust(leader.walkFromX, leader.walkFromY, dx, dy);
+    }
 
     const torchDrain = (getCurrentBiome().id === 'void') ? 3 : 2;
     const modDrain = (typeof floorModifier !== 'undefined' && floorModifier === 'darkness') ? torchDrain * 2 : torchDrain;
